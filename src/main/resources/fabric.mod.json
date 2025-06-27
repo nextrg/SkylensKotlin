@@ -11,9 +11,6 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "org.nextrg.skylens.client.SkylensClient"
-    ],
-    "main": [
       "org.nextrg.skylens.Skylens"
     ]
   },
