@@ -10,15 +10,15 @@ import org.nextrg.skylens.features.PetOverlay
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
         getModContainer()
-        MissingEnchants.init()
-        PetOverlay.init()
+        MissingEnchants.prepare()
+        PetOverlay.prepare()
     }
 
     companion object {
         private var mod: ModContainer? = null
 
         fun getModContainer() {
-            mod = FabricLoader.getInstance().getModContainer("skylens").get();
+            mod = FabricLoader.getInstance().getModContainer("skylens").get()
         }
 
         fun id(path: String?): Identifier {

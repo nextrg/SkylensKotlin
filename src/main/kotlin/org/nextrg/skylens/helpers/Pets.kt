@@ -11,280 +11,270 @@ import net.minecraft.item.Items
 import net.minecraft.screen.slot.Slot
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
-import org.nextrg.skylens.features.PetOverlay.Companion.hideOverlay
-import org.nextrg.skylens.features.PetOverlay.Companion.showOverlay
-import org.nextrg.skylens.features.PetOverlay.Companion.updatePet
-import org.nextrg.skylens.features.PetOverlay.Companion.updatePetStatistics
-import org.nextrg.skylens.helpers.Other.Companion.getTabData
-import org.nextrg.skylens.helpers.Other.Companion.sToMs
-import org.nextrg.skylens.helpers.Pets.Pets.checkPetScreen
-import org.nextrg.skylens.helpers.Pets.Pets.currentPet
-import org.nextrg.skylens.helpers.Pets.Pets.level
-import org.nextrg.skylens.helpers.Pets.Pets.maxLevel
-import org.nextrg.skylens.helpers.Pets.Pets.messageEvents
-import org.nextrg.skylens.helpers.Pets.Pets.readInventory
-import org.nextrg.skylens.helpers.Pets.Pets.readTab
-import org.nextrg.skylens.helpers.Pets.Pets.xp
-import org.nextrg.skylens.helpers.Text.Companion.colorFromCode
-import org.nextrg.skylens.helpers.Text.Companion.colorToRarity
-import org.nextrg.skylens.helpers.Text.Companion.toFixed
-import org.nextrg.skylens.helpers.Tooltips.Companion.tooltipFromItemStack
+import org.nextrg.skylens.features.PetOverlay.hideOverlay
+import org.nextrg.skylens.features.PetOverlay.showOverlay
+import org.nextrg.skylens.features.PetOverlay.updatePet
+import org.nextrg.skylens.features.PetOverlay.updatePetStatistics
+import org.nextrg.skylens.helpers.Other.getTabData
+import org.nextrg.skylens.helpers.Other.sToMs
+import org.nextrg.skylens.helpers.Text.colorFromCode
+import org.nextrg.skylens.helpers.Text.colorToRarity
+import org.nextrg.skylens.helpers.Text.toFixed
+import org.nextrg.skylens.helpers.Tooltips.tooltipFromItemStack
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-class Pets {
-    companion object {
-        fun init() {
-            ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
-                messageEvents(message)
-            })
-            ScreenEvents.BEFORE_INIT.register(ScreenEvents.BeforeInit { _, screen, _, _ ->
-                if (screen is GenericContainerScreen && screen.title.string.startsWith("Pets")) {
-                    readInventory(screen)
-                }
-            })
-            ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client ->
-                checkPetScreen(client)
-                readTab(client, true)
-            })
-        }
-
-        fun getCurrentPet(): ItemStack = currentPet
-
-        fun getPetLevel(): Int = level
-        fun getPetMaxLevel(): Int = maxLevel
-        fun getPetXp(): Float = xp
-
-        fun getPetRarity(element: Text): String {
-            return colorToRarity(element.style.color.toString())
-        }
-
-        fun getPetRarityText(pet: ItemStack): Text {
-            val siblings = pet.customName?.siblings
-            return if (siblings != null && siblings.size > 1) {
-                siblings[1]
-            } else {
-                Text.empty()
+object Pets {
+    fun init() {
+        ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
+            messageEvents(message)
+        })
+        ScreenEvents.BEFORE_INIT.register(ScreenEvents.BeforeInit { _, screen, _, _ ->
+            if (screen is GenericContainerScreen && screen.title.string.startsWith("Pets")) {
+                readInventory(screen)
             }
-        }
+        })
+        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client ->
+            checkPetScreen(client)
+            readTab(client, true)
+        })
+    }
 
-        fun isGoldenDragon(string: String): Boolean {
-            return string.contains(Regex("(Golden|Jade) Dragon"))
+    fun getCurrentPet(): ItemStack = currentPet
+
+    fun getPetLevel(): Int = level
+    fun getPetMaxLevel(): Int = maxLevel
+    fun getPetXp(): Float = xp
+
+    fun getPetRarity(element: Text): String {
+        return colorToRarity(element.style.color.toString())
+    }
+
+    fun getPetRarityText(pet: ItemStack): Text {
+        val siblings = pet.customName?.siblings
+        return if (siblings != null && siblings.size > 1) {
+            siblings[1]
+        } else {
+            Text.empty()
         }
     }
 
-    object Pets {
-        private val AUTOPET_PATTERN = Pattern.compile("^Autopet equipped your \\[Lvl (\\d+)] (.+)! VIEW RULE$")
-        private val SUMMON_PATTERN: Pattern = Pattern.compile("You (summoned|despawned) your (.+?)!")
+    fun isGoldenDragon(string: String): Boolean {
+        return string.contains(Regex("(Golden|Jade) Dragon"))
+    }
 
-        private val scheduler = Executors.newScheduledThreadPool(1)
-        private var scheduledResetTask: ScheduledFuture<*>? = null
+    private val AUTOPET_PATTERN = Pattern.compile("^Autopet equipped your \\[Lvl (\\d+)] (.+)! VIEW RULE$")
+    private val SUMMON_PATTERN: Pattern = Pattern.compile("You (summoned|despawned) your (.+?)!")
 
-        private var cachedPets: MutableList<ItemStack> = mutableListOf()
-        private var isPetMenu = false
-        private var currentPetScreen: Screen? = null
+    private val scheduler = Executors.newScheduledThreadPool(1)
+    private var scheduledResetTask: ScheduledFuture<*>? = null
 
-        private var lastUpdate = System.currentTimeMillis()
-        private var updateByTab = true
+    private var cachedPets: MutableList<ItemStack> = mutableListOf()
+    private var isPetMenu = false
+    private var currentPetScreen: Screen? = null
 
-        var currentPet: ItemStack = ItemStack(Items.BONE)
-        var level: Int = 1
-        var maxLevel: Int = 100
-        var xp: Float = 0f
+    private var lastUpdate = System.currentTimeMillis()
+    private var updateByTab = true
 
-        fun checkPetScreen(client: MinecraftClient) {
-            val screen = client.currentScreen
-            if (isPetMenu && (screen !is GenericContainerScreen || screen.title.string?.startsWith("Pets") != true)) {
-                isPetMenu = false
-                currentPetScreen = null
+    private var currentPet: ItemStack = ItemStack(Items.BONE)
+    private var level: Int = 1
+    private var maxLevel: Int = 100
+    private var xp: Float = 0f
+
+    fun checkPetScreen(client: MinecraftClient) {
+        val screen = client.currentScreen
+        if (isPetMenu && (screen !is GenericContainerScreen || screen.title.string?.startsWith("Pets") != true)) {
+            isPetMenu = false
+            currentPetScreen = null
+        }
+    }
+
+    private fun getPetSlots(screen: GenericContainerScreen): List<Slot> {
+        return screen.screenHandler.slots
+            .filter { it.id in 10..43 && it.id % 9 in 1..7 }
+    }
+
+    private fun getPetStats(pet: ItemStack) {
+        val tooltip = tooltipFromItemStack(pet)
+        val petName = pet.customName ?: return
+        level = parseLevel(petName, 0)
+        maxLevel = if (isGoldenDragon(petName.string)) 200 else 100
+
+        for (line in tooltip) {
+            val string = line.toString()
+
+            if (string.contains("Progress to") && string.contains("%")) {
+                if (line.siblings.size < 2) return
+                val displayXp = line.siblings[1].string.replace("%", "")
+                xp = (displayXp.toFloat() / 100f).toFixed(3)
+            }
+
+            if (string.contains("MAX LEVEL")) {
+                xp = 1f
+                level = maxLevel
             }
         }
 
-        private fun getPetSlots(screen: GenericContainerScreen): List<Slot> {
-            return screen.screenHandler.slots
-                .filter { it.id in 10..43 && it.id % 9 in 1..7 }
+        updatePetStatistics()
+    }
+
+    private fun findTabIndices(list: List<Text>): Pair<Int, Int> {
+        return list.withIndex().fold(3 to 45) { (lvlIdx, xpIdx), (i, text) ->
+            val s = text.toString()
+            val newLvl = if ("[Lvl" in s) i else lvlIdx
+            val newXp = if ("XP" in s && "/" in s && "%" in s) i else xpIdx
+            newLvl to newXp
+        }
+    }
+
+    private fun parseLevel(text: Text?, index: Int): Int {
+        return text?.siblings?.getOrNull(index)?.string
+            ?.replace(Regex("""\[Lvl (\d+)]"""), "$1")
+            ?.trim()
+            ?.toIntOrNull() ?: 1
+    }
+
+    private fun parseXp(text: Text?): Float {
+        return text?.siblings?.getOrNull(4)?.string
+            ?.removePrefix("(")
+            ?.removeSuffix("%)")
+            ?.trim()
+            ?.toFloatOrNull()
+            ?.div(100) ?: 0f
+    }
+
+    // Real-time updating values based on tab list, updates every 2.5 seconds
+    fun readTab(client: MinecraftClient, cooldown: Boolean) {
+        if (System.currentTimeMillis() - lastUpdate < 2500 && cooldown) return
+        lastUpdate = System.currentTimeMillis()
+
+        if (!updateByTab) return
+
+        val currentPetText = getPetRarityText(currentPet)
+        if (currentPetText == Text.empty()) return
+
+        val currentRarity = getPetRarity(currentPetText)
+
+        val list = getTabData(client)
+        val (levelIndex, xpIndex) = findTabIndices(list)
+
+        val tabPet = list.getOrNull(levelIndex) ?: return
+        if (tabPet.siblings.size < 3) return
+
+        val tabName = tabPet.siblings[2]
+        val tabRarity = getPetRarity(tabName)
+        val tabPetName = tabName.string
+
+        if (currentPetText.string != tabPetName && currentRarity != tabRarity) return
+
+        level = parseLevel(tabPet, 1)
+        maxLevel = if (isGoldenDragon(tabPetName)) 200 else 100
+        xp = if (!tooltipFromItemStack(currentPet).toString().contains("MAX LEVEL")) {
+            parseXp(list.getOrNull(xpIndex))
+        } else {
+            1f
         }
 
-        private fun getPetStats(pet: ItemStack) {
-            val tooltip = tooltipFromItemStack(pet)
-            val petName = pet.customName ?: return
-            level = parseLevel(petName, 0)
-            maxLevel = if (isGoldenDragon(petName.string)) 200 else 100
+        updatePetStatistics()
+    }
 
-            for (line in tooltip) {
-                val string = line.toString()
+    fun readInventory(screen: GenericContainerScreen) {
+        if (screen == currentPetScreen) return
+        currentPetScreen = screen; isPetMenu = true;
+        var hasCached = false
 
-                if (string.contains("Progress to") && string.contains("%")) {
-                    if (line.siblings.size < 2) return
-                    val displayXp = line.siblings[1].string.replace("%", "")
-                    xp = (displayXp.toFloat() / 100f).toFixed(3)
-                }
+        ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
+            if (!isPetMenu || hasCached) return@AfterTick
 
-                if (string.contains("MAX LEVEL")) {
-                    xp = 1f
-                    level = maxLevel
-                }
-            }
+            cachedPets.clear()
 
-            updatePetStatistics()
-        }
+            var equippedPet = "";
+            var rarity = "common"
 
-        private fun findTabIndices(list: List<Text>): Pair<Int, Int> {
-            return list.withIndex().fold(3 to 45) { (lvlIdx, xpIdx), (i, text) ->
-                val s = text.toString()
-                val newLvl = if ("[Lvl" in s) i else lvlIdx
-                val newXp = if ("XP" in s && "/" in s && "%" in s) i else xpIdx
-                newLvl to newXp
-            }
-        }
-
-        private fun parseLevel(text: Text?, index: Int): Int {
-            return text?.siblings?.getOrNull(index)?.string
-                ?.replace(Regex("""\[Lvl (\d+)]"""), "$1")
-                ?.trim()
-                ?.toIntOrNull() ?: 1
-        }
-
-        private fun parseXp(text: Text?): Float {
-            return text?.siblings?.getOrNull(4)?.string
-                ?.removePrefix("(")
-                ?.removeSuffix("%)")
-                ?.trim()
-                ?.toFloatOrNull()
-                ?.div(100) ?: 0f
-        }
-
-        // Real-time updating values based on tab list, updates every 2.5 seconds
-        fun readTab(client: MinecraftClient, cooldown: Boolean) {
-            if (System.currentTimeMillis() - lastUpdate < 2500 && cooldown) return
-            lastUpdate = System.currentTimeMillis()
-
-            if (!updateByTab) return
-
-            val currentPetText = getPetRarityText(currentPet)
-            if (currentPetText == Text.empty()) return
-
-            val currentRarity = getPetRarity(currentPetText)
-
-            val list = getTabData(client)
-            val (levelIndex, xpIndex) = findTabIndices(list)
-
-            val tabPet = list.getOrNull(levelIndex) ?: return
-            if (tabPet.siblings.size < 3) return
-
-            val tabName = tabPet.siblings[2]
-            val tabRarity = getPetRarity(tabName)
-            val tabPetName = tabName.string
-
-            if (currentPetText.string != tabPetName && currentRarity != tabRarity) return
-
-            level = parseLevel(tabPet, 1)
-            maxLevel = if (isGoldenDragon(tabPetName)) 200 else 100
-            xp = if (!tooltipFromItemStack(currentPet).toString().contains("MAX LEVEL")) {
-                parseXp(list.getOrNull(xpIndex))
-            } else {
-                1f
-            }
-
-            updatePetStatistics()
-        }
-
-        fun readInventory(screen: GenericContainerScreen) {
-            if (screen == currentPetScreen) return
-            currentPetScreen = screen; isPetMenu = true; var hasCached = false
-
-            ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
-                if (!isPetMenu || hasCached) return@AfterTick
-
-                cachedPets.clear()
-
-                var equippedPet = ""; var rarity = "common"
-
-                getPetSlots(screen).forEach { slot ->
-                    val stack = slot.stack
-                    if (!stack.isEmpty && stack.item == Items.PLAYER_HEAD) {
-                        cachedPets.add(stack)
-                        val content = tooltipFromItemStack(stack).toString()
-                        if (content.contains("Click to despawn!")) {
-                            if (stack.customName != null) {
-                                equippedPet = stack.customName!!.string
-                                rarity = getPetRarity(stack.customName!!)
-                            }
+            getPetSlots(screen).forEach { slot ->
+                val stack = slot.stack
+                if (!stack.isEmpty && stack.item == Items.PLAYER_HEAD) {
+                    cachedPets.add(stack)
+                    val content = tooltipFromItemStack(stack).toString()
+                    if (content.contains("Click to despawn!")) {
+                        if (stack.customName != null) {
+                            equippedPet = stack.customName!!.string
+                            rarity = getPetRarity(stack.customName!!)
                         }
                     }
                 }
-
-                findPetFromInventory(equippedPet, rarity)
-                hasCached = true
-            })
-        }
-
-        private fun findPetFromInventory(petName: String, rarity: String) {
-            for (pet in cachedPets) {
-                val cachedPetName = pet.customName
-                val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
-                val petRarity = getPetRarity(getPetRarityText(pet))
-                if (nameWithoutFormat?.contains(petName) == true && petRarity == rarity) {
-                    updateByTab = false
-
-                    scheduledResetTask?.cancel(false)
-
-                    scheduledResetTask = scheduler.schedule({
-                        updateByTab = true; scheduledResetTask = null
-                    }, sToMs(2.5f), TimeUnit.MILLISECONDS)
-
-                    currentPet = pet; updatePet(); getPetStats(pet)
-                    break
-                }
-            }
-        }
-
-        fun messageEvents(message: Text) {
-            val string = message.string
-            val content = Formatting.strip(string).toString()
-            if (content.contains("You summoned your") || content.contains("You despawned your")) {
-                val matcher = SUMMON_PATTERN.matcher(content)
-                if (matcher.find()) {
-                    if (matcher.group(1) == "summoned") {
-                        val rarity = colorToRarity(message.siblings[1].style.color.toString())
-                        findPetFromInventory(matcher.group(2), rarity)
-                        showOverlay()
-                    }
-                    if (matcher.group(1) == "despawned") {
-                        hideOverlay()
-                    }
-                }
             }
 
-            if (content.contains("Autopet")) {
-                val matcher = AUTOPET_PATTERN.matcher(content)
-                if (matcher.find()) {
-                    val autopetLevel = matcher.group(1)
-                    val autopetPet = matcher.group(2)
+            findPetFromInventory(equippedPet, rarity)
+            hasCached = true
+        })
+    }
 
-                    val matchIndex = string.indexOf(autopetLevel) + autopetLevel.length - 2
-                    var rarity = "common"
+    private fun findPetFromInventory(petName: String, rarity: String) {
+        for (pet in cachedPets) {
+            val cachedPetName = pet.customName
+            val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
+            val petRarity = getPetRarity(getPetRarityText(pet))
+            if (nameWithoutFormat?.contains(petName) == true && petRarity == rarity) {
+                updateByTab = false
 
-                    if (matchIndex != -1 && matchIndex + 6 <= string.length) {
-                        val input = string.substring(matchIndex + 4, matchIndex + 6)
-                        val color = colorFromCode(input)
-                        if (color.size > 1) {
-                            rarity = color[1]
-                        }
-                    }
+                scheduledResetTask?.cancel(false)
 
-                    findPetFromInventory(autopetPet, rarity)
+                scheduledResetTask = scheduler.schedule({
+                    updateByTab = true; scheduledResetTask = null
+                }, sToMs(2.5f), TimeUnit.MILLISECONDS)
+
+                currentPet = pet; updatePet(); getPetStats(pet)
+                break
+            }
+        }
+    }
+
+    fun messageEvents(message: Text) {
+        val string = message.string
+        val content = Formatting.strip(string).toString()
+        if (content.contains("You summoned your") || content.contains("You despawned your")) {
+            val matcher = SUMMON_PATTERN.matcher(content)
+            if (matcher.find()) {
+                if (matcher.group(1) == "summoned") {
+                    val rarity = colorToRarity(message.siblings[1].style.color.toString())
+                    findPetFromInventory(matcher.group(2), rarity)
                     showOverlay()
                 }
+                if (matcher.group(1) == "despawned") {
+                    hideOverlay()
+                }
             }
+        }
 
-            if (content.contains("Welcome to Hypixel Skyblock!")) {
-                scheduler.schedule({
-                    readTab(MinecraftClient.getInstance(), false)
-                }, sToMs(1.25f), TimeUnit.MILLISECONDS)
+        if (content.contains("Autopet")) {
+            val matcher = AUTOPET_PATTERN.matcher(content)
+            if (matcher.find()) {
+                val autopetLevel = matcher.group(1)
+                val autopetPet = matcher.group(2)
+
+                val matchIndex = string.indexOf(autopetLevel) + autopetLevel.length - 2
+                var rarity = "common"
+
+                if (matchIndex != -1 && matchIndex + 6 <= string.length) {
+                    val input = string.substring(matchIndex + 4, matchIndex + 6)
+                    val color = colorFromCode(input)
+                    if (color.size > 1) {
+                        rarity = color[1]
+                    }
+                }
+
+                findPetFromInventory(autopetPet, rarity)
+                showOverlay()
             }
+        }
+
+        if (content.contains("Welcome to Hypixel Skyblock!")) {
+            scheduler.schedule({
+                readTab(MinecraftClient.getInstance(), false)
+            }, sToMs(1.25f), TimeUnit.MILLISECONDS)
         }
     }
 }
