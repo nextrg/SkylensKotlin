@@ -1,17 +1,25 @@
 package org.nextrg.skylens
 
+import com.mojang.brigadier.CommandDispatcher
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
+import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.util.Identifier
+import org.nextrg.skylens.ModConfig.openConfig
 import org.nextrg.skylens.features.MissingEnchants
 import org.nextrg.skylens.features.PetOverlay
 
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
         getModContainer()
+        ModConfig().init()
         MissingEnchants.prepare()
         PetOverlay.prepare()
+        registerCommands()
     }
 
     companion object {
@@ -23,6 +31,15 @@ class Skylens : ClientModInitializer {
 
         fun id(path: String?): Identifier {
             return Identifier.of(mod?.metadata?.id ?: "", path)
+        }
+
+        fun registerCommands() {
+            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, _: CommandRegistryAccess? ->
+                dispatcher.register(ClientCommandManager.literal("skylens").executes {
+                    openConfig()
+                    1
+                })
+            })
         }
     }
 }

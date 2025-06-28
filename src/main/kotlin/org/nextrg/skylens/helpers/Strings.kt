@@ -1,8 +1,6 @@
 package org.nextrg.skylens.helpers
 
-import kotlin.math.pow
-
-object Text {
+object Strings {
     fun codeFromName(input: String): String {
         return when (input.replace("_".toRegex(), "")) {
             "darkblue" -> "§1"
@@ -73,11 +71,5 @@ object Text {
             .joinToString(" ") { word ->
                 word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             }
-    }
-
-    // JS function
-    fun Float.toFixed(decimals: Int): Float {
-        val factor = 10.0.pow(decimals).toFloat()
-        return kotlin.math.round(this * factor) / factor
     }
 }

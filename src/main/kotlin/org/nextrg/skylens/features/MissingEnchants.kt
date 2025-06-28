@@ -5,21 +5,20 @@ import com.google.gson.JsonObject
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
-import org.nextrg.skylens.helpers.Files.jsonNeu
-import org.nextrg.skylens.helpers.Other.colorToARGB
+import org.nextrg.skylens.ModConfig
+import org.nextrg.skylens.helpers.Items.getItemEnchants
+import org.nextrg.skylens.helpers.Items.getItemType
+import org.nextrg.skylens.helpers.Items.getTooltipMiddle
 import org.nextrg.skylens.helpers.Other.errorMessage
-import org.nextrg.skylens.helpers.Text.codeFromName
-import org.nextrg.skylens.helpers.Text.getFormatCode
-import org.nextrg.skylens.helpers.Text.titleCase
-import org.nextrg.skylens.helpers.Tooltips.getItemType
-import org.nextrg.skylens.helpers.Tooltips.getTooltipMiddle
+import org.nextrg.skylens.helpers.Other.jsonNeu
+import org.nextrg.skylens.helpers.Strings.codeFromName
+import org.nextrg.skylens.helpers.Strings.getFormatCode
+import org.nextrg.skylens.helpers.Strings.titleCase
+import org.nextrg.skylens.helpers.Variables.colorToARGB
 import java.awt.Color
-import java.util.*
 import kotlin.math.max
 
 object MissingEnchants {
@@ -27,13 +26,6 @@ object MissingEnchants {
 
     private fun getEnchantJson() {
         enchants = jsonNeu("/refs/heads/master/constants/enchants.json")
-    }
-
-    private fun getItemEnchants(data: NbtComponent): MutableList<String> {
-        val itemEnchants: MutableList<String> = ArrayList(emptyList())
-        data.copyNbt().getCompound("enchantments").map { obj: NbtCompound -> obj.keys }
-            .orElse(emptySet()).forEach { e -> itemEnchants.add(e.lowercase()) }
-        return itemEnchants
     }
 
     private fun getMissingEnchants(
@@ -85,53 +77,55 @@ object MissingEnchants {
     }
 
     private fun display(index: Int, list: List<String>, lines: MutableList<Text>) {
-        if (index != 1) {
-            val targetIndex = index + 2
-            val symbol = if (Screen.hasShiftDown()) "✦" else "✧"
-            val color = colorToARGB(
-                if (Screen.hasShiftDown())
-                    Color(85, 255, 255) else Color(0, 170, 170)
-            )
+        if (index == 1) return
 
-            lines.add(targetIndex, Text.literal(" "))
+        val targetIndex = index + 2
+        val symbol = if (Screen.hasShiftDown()) "✦" else "✧"
+        val color = colorToARGB(
+            if (Screen.hasShiftDown())
+                Color(85, 255, 255) else Color(0, 170, 170)
+        )
 
-            if (Screen.hasShiftDown()) {
-                val displayList: MutableList<Text> = ArrayList()
-                var i = list.size - 1
-                while (i >= 0) {
-                    val sb = StringBuilder()
-                    for (j in i downTo max(0.0, (i - 2).toDouble()).toInt()) {
-                        sb.append(list[j])
-                        if (j != 0) {
-                            sb.append(codeFromName("gray")).append(getFormatCode("reset")).append(", ")
-                        }
+        lines.add(targetIndex, Text.literal(" "))
+
+        if (Screen.hasShiftDown()) {
+            val displayList: MutableList<Text> = ArrayList()
+            var i = list.size - 1
+            while (i >= 0) {
+                val sb = StringBuilder()
+                for (j in i downTo max(0.0, (i - 2).toDouble()).toInt()) {
+                    sb.append(list[j])
+                    if (j != 0) {
+                        sb.append(codeFromName("gray")).append(getFormatCode("reset")).append(", ")
                     }
-                    displayList.add(Text.literal("⋗ " + sb.toString().trim { it <= ' ' }).formatted(Formatting.GRAY))
-                    i -= 3
                 }
-                lines.addAll(targetIndex, displayList)
-            } else {
-                lines.add(targetIndex, Text.literal("⋗ Press [SHIFT] to see").formatted(Formatting.GRAY))
+                displayList.add(Text.literal("⋗ " + sb.toString().trim { it <= ' ' }).formatted(Formatting.GRAY))
+                i -= 3
             }
-
-            lines.add(targetIndex, Text.literal("$symbol Missing enchantments:").withColor(color))
+            lines.addAll(targetIndex, displayList)
+        } else {
+            lines.add(targetIndex, Text.literal("⋗ Press [SHIFT] to see").formatted(Formatting.GRAY))
         }
+
+        lines.add(targetIndex, Text.literal("$symbol Missing enchantments:").withColor(color))
     }
 
     private fun main(stack: ItemStack, lines: MutableList<Text>) {
-        if (enchants != null) {
-            val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
-            val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
-            val data = stack.components.get(DataComponentTypes.CUSTOM_DATA)
-            if (itemType != "other" && data != null) {
-                val itemEnchants = getItemEnchants(data)
-                val (missingEnchants, ultimateEnchants) = getMissingEnchants(itemType.uppercase(), itemEnchants)
-                if (missingEnchants.isNotEmpty() && itemEnchants.isNotEmpty()) {
-                    if (ultimateEnchants.isNotEmpty()) {
-                        missingEnchants.add(getFormatCode("bold") + "Any Ultimate")
-                    }
-                    display(getTooltipMiddle(lines, itemEnchants), missingEnchants, lines)
+        if (!ModConfig.missingEnchants || enchants == null) return
+
+        val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
+        val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
+        val data = stack.components.get(DataComponentTypes.CUSTOM_DATA)
+
+        if (itemType != "other" && data != null) {
+            val itemEnchants = getItemEnchants(data)
+            val (missingEnchants, ultimateEnchants) = getMissingEnchants(itemType.uppercase(), itemEnchants)
+
+            if (missingEnchants.isNotEmpty() && itemEnchants.isNotEmpty()) {
+                if (ultimateEnchants.isNotEmpty()) {
+                    missingEnchants.add(getFormatCode("bold") + "Any Ultimate")
                 }
+                display(getTooltipMiddle(lines, itemEnchants), missingEnchants, lines)
             }
         }
     }

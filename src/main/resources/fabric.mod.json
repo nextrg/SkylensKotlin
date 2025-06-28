@@ -12,6 +12,9 @@
   "entrypoints": {
     "client": [
       "org.nextrg.skylens.Skylens"
+    ],
+    "modmenu": [
+      "org.nextrg.skylens.ModConfig"
     ]
   },
   "mixins": [

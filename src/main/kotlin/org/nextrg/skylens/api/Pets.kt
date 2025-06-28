@@ -1,4 +1,4 @@
-package org.nextrg.skylens.helpers
+package org.nextrg.skylens.api
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
@@ -14,13 +14,13 @@ import net.minecraft.util.Formatting
 import org.nextrg.skylens.features.PetOverlay.hideOverlay
 import org.nextrg.skylens.features.PetOverlay.showOverlay
 import org.nextrg.skylens.features.PetOverlay.updatePet
-import org.nextrg.skylens.features.PetOverlay.updatePetStatistics
+import org.nextrg.skylens.features.PetOverlay.updateStats
+import org.nextrg.skylens.helpers.Items.tooltipFromItemStack
 import org.nextrg.skylens.helpers.Other.getTabData
-import org.nextrg.skylens.helpers.Other.sToMs
-import org.nextrg.skylens.helpers.Text.colorFromCode
-import org.nextrg.skylens.helpers.Text.colorToRarity
-import org.nextrg.skylens.helpers.Text.toFixed
-import org.nextrg.skylens.helpers.Tooltips.tooltipFromItemStack
+import org.nextrg.skylens.helpers.Strings.colorFromCode
+import org.nextrg.skylens.helpers.Strings.colorToRarity
+import org.nextrg.skylens.helpers.Variables.sToMs
+import org.nextrg.skylens.helpers.Variables.toFixed
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -117,7 +117,7 @@ object Pets {
             }
         }
 
-        updatePetStatistics()
+        updateStats()
     }
 
     private fun findTabIndices(list: List<Text>): Pair<Int, Int> {
@@ -177,7 +177,7 @@ object Pets {
             1f
         }
 
-        updatePetStatistics()
+        updateStats()
     }
 
     fun readInventory(screen: GenericContainerScreen) {

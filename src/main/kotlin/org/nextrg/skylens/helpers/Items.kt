@@ -2,11 +2,13 @@ package org.nextrg.skylens.helpers
 
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.component.type.LoreComponent
+import net.minecraft.component.type.NbtComponent
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
 import kotlin.math.abs
 
-object Tooltips {
+object Items {
     private val itemRarities = arrayOf(
         "COMMON",
         "UNCOMMON",
@@ -20,6 +22,13 @@ object Tooltips {
         "ULTIMATE",
         "ADMIN"
     )
+
+    fun getItemEnchants(data: NbtComponent): MutableList<String> {
+        val itemEnchants: MutableList<String> = ArrayList(emptyList())
+        data.copyNbt().getCompound("enchantments").map { obj: NbtCompound -> obj.keys }
+            .orElse(emptySet()).forEach { e -> itemEnchants.add(e.lowercase()) }
+        return itemEnchants
+    }
 
     private fun hasRarity(string: String): Boolean {
         return itemRarities.any { rarity -> string.contains(rarity) }
