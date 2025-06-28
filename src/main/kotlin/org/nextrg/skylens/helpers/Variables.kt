@@ -59,4 +59,8 @@ object Variables {
     fun sToMs(seconds: Float): Long {
         return (seconds * 1000).toLong()
     }
+
+    fun getAlphaProgress(amount: Float): Int {
+        return (255 * amount).toInt()
+    }
 }

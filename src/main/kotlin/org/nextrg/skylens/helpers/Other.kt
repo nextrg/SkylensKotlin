@@ -6,6 +6,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientPlayNetworkHandler
 import net.minecraft.client.network.PlayerListEntry
 import net.minecraft.text.Text
+import org.nextrg.skylens.ModConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URI
@@ -32,6 +33,14 @@ object Other {
         } catch (ignored: Exception) {
         }
         return json
+    }
+
+    fun onSkyblock(): Boolean {
+        if (ModConfig.onlySkyblock) {
+            return MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer;
+        } else {
+            return true;
+        }
     }
 
     fun getTabData(client: MinecraftClient): List<Text> {

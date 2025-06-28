@@ -14,6 +14,7 @@ import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.util.Identifier
+import net.minecraft.util.Util
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets
 import org.nextrg.skylens.api.Pets.getCurrentPet
@@ -22,8 +23,18 @@ import org.nextrg.skylens.api.Pets.getPetMaxLevel
 import org.nextrg.skylens.api.Pets.getPetRarity
 import org.nextrg.skylens.api.Pets.getPetRarityText
 import org.nextrg.skylens.api.Pets.getPetXp
+import org.nextrg.skylens.helpers.Other.onSkyblock
 import org.nextrg.skylens.helpers.Variables.animateFloat
+import org.nextrg.skylens.helpers.Variables.colorToARGB
+import org.nextrg.skylens.helpers.Variables.getAlphaProgress
+import org.nextrg.skylens.helpers.Variables.hexTransparent
 import org.nextrg.skylens.helpers.Variables.quad
+import org.nextrg.skylens.helpers.Variables.sToMs
+import org.nextrg.skylens.renderables.CircleChart
+import org.nextrg.skylens.renderables.Rendering.drawItem
+import org.nextrg.skylens.renderables.Rendering.drawText
+import org.nextrg.skylens.renderables.Rendering.legacyRoundRectangle
+import java.util.*
 import kotlin.math.max
 
 object PetOverlay {
@@ -35,84 +46,16 @@ object PetOverlay {
     private var xp: Float = 0f
     private var rarity: String = "common"
 
+    private var animatedXp: Float = 0f
+    private var animatedLevelProgress: Float = 0f
+    private var animatedLevelUp: Float = 0f
+
+    private var transitionDuration = 300L
+    private var levelUpDelay = sToMs(2f)
+
     private var transitionX = 0f
     private var transitionY = 0f
     private var hidden: Boolean = true
-
-    private fun isTransitionComplete() =
-        (transitionX == 1f && transitionY == 1f) || (transitionX == 0f && transitionY == 0f)
-
-    fun updatePet() {
-        scope.launch {
-            if (!hidden) {
-                delay(25L)
-            }
-            val update = {
-                val pet = getCurrentPet()
-                currentPet = pet
-                rarity = getPetRarity(getPetRarityText(pet))
-            }
-
-            if (isTransitionComplete()) {
-                update()
-            } else {
-                delay(475L)
-                update()
-            }
-        }
-    }
-
-    fun updateStats() {
-        scope.launch {
-            if (!hidden) {
-                delay(25L)
-            }
-            val update = {
-                level = getPetLevel()
-                maxLevel = getPetMaxLevel()
-                xp = getPetXp()
-            }
-
-            if (isTransitionComplete()) {
-                update()
-            } else {
-                delay(475L)
-                update()
-            }
-        }
-    }
-
-    private suspend fun transition(show: Boolean) {
-        animateFloat(if (show) 0f else 1f, if (show) 1f else 0f, 500L, ::quad).collect { value ->
-            transitionX = value
-            transitionY = value
-        }
-    }
-
-    private fun show(show: Boolean, offset: Boolean) {
-        scope.launch {
-            if (offset) {
-                delay(500L)
-            }
-            hidden = !show
-            transition(show)
-        }
-    }
-
-    fun showOverlay() {
-        if (hidden) {
-            show(true, false)
-        } else {
-            hideOverlay()
-            show(true, true)
-        }
-    }
-
-    fun hideOverlay() {
-        if (!hidden) {
-            show(false, false)
-        }
-    }
 
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
         "special", intArrayOf(-0x55dedf, -0xcdce, -0x88eaeb),
@@ -136,19 +79,94 @@ object PetOverlay {
         "BottomMiddle", floatArrayOf(0.5f, 1f)
     )
 
-    fun prepare() {
-        Pets.init()
-        HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
-            wrap.attachLayerAfter(
-                IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "pet-overlay"),
-                PetOverlay::prepareRender
-            )
-        })
+    private fun isTransitionComplete() = (transitionX == 1f && transitionY == 1f) || (transitionX == 0f && transitionY == 0f)
+
+    private fun launchUpdate(delayIfVisible: Long = 25L, delayIfTransition: Long = 275L, block: suspend () -> Unit) {
+        scope.launch {
+            if (!hidden) delay(delayIfVisible)
+            if (!isTransitionComplete()) delay(delayIfTransition)
+            block()
+        }
     }
 
-    private fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
-        render(drawContext)
+    fun levelUp() {
+        if (!ModConfig.petOverlayAnimation_LevelUp) return
+        scope.launch {
+            animateFloat(1f, 0f, transitionDuration * 2, ::quad).collect { animatedXp = it }
+            animateFloat(0f, 1f, transitionDuration, ::quad).collect { animatedLevelUp = it }
+            delay(levelUpDelay)
+            xp = 0f
+            animateFloat(1f, 0f, transitionDuration, ::quad).collect { animatedLevelUp = it }
+        }
+    }
+
+    fun updatePet() {
+        launchUpdate {
+            val pet = getCurrentPet()
+            currentPet = pet
+            rarity = getPetRarity(getPetRarityText(pet))
+        }
+    }
+
+    fun updateStats() {
+        if (animatedLevelUp > 0f) return
+        launchUpdate {
+            val newLevel = getPetLevel()
+            val newMaxLevel = getPetMaxLevel()
+            val newXp = getPetXp()
+
+            level = newLevel
+            maxLevel = newMaxLevel
+            xp = newXp
+
+            if (ModConfig.petOverlayAnimation_LevelXp) {
+                scope.launch {
+                    animateFloat(animatedLevelProgress, newLevel.toFloat() / newMaxLevel, transitionDuration, ::quad).collect {
+                        animatedLevelProgress = it
+                    }
+                }
+                scope.launch {
+                    animateFloat(animatedXp, newXp, transitionDuration, ::quad).collect {
+                        animatedXp = it
+                    }
+                }
+            } else {
+                animatedLevelProgress = newLevel.toFloat() / newMaxLevel
+                animatedXp = newXp
+            }
+        }
+    }
+
+    private suspend fun transition(show: Boolean) {
+        animateFloat(if (show) 0f else 1f, if (show) 1f else 0f, transitionDuration, ::quad).collect { value ->
+            transitionX = value
+            transitionY = value
+        }
+    }
+
+    private fun show(show: Boolean, offset: Boolean) {
+        scope.launch {
+            if (offset) {
+                delay(transitionDuration)
+            }
+            hidden = !show
+            transition(show)
+        }
+    }
+
+    fun showOverlay() {
+        if (hidden) {
+            show(true, false)
+        } else {
+            hideOverlay()
+            show(true, true)
+        }
+    }
+
+    fun hideOverlay() {
+        if (!hidden) {
+            show(false, false)
+        }
     }
 
     private fun getAnimationOffset(x: Float, y: Float): Pair<Float, Float> {
@@ -172,11 +190,11 @@ object PetOverlay {
         val marginX = 2 * (1 - anchorsX * 2)
         val marginY = 2 * (1 - anchorsY * 2)
 
-        val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 2f, screenWidth.toFloat() - 2 - 50)
-        val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 2f, screenHeight.toFloat() - 10)
+        val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 1f, screenWidth.toFloat() - 2 - 50)
+        val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 17f, screenHeight.toFloat() - 10)
 
         var (offsetX, offsetY) = getAnimationOffset(anchorsX, anchorsY)
-        offsetX += x - anchorX - marginX
+        offsetX -= (x - anchorX - marginX) * (1 - anchorsX * 2)
         offsetY += (y - anchorY - marginY) * (1 - anchorsY * 2)
 
         if (selectedAnchor == "TopMiddle" || selectedAnchor == "BottomMiddle") {
@@ -189,44 +207,125 @@ object PetOverlay {
         return finalX to finalY
     }
 
+    private fun getColors(rarity: String): Triple<Int, Int, Int> {
+        val configTheme = ModConfig.petOverlayTheme.toString()
+        val isCustom = configTheme == "Custom"
+
+        val displayTheme = when {
+            configTheme == "Pet" -> rarity
+            isCustom -> rarity
+            else -> configTheme
+        }
+
+        return if (!isCustom) {
+            val colors = rarityColors[displayTheme.lowercase()]
+                ?: error("[Skylens] Missing theme: $displayTheme")
+            Triple(colors[0], colors[1], colors[2])
+        } else {
+            Triple(
+                colorToARGB(ModConfig.petOverlayColor2),
+                colorToARGB(ModConfig.petOverlayColor1),
+                colorToARGB(ModConfig.petOverlayColor3)
+            )
+        }
+    }
+
+    fun prepare() {
+        Pets.init()
+        HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
+            wrap.attachLayerAfter(
+                IdentifiedLayer.HOTBAR_AND_BARS,
+                Identifier.of("skylens", "pet-overlay"),
+                PetOverlay::prepareRender
+            )
+        })
+    }
+
+    private fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
+        render(drawContext)
+    }
+
     fun render(drawContext: DrawContext) {
-        if (!ModConfig.petOverlay) return
+        if (!ModConfig.petOverlay || !onSkyblock()) return
 
-        var textRenderer = MinecraftClient.getInstance().textRenderer
         val (x, y) = getPosition()
+        var (color1, color2, color3) = getColors(rarity)
 
-        val textLevel = "Lvl $level"
-        val textXp = (xp * 100).toString().replace(".0", "") + "%"
-        val levelProgress: Float = level.toFloat() / maxLevel.toFloat()
+        val textColor = color2
+        if (ModConfig.petOverlayInvert) {
+            color1 = color2.also { color2 = color1 }
+        }
 
-        renderBars(drawContext, x.toInt(), y.toInt(), levelProgress)
-        // circular display: to be done
-        drawContext.drawItem(currentPet, x.toInt() + 5, y.toInt() - 17)
-        drawContext.drawCenteredTextWithShadow(textRenderer, textLevel, x.toInt() + 32, y.toInt() - 12, rarityColors[rarity]!![1])
-        drawContext.drawCenteredTextWithShadow(textRenderer, textXp, x.toInt() + 32, y.toInt() - 12, rarityColors[rarity]!![1])
+        if (ModConfig.petOverlayType == ModConfig.Type.Bar) {
+            renderBars(drawContext, x.toInt(), y.toInt(), animatedLevelProgress, color1, color2, color3)
+        } else {
+            renderCircles(drawContext, x.toInt(), y.toInt(), animatedLevelProgress, color1, color2, color3)
+        }
+        renderText(drawContext, x, y, textColor)
     }
 
-    private fun renderBars(drawContext: DrawContext, x: Int, y: Int, maxLevelProgress: Float) {
-        renderBar(drawContext, x - 2, y - 2, 51 + 4, 8 + 4, 0x34000000, 6.5f)
-        renderBar(drawContext, x - 1, y - 1, 51 + 2, 8 + 2, 0x64000000, 6.5f)
-        renderBar(drawContext, x, y, 51, 8, rarityColors[rarity]!![2], 4.5f)
-        renderBar(drawContext, x, y, max(8, (51 * maxLevelProgress).toInt()), 8, rarityColors[rarity]!![1], 4.5f)
-        renderBar(drawContext, x + 2, y + 2, max(2, (47 * xp).toInt()), 4, rarityColors[rarity]!![0], 2.5f)
+    private fun renderText(drawContext: DrawContext, x: Float, y: Float, color: Int) {
+        val isLevelMax = level == maxLevel
+        val barStyle = ModConfig.petOverlayType == ModConfig.Type.Bar
+        val flipped = ModConfig.petOverlayFlip
+
+        val iconX = x + 3 + (if (!barStyle) 1 else 0) + if (barStyle && flipped) 29 else 0
+        val iconY = y - 17 + (if (!barStyle) 4 else 0)
+
+        val textX = x + 34 - (if (!barStyle) 21.5f else 0f) - if (barStyle && flipped) 16 else 0
+        val textY = y - 10 - (if (!barStyle) 15.5f else 0f)
+
+        val displayLevel = if (isLevelMax) "LV MX" else "Lvl $level"
+        if (!isLevelMax) {
+            val displayXp = String.format(Locale.US, (if (animatedXp >= 0.1) "%.1f%%" else "%.2f%%"), animatedXp * 100)
+            val levelTextY = textY - (3 * animatedLevelUp)
+            drawText(drawContext, displayXp, textX, levelTextY,
+                hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
+                1f, true, true)
+            drawText(drawContext, "LV UP", textX, levelTextY,
+                hexTransparent(color, 10.coerceAtLeast((animatedLevelUp * 255).toInt())),
+                1f, true, true)
+        }
+
+        drawText(drawContext, displayLevel, textX - if (isLevelMax) 0.5f else 0f, textY - 6 + if (isLevelMax) 3.5f else 0f,
+            hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
+            if (isLevelMax) 0.9f else 0.8f, true, true)
+
+        drawItem(drawContext, currentPet, iconX, iconY, 1f)
     }
 
-    private fun renderCircles(drawContext: DrawContext, x: Int, y: Int, maxLevelProgress: Float) {
+    private fun renderBars(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
+        if (ModConfig.petOverlayAnimation_Idle) {
+            val idleProgress = (Util.getMeasuringTimeMs() / 2000.0).toFloat() % 1
+            legacyRoundRectangle(
+                drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
+                46 + (idleProgress * 13), 4 + (idleProgress * 12),
+                12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
+            )
+        }
 
+        // Shadow
+        RoundedRectangle.draw(drawContext, x - 2, y - 2, 51 + 4, 8 + 4, 0x34000000, 0, 6.5f, 0)
+        RoundedRectangle.draw(drawContext, x - 1, y - 1, 51 + 2, 8 + 2, 0x64000000, 0, 6.5f, 0)
+        // Background
+        RoundedRectangle.draw(drawContext, x, y, 51, 8, color3, 0, 4.5f, 0)
+        // Level
+        RoundedRectangle.draw(drawContext, x, y, max(8, (51 * levelProgress).toInt()), 8, color2, 0, 4.5f, 0)
+        // XP
+        RoundedRectangle.draw(drawContext, x + 2, y + 2, max(2, (47 * animatedXp).toInt()), 4, color1, 0,2.5f, 0)
     }
 
-    private fun renderBar(
-        drawContext: DrawContext,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        color: Int,
-        radius: Float
-    ) {
-        RoundedRectangle.draw(drawContext, x, y, width, height, color, 0, radius, 0)
+    private fun renderCircles(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
+        val alt = ModConfig.petOverlayType == ModConfig.Type.CircularALT
+        // Background
+        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 13.1f, 0x34000000, 0x34000000, 0f, 0f, false, false)
+        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 12.5f, color2, color2, 0f, 0f, false, false)
+        // Level
+        CircleChart.draw(drawContext, x + 12, y - 4, levelProgress * 1.01f, 12.7f, color3, color3, Math.PI.toFloat() / 2, 0f, true, false)
+        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 10.54f, color3, color3, 0f, 0f, false, false)
+        // XP
+        CircleChart.draw(drawContext, x + 12, y - 4, animatedXp * 1.01f, 10.52f - if (alt) 1.5f else 0f, color1, color1, Math.PI.toFloat() / 2, 0f, false, false)
+        // Icon Background
+        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 6f, color3, color3, 0f, 0f, false, false)
     }
 }

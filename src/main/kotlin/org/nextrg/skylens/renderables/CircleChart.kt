@@ -1,4 +1,4 @@
-package org.nextrg.skylens.client.rendering
+package org.nextrg.skylens.renderables
 
 import com.mojang.blaze3d.pipeline.BlendFunction
 import com.mojang.blaze3d.pipeline.RenderPipeline
@@ -18,7 +18,7 @@ import org.nextrg.skylens.Skylens
 import org.nextrg.skylens.helpers.Rendering.colorToVec4f
 
 object CircleChart {
-    private val PROGRESS_CHART: RenderPipeline = RenderPipelines.register(
+    private val PIPELINE: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder()
             .withLocation(Skylens.id("circle_chart"))
             .withVertexShader(Skylens.id("core/basic_transform"))
@@ -38,6 +38,7 @@ object CircleChart {
             .withUniform("time", UniformType.FLOAT)
             .withUniform("startAngle", UniformType.FLOAT)
             .withUniform("reverse", UniformType.INT)
+            .withUniform("invert", UniformType.INT)
             .build()
     )
 
@@ -52,8 +53,7 @@ object CircleChart {
         startAngle: Float,
         time: Float,
         invert: Boolean,
-        borderWidth: Float,
-        borderColor: Int
+        reverse: Boolean
     ) {
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
@@ -71,7 +71,7 @@ object CircleChart {
         buffer.vertex(matrix, x + radius, y - radius, 1.0f)
 
         PipelineRenderer.draw(
-            PROGRESS_CHART, buffer.end()
+            PIPELINE, buffer.end()
         ) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
@@ -82,9 +82,8 @@ object CircleChart {
             pass.setUniform("progress", progress)
             pass.setUniform("time", time)
             pass.setUniform("startAngle", startAngle)
-            pass.setUniform("borderWidth", borderWidth)
-            pass.setUniform("borderColor", *colorToVec4f(borderColor))
-            pass.setUniform("reverse", if (invert) 1 else 0)
+            pass.setUniform("reverse", if (reverse) 1 else 0)
+            pass.setUniform("invert", if (invert) 1 else 0)
         }
     }
 }

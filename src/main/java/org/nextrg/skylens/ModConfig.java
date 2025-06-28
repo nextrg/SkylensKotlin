@@ -4,7 +4,10 @@ import com.google.gson.GsonBuilder;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.*;
+import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
+import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
+import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
+import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -13,10 +16,10 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.nextrg.skylens.helpers.Strings;
 
 import java.awt.*;
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -29,37 +32,6 @@ public class ModConfig implements ModMenuApi {
                     .setJson5(true)
                     .build())
             .build();
-    
-    private static Option<Boolean> createBooleanOption(Boolean value, Supplier<Boolean> getter, Consumer<Boolean> setter) {
-        return Option.<Boolean>createBuilder()
-                .name(Text.literal("Enable"))
-                .binding(value, getter, setter)
-                .controller(opt -> BooleanControllerBuilder.create(opt)
-                        .formatValue(val -> val ? Text.literal("Yes") : Text.literal("No"))
-                        .coloured(true))
-                .build();
-    }
-    
-    private static Option<Integer> createPositionOption(int variable, String type, Supplier<Integer> getter, Consumer<Integer> setter) {
-        return Option.<Integer>createBuilder()
-                .name(Text.literal(type + " Position"))
-                .description(OptionDescription.of(Text.literal("Offsets from the " + type + " anchor. Automatically adjusts when positioned off-screen.")))
-                .binding(variable, getter, setter)
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                        .range(-500, 500)
-                        .step(1)
-                        .formatValue(val -> Text.literal(val + "px")))
-                .build();
-    }
-    
-    private static Option<Color> createColorOption(Color color, String type, Supplier<Color> getter, Consumer<Color> setter) {
-        return Option.<Color>createBuilder()
-                .name(Text.literal(type + " Color"))
-                .binding(color, getter, setter)
-                .controller(opt -> ColorControllerBuilder.create(opt)
-                        .allowAlpha(true))
-                .build();
-    }
     
     public static Text title() {
         var aprilFools = LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
@@ -89,6 +61,86 @@ public class ModConfig implements ModMenuApi {
         }
     }
     
+    public enum Type implements NameableEnum {
+        Bar,
+        Circular,
+        CircularALT;
+        
+        @Override
+        public Text getDisplayName() {
+            return Text.literal(name()
+                    .replace("ALT", " (alt)"));
+        }
+    }
+    
+    public enum Theme implements NameableEnum {
+        Pet,
+        Custom,
+        Special,
+        Divine,
+        Mythic,
+        Legendary,
+        Epic,
+        Rare,
+        Uncommon,
+        Common;
+        
+        @Override
+        public Text getDisplayName() {
+            return Text.literal(Strings.INSTANCE.codeFromName(name().toLowerCase()) + name()
+                    .replace("Pet", "Pet Rarity"));
+        }
+    }
+    
+    private static Option<Boolean> createBooleanEnableOption(Boolean value, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        return Option.<Boolean>createBuilder()
+                .name(Text.literal("Enable"))
+                .binding(value, getter, setter)
+                .controller(opt -> BooleanControllerBuilder.create(opt)
+                        .formatValue(val -> val ? Text.literal("Yes") : Text.literal("No"))
+                        .coloured(true))
+                .build();
+    }
+    
+    private static Option<Boolean> createBooleanOption(Boolean value, String name, String description, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        return Option.<Boolean>createBuilder()
+                .name(Text.literal(name))
+                .description(OptionDescription.of(Text.literal(description)))
+                .binding(value, getter, setter)
+                .controller(opt -> BooleanControllerBuilder.create(opt)
+                        .formatValue(val -> val ? Text.literal("Yes") : Text.literal("No"))
+                        .coloured(true))
+                .build();
+    }
+    
+    private static Option<Integer> createPositionOption(int variable, String type, Supplier<Integer> getter, Consumer<Integer> setter) {
+        return Option.<Integer>createBuilder()
+                .name(Text.literal(type + " Position"))
+                .description(OptionDescription.of(Text.literal("Offsets from the " + type + " anchor. Automatically adjusts when positioned off-screen.")))
+                .binding(variable, getter, setter)
+                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                        .range(-500, 500)
+                        .step(1)
+                        .formatValue(val -> Text.literal(val + "px")))
+                .build();
+    }
+    
+    private static Option<Color> createColorOption(Color color, String type, Supplier<Color> getter, Consumer<Color> setter) {
+        return Option.<Color>createBuilder()
+                .name(Text.literal(type + " Color"))
+                .binding(color, getter, setter)
+                .controller(opt -> ColorControllerBuilder.create(opt)
+                        .allowAlpha(true))
+                .build();
+    }
+    
+    @SerialEntry
+    public static boolean missingEnchants = true;
+    @SerialEntry
+    public static boolean compactPetLevel = true;
+    @SerialEntry
+    public static boolean onlySkyblock = true;
+    
     @SerialEntry
     public static boolean petOverlay = true;
     @SerialEntry
@@ -98,54 +150,101 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static int petOverlayY = 0;
     @SerialEntry
+    public static Type petOverlayType = Type.Bar;
+    @SerialEntry
+    public static Theme petOverlayTheme = Theme.Pet;
+    @SerialEntry
+    public static boolean petOverlayInvert = false;
+    @SerialEntry
+    public static boolean petOverlayFlip = false;
+    @SerialEntry
     public static Color petOverlayColor1 = Color.WHITE;
     @SerialEntry
     public static Color petOverlayColor2 = Color.GRAY;
     @SerialEntry
     public static Color petOverlayColor3 = Color.DARK_GRAY;
-    
     @SerialEntry
-    public static boolean missingEnchants = true;
+    public static boolean petOverlayAnimation_Idle = true;
+    @SerialEntry
+    public static boolean petOverlayAnimation_LevelUp = true;
+    @SerialEntry
+    public static boolean petOverlayAnimation_LevelXp = true;
+    
+    public static OptionGroup petOverlayGroup() {
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Pet Overlay"))
+                .description(OptionDescription.of(Text.literal("Displays the progress to max level and next level of current pet.")))
+                .collapsed(true)
+                .option(createBooleanEnableOption(petOverlay, () -> petOverlay, newValue -> petOverlay = newValue))
+                
+                .option(label("Styling"))
+                .option(Option.<Type>createBuilder()
+                        .name(Text.literal("Type"))
+                        .binding(
+                                Type.Bar,
+                                () -> petOverlayType,
+                                newVal -> petOverlayType = newVal
+                        )
+                        .controller(opt -> EnumControllerBuilder.create(opt)
+                                .enumClass(Type.class))
+                        .build())
+                .option(createBooleanOption(petOverlayInvert, "Invert Level/XP Color", "", () -> petOverlayInvert, newValue -> petOverlayInvert = newValue))
+                .option(createBooleanOption(petOverlayFlip, "Flip Icon Position", "Available only using the bar style.", () -> petOverlayFlip, newValue -> petOverlayFlip = newValue))
+                
+                .option(label("Position"))
+                .option(Option.<Anchor>createBuilder()
+                        .name(Text.literal("Anchor"))
+                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .binding(
+                                Anchor.BottomMiddle,
+                                () -> petOverlayAnchor,
+                                newVal -> petOverlayAnchor = newVal
+                        )
+                        .controller(opt -> EnumControllerBuilder.create(opt)
+                                .enumClass(Anchor.class))
+                        .build())
+                .option(createPositionOption(121, "X", () -> petOverlayX, newValue -> petOverlayX = newValue))
+                .option(createPositionOption(-3, "Y", () -> petOverlayY, newValue -> petOverlayY = newValue))
+                
+                .option(label("Themes"))
+                .option(Option.<Theme>createBuilder()
+                        .name(Text.literal("Theme"))
+                        .binding(
+                                Theme.Pet,
+                                () -> petOverlayTheme,
+                                newVal -> petOverlayTheme = newVal
+                        )
+                        .controller(opt -> EnumControllerBuilder.create(opt)
+                                .enumClass(Theme.class))
+                        .build())
+                .option(createColorOption(Color.WHITE, "Level", () -> petOverlayColor1, newValue -> petOverlayColor1 = newValue))
+                .option(createColorOption(Color.GRAY, "XP", () -> petOverlayColor2, newValue -> petOverlayColor2 = newValue))
+                .option(createColorOption(Color.DARK_GRAY, "Background", () -> petOverlayColor3, newValue -> petOverlayColor3 = newValue))
+                
+                .option(label("Animations"))
+                .option(createBooleanOption(petOverlayAnimation_Idle, "Idle", "", () -> petOverlayAnimation_Idle, newValue -> petOverlayAnimation_Idle = newValue))
+                .option(createBooleanOption(petOverlayAnimation_LevelUp, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
+                .option(createBooleanOption(petOverlayAnimation_LevelXp, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
+                
+                .build();
+    }
     
     public Screen config(Screen parent) {
+        var randomLevel = Math.round(15 + Math.random() * 75);
         return YetAnotherConfigLib.createBuilder()
                 .title(Text.literal("Skylens"))
                 .category(
                         ConfigCategory.createBuilder()
                                 .name(title())
-                                .group(OptionGroup.createBuilder()
-                                        .name(Text.literal("Pet Overlay"))
-                                        .description(OptionDescription.of(Text.literal("Displays the progress to max level and next level of current pet.")))
-                                        .collapsed(true)
-                                        .option(createBooleanOption(petOverlay, () -> petOverlay, newValue -> petOverlay = newValue))
-                                        
-                                        .option(label("Position"))
-                                        .option(Option.<Anchor>createBuilder()
-                                                .name(Text.literal("Anchor"))
-                                                .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
-                                                .binding(
-                                                        Anchor.BottomMiddle,
-                                                        () -> petOverlayAnchor,
-                                                        newVal -> petOverlayAnchor = newVal
-                                                )
-                                                .controller(opt -> EnumControllerBuilder.create(opt)
-                                                        .enumClass(Anchor.class))
-                                                .build())
-                                        .option(createPositionOption(121, "X", () -> petOverlayX, newValue -> petOverlayX = newValue))
-                                        .option(createPositionOption(-3, "Y", () -> petOverlayY, newValue -> petOverlayY = newValue))
-                                        
-                                        .option(label("Themes"))
-                                        .option(createColorOption(Color.WHITE, "Level", () -> petOverlayColor1, newValue -> petOverlayColor1 = newValue))
-                                        .option(createColorOption(Color.GRAY, "XP", () -> petOverlayColor2, newValue -> petOverlayColor2 = newValue))
-                                        .option(createColorOption(Color.DARK_GRAY, "Background", () -> petOverlayColor3, newValue -> petOverlayColor3 = newValue))
-                                        
-                                        .build())
-                                .group(OptionGroup.createBuilder()
-                                        .name(Text.literal("Missing Enchants"))
-                                        .description(OptionDescription.of(Text.literal("Shows a list of missing enchantments on items.")))
-                                        .collapsed(true)
-                                        .option(createBooleanOption(missingEnchants, () -> missingEnchants, newValue -> missingEnchants = newValue))
-                                        .build())
+                                .option(createBooleanOption(missingEnchants, "Show Missing Enchants",
+                                        "Displays a list of missing enchants the hovered item has.",
+                                        () -> missingEnchants, newValue -> missingEnchants = newValue))
+                                .option(createBooleanOption(compactPetLevel, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
+                                                randomLevel + "] §6Pet §f→ §8[§7" +
+                                                randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
+                                        () -> compactPetLevel, newValue -> compactPetLevel = newValue))
+                                .option(createBooleanOption(onlySkyblock, "Only in Skyblock", "", () -> onlySkyblock, newValue -> onlySkyblock = newValue))
+                                .group(petOverlayGroup())
                                 .build())
                 .save(this::update)
                 .build()

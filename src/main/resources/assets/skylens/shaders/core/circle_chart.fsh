@@ -8,6 +8,7 @@ uniform float progress;
 uniform float time;
 uniform float startAngle;
 uniform int reverse;
+uniform int invert;
 
 out vec4 fragColor;
 
@@ -29,12 +30,15 @@ void main() {
     float angleSoft = edgeSoftness / radius;
     float angleAlpha = 1.0 - smoothstep(angularLength - angleSoft, angularLength, angleOffset);
 
+    if (invert == 1)
+    angleAlpha = 1.0 - angleAlpha;
+
     float finalAlpha = edgeAlpha * angleAlpha;
     if (finalAlpha <= 0.0) discard;
 
     float factor = fract(angleOffset / TAU + time);
     if (reverse == 1)
-        factor = 1.0 - factor;
+    factor = 1.0 - factor;
 
     vec4 color = mix(startColor, endColor, factor);
     fragColor = vec4(color.rgb, color.a * finalAlpha);

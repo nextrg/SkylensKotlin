@@ -10,6 +10,7 @@ import net.fabricmc.loader.api.ModContainer
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig.openConfig
+import org.nextrg.skylens.features.CompactPetLevel
 import org.nextrg.skylens.features.MissingEnchants
 import org.nextrg.skylens.features.PetOverlay
 
@@ -19,6 +20,7 @@ class Skylens : ClientModInitializer {
         ModConfig().init()
         MissingEnchants.prepare()
         PetOverlay.prepare()
+        CompactPetLevel.prepare()
         registerCommands()
     }
 

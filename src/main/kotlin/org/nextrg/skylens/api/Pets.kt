@@ -12,6 +12,7 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.nextrg.skylens.features.PetOverlay.hideOverlay
+import org.nextrg.skylens.features.PetOverlay.levelUp
 import org.nextrg.skylens.features.PetOverlay.showOverlay
 import org.nextrg.skylens.features.PetOverlay.updatePet
 import org.nextrg.skylens.features.PetOverlay.updateStats
@@ -27,6 +28,25 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 object Pets {
+    private val AUTOPET_PATTERN = Pattern.compile("^Autopet equipped your \\[Lvl (\\d+)] (.+)! VIEW RULE$")
+    private val SUMMON_PATTERN: Pattern = Pattern.compile("You (summoned|despawned) your (.+?)!")
+    private val LEVELUP_PATTERN: Pattern = Pattern.compile("Your (.+?) leveled up to level (\\d+)!")
+
+    private val scheduler = Executors.newScheduledThreadPool(1)
+    private var scheduledResetTask: ScheduledFuture<*>? = null
+
+    private var cachedPets: MutableList<ItemStack> = mutableListOf()
+    private var isPetMenu = false
+    private var currentPetScreen: Screen? = null
+
+    private var lastUpdate = System.currentTimeMillis()
+    private var updateByTab = true
+
+    private var currentPet: ItemStack = ItemStack(Items.BONE)
+    private var level: Int = 1
+    private var maxLevel: Int = 100
+    private var xp: Float = 0f
+
     fun init() {
         ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
             messageEvents(message)
@@ -64,24 +84,6 @@ object Pets {
     fun isGoldenDragon(string: String): Boolean {
         return string.contains(Regex("(Golden|Jade) Dragon"))
     }
-
-    private val AUTOPET_PATTERN = Pattern.compile("^Autopet equipped your \\[Lvl (\\d+)] (.+)! VIEW RULE$")
-    private val SUMMON_PATTERN: Pattern = Pattern.compile("You (summoned|despawned) your (.+?)!")
-
-    private val scheduler = Executors.newScheduledThreadPool(1)
-    private var scheduledResetTask: ScheduledFuture<*>? = null
-
-    private var cachedPets: MutableList<ItemStack> = mutableListOf()
-    private var isPetMenu = false
-    private var currentPetScreen: Screen? = null
-
-    private var lastUpdate = System.currentTimeMillis()
-    private var updateByTab = true
-
-    private var currentPet: ItemStack = ItemStack(Items.BONE)
-    private var level: Int = 1
-    private var maxLevel: Int = 100
-    private var xp: Float = 0f
 
     fun checkPetScreen(client: MinecraftClient) {
         val screen = client.currentScreen
@@ -275,6 +277,16 @@ object Pets {
             scheduler.schedule({
                 readTab(MinecraftClient.getInstance(), false)
             }, sToMs(1.25f), TimeUnit.MILLISECONDS)
+        }
+
+        if (content.contains("leveled up to level")) {
+            val matcher = LEVELUP_PATTERN.matcher(content)
+            if (matcher.find()) {
+                level = matcher.group(2)?.toIntOrNull() ?: level
+                xp = 0f
+                updateStats()
+                levelUp()
+            }
         }
     }
 }

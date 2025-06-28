@@ -14,6 +14,7 @@ import org.nextrg.skylens.helpers.Items.getItemType
 import org.nextrg.skylens.helpers.Items.getTooltipMiddle
 import org.nextrg.skylens.helpers.Other.errorMessage
 import org.nextrg.skylens.helpers.Other.jsonNeu
+import org.nextrg.skylens.helpers.Other.onSkyblock
 import org.nextrg.skylens.helpers.Strings.codeFromName
 import org.nextrg.skylens.helpers.Strings.getFormatCode
 import org.nextrg.skylens.helpers.Strings.titleCase
@@ -111,7 +112,7 @@ object MissingEnchants {
     }
 
     private fun main(stack: ItemStack, lines: MutableList<Text>) {
-        if (!ModConfig.missingEnchants || enchants == null) return
+        if (!ModConfig.missingEnchants || !onSkyblock() || enchants == null) return
 
         val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
         val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
