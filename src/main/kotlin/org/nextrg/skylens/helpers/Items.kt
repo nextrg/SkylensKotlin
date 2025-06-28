@@ -6,7 +6,6 @@ import net.minecraft.component.type.NbtComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
-import kotlin.math.abs
 
 object Items {
     private val itemRarities = arrayOf(
@@ -57,25 +56,18 @@ object Items {
         var index = 1
         lines.forEachIndexed { i, line ->
             if (itemEnch.any { enchant ->
-                    line.toString().lowercase().contains(enchant.replace("ultimate_", "").replace("_", " "))
+                    line.toString().lowercase().contains(enchant.replace("ultimate_", "").replace("turbo_", "turbo-").replace("_", " "))
                 }) {
                 index = index.coerceAtLeast(i)
             }
         }
         itemEnch.remove("telekinesis")
-        if (itemEnch.size <= 3) {
-            for (i in index until index + 3) {
-                if (lines[i].content.toString() == "empty") {
-                    val offset = if (itemEnch.size >= 2) 1 else 0
-                    index += abs(index - i) - offset
-                }
+        for (offset in 0..4) {
+            val offseted = index + offset
+            if (lines[offseted].string.isEmpty()) {
+                index = offseted - 1
+                break
             }
-        }
-        if (itemEnch.size == 4) {
-            index += 1
-        }
-        if (itemEnch.size == 5) {
-            index += 2
         }
         return index
     }

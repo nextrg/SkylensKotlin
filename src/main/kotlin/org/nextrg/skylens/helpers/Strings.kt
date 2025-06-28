@@ -1,5 +1,7 @@
 package org.nextrg.skylens.helpers
 
+import net.minecraft.text.Text
+
 object Strings {
     fun codeFromName(input: String): String {
         return when (input.replace("_".toRegex(), "")) {
@@ -71,5 +73,13 @@ object Strings {
             .joinToString(" ") { word ->
                 word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             }
+    }
+
+    fun textToString(text: Text): String {
+        var name: String = ""
+        for (sibling in text.siblings) {
+            name += codeFromName(sibling.style.color.toString()) + sibling.string
+        }
+        return name
     }
 }

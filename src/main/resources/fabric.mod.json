@@ -3,10 +3,13 @@
   "id": "skylens",
   "version": "${version}",
   "name": "Skylens",
-  "description": "",
+  "description": "A Hypixel Skyblock mod for 1.21.5 that focuses on unique features and customizability.",
   "authors": [],
-  "contact": {},
-  "license": "All-Rights-Reserved",
+  "contact": {
+    "sources": "https://github.com/nextrg/Skylens",
+    "issues": "https://github.com/nextrg/Skylens/issues"
+  },
+  "license": "MIT",
   "icon": "assets/skylens/icon.png",
   "environment": "client",
   "entrypoints": {

@@ -15,7 +15,7 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
 import org.nextrg.skylens.Skylens
-import org.nextrg.skylens.helpers.Rendering.colorToVec4f
+import org.nextrg.skylens.renderables.Rendering.colorToVec4f
 
 object CircleChart {
     private val PIPELINE: RenderPipeline = RenderPipelines.register(

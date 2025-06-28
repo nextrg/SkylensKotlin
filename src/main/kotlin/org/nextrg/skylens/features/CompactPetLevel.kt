@@ -5,13 +5,14 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.nextrg.skylens.ModConfig
-import org.nextrg.skylens.api.Pets.getPetRarity
 import org.nextrg.skylens.api.Pets.isGoldenDragon
 import org.nextrg.skylens.helpers.Other.onSkyblock
-import org.nextrg.skylens.helpers.Strings.codeFromName
+import org.nextrg.skylens.helpers.Strings.textToString
+import java.util.regex.Pattern
 
 
 object CompactPetLevel {
+    private val PATTERN = Pattern.compile("""\[Lvl (\d+)]\s*(§[0-9a-fk-or])""")
     fun prepare() {
         ItemTooltipCallback.EVENT.register { stack, _, _, lines ->
             main(stack, lines)
@@ -21,22 +22,18 @@ object CompactPetLevel {
     private fun main(stack: ItemStack, lines: MutableList<Text>) {
         if (!ModConfig.compactPetLevel || !onSkyblock()) return
 
-        val itemName = stack.customName ?: return
-        if (stack.item != Items.PLAYER_HEAD || !itemName.string.contains("[Lvl ") || stack.name.siblings.size <= 1) return
+        val itemName = stack.customName?.string ?: return
+        if (stack.item != Items.PLAYER_HEAD || !itemName.contains("[Lvl ") || stack.name.siblings.size <= 1) return
 
-        val petRarity = codeFromName(getPetRarity(itemName.siblings[1]))
-        val maxLevel = if (isGoldenDragon(itemName.string)) 200 else 100
+        val original = textToString(stack.customName!!)
+        val match = PATTERN.matcher(original).takeIf { it.find() } ?: return
 
-        val hasSkinColor = runCatching {
-            itemName.siblings.last().style.color.toString()
-        }.getOrDefault("")
+        val level = match.group(1).toInt()
+        val rarity = if ((isGoldenDragon(itemName) && level == 200) || level == 100) match.group(2) else "§7"
 
-        val displayText = itemName.string
-            .replace("\\[(\\d+)(✦)]".toRegex(), "§8[$petRarity$1§4$2§8]")
-            .replace("[Lvl $maxLevel", "§8[$petRarity$maxLevel")
-            .replace("[Lvl ", "§8[§7")
-            .replace("]", "§8]§r$petRarity")
-            .replace(" ✦", codeFromName(hasSkinColor) + " ✦")
+        val displayText = original
+            .replace("[Lvl $level]", "§8[$rarity$level§8]")
+            .replace("Lvl ", "")
 
         lines.removeFirst()
         lines.addFirst(Text.literal(displayText))
