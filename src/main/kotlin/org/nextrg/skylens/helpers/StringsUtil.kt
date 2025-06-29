@@ -2,7 +2,7 @@ package org.nextrg.skylens.helpers
 
 import net.minecraft.text.Text
 
-object Strings {
+object StringsUtil {
     fun codeFromName(input: String): String {
         return when (input.replace("_".toRegex(), "")) {
             "darkblue" -> "§1"

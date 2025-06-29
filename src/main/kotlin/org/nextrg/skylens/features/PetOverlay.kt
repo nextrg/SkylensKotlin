@@ -18,18 +18,20 @@ import net.minecraft.util.Util
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets
 import org.nextrg.skylens.api.Pets.getCurrentPet
+import org.nextrg.skylens.api.Pets.getPetHeldItem
 import org.nextrg.skylens.api.Pets.getPetLevel
 import org.nextrg.skylens.api.Pets.getPetMaxLevel
 import org.nextrg.skylens.api.Pets.getPetRarity
 import org.nextrg.skylens.api.Pets.getPetRarityText
 import org.nextrg.skylens.api.Pets.getPetXp
-import org.nextrg.skylens.helpers.Other.onSkyblock
-import org.nextrg.skylens.helpers.Variables.animateFloat
-import org.nextrg.skylens.helpers.Variables.colorToARGB
-import org.nextrg.skylens.helpers.Variables.getAlphaProgress
-import org.nextrg.skylens.helpers.Variables.hexTransparent
-import org.nextrg.skylens.helpers.Variables.quad
-import org.nextrg.skylens.helpers.Variables.sToMs
+import org.nextrg.skylens.helpers.OtherUtil.getTextureFromNeu
+import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
+import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
+import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
+import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
+import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
+import org.nextrg.skylens.helpers.VariablesUtil.quad
+import org.nextrg.skylens.helpers.VariablesUtil.sToMs
 import org.nextrg.skylens.renderables.CircleChart
 import org.nextrg.skylens.renderables.Rendering.drawItem
 import org.nextrg.skylens.renderables.Rendering.drawText
@@ -40,6 +42,7 @@ import kotlin.math.max
 object PetOverlay {
     private val scope = CoroutineScope(Dispatchers.Default)
     private var currentPet: ItemStack = ItemStack(Items.BONE)
+    private var heldItem: ItemStack = ItemStack(Items.AIR)
 
     private var level: Int = 1
     private var maxLevel: Int = 100
@@ -54,9 +57,12 @@ object PetOverlay {
     private var levelUpDelay = sToMs(2f)
 
     var hudEditor = false
-    var transitionX = 0f
-    var transitionY = 0f
+    private var transition = 0f
+    private var transitionX = 0f
+    private var transitionY = 0f
     private var hidden: Boolean = true
+    private var cachedBase: Pair<Float, Float>? = null
+    private var lastState = ""
 
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
         "special", intArrayOf(-0x55dedf, -0xcdce, -0x88eaeb),
@@ -80,13 +86,13 @@ object PetOverlay {
         "BottomMiddle", floatArrayOf(0.5f, 1f)
     )
 
-    private fun isTransitionComplete() = (transitionX == 1f && transitionY == 1f) || (transitionX == 0f && transitionY == 0f)
-
-    private fun launchUpdate(delayIfVisible: Long = 25L, delayIfTransition: Long = 275L, block: suspend () -> Unit) {
+    fun updatePet() {
         scope.launch {
-            if (!hidden) delay(delayIfVisible)
-            if (!isTransitionComplete()) delay(delayIfTransition)
-            block()
+            delay((transition * transitionDuration).toLong())
+
+            val pet = getCurrentPet()
+            currentPet = pet
+            rarity = getPetRarity(getPetRarityText(pet))
         }
     }
 
@@ -101,17 +107,13 @@ object PetOverlay {
         }
     }
 
-    fun updatePet() {
-        launchUpdate {
-            val pet = getCurrentPet()
-            currentPet = pet
-            rarity = getPetRarity(getPetRarityText(pet))
-        }
-    }
-
     fun updateStats() {
         if (animatedLevelUp > 0f) return
-        launchUpdate {
+
+        scope.launch {
+            delay((transition * transitionDuration).toLong())
+            heldItem = getTextureFromNeu(getPetHeldItem(), false)
+
             val newLevel = getPetLevel()
             val newMaxLevel = getPetMaxLevel()
             val newXp = getPetXp()
@@ -122,7 +124,12 @@ object PetOverlay {
 
             if (ModConfig.petOverlayAnimation_LevelXp) {
                 scope.launch {
-                    animateFloat(animatedLevelProgress, newLevel.toFloat() / newMaxLevel, transitionDuration, ::quad).collect {
+                    animateFloat(
+                        animatedLevelProgress,
+                        newLevel.toFloat() / newMaxLevel,
+                        transitionDuration,
+                        ::quad
+                    ).collect {
                         animatedLevelProgress = it
                     }
                 }
@@ -140,6 +147,7 @@ object PetOverlay {
 
     private suspend fun transition(show: Boolean) {
         animateFloat(if (show) 0f else 1f, if (show) 1f else 0f, transitionDuration, ::quad).collect { value ->
+            transition = value
             transitionX = value
             transitionY = value
         }
@@ -149,6 +157,9 @@ object PetOverlay {
         scope.launch {
             if (offset) {
                 delay(transitionDuration)
+                if (show) {
+                    updatePet()
+                }
             }
             hidden = !show
             transition(show)
@@ -177,36 +188,42 @@ object PetOverlay {
 
     fun getPosition(): Pair<Float, Float> {
         val client = MinecraftClient.getInstance()
-        val screenWidth = client.window.scaledWidth
-        val screenHeight = client.window.scaledHeight
+        val screenW = client.window.scaledWidth
+        val screenH = client.window.scaledHeight
 
-        val selectedAnchor = ModConfig.petOverlayAnchor.toString()
-
-        val anchor = anchors[selectedAnchor] ?: floatArrayOf(0.5f, 1f)
-        val (anchorsX, anchorsY) = anchor
-
-        val anchorX = screenWidth * anchorsX - 50 * anchorsX
-        val anchorY = screenHeight * anchorsY - 8 * anchorsY
-
-        val marginX = 2 * (1 - anchorsX * 2)
-        val marginY = 2 * (1 - anchorsY * 2)
-
+        val anchorKey = ModConfig.petOverlayAnchor.toString()
         val isBar = ModConfig.petOverlayType == ModConfig.Type.Bar
+        val configState = "$anchorKey|$screenW|$screenH|${ModConfig.petOverlayX}|${ModConfig.petOverlayY}|$isBar"
 
-        val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 4f, screenWidth.toFloat() - 2 - 26 - if (isBar) 27 else 0)
-        val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 19f + if (!isBar) 17 else 0, screenHeight.toFloat() - 12)
+        if (configState != lastState) {
+            val (ax, ay) = anchors[anchorKey] ?: floatArrayOf(0.5f, 1f)
+            val anchorX = screenW * ax - 50 * ax
+            val anchorY = screenH * ay - 8 * ay
+            val marginX = 2 * (1 - ax * 2)
+            val marginY = 2 * (1 - ay * 2)
 
-        var (offsetX, offsetY) = getAnimationOffset(anchorsX, anchorsY)
-        offsetX -= (x - anchorX - marginX) * (1 - anchorsX * 2)
-        offsetY += (y - anchorY - marginY) * (1 - anchorsY * 2)
+            val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 4f, screenW.toFloat() - 2 - 26 - if (isBar) 27 else 0)
+            val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 19f + if (!isBar) 17 else 0, screenH.toFloat() - 12)
 
-        if (selectedAnchor == "TopMiddle" || selectedAnchor == "BottomMiddle") {
-            transitionX = 1f
+            cachedBase = x to y
+            lastState = configState
         }
 
-        val finalX = x + offsetX - offsetX * (if (hudEditor) 1f else transitionX)
-        val finalY = y + offsetY - offsetY * (if (hudEditor) 1f else transitionY)
+        val (ax, ay) = anchors[anchorKey] ?: floatArrayOf(0.5f, 1f)
+        val (baseX, baseY) = cachedBase!!
+        val anchorX = screenW * ax - 50 * ax
+        val anchorY = screenH * ay - 8 * ay
+        val marginX = 2 * (1 - ax * 2)
+        val marginY = 2 * (1 - ay * 2)
 
+        var (offsetX, offsetY) = getAnimationOffset(ax, ay)
+        offsetX -= (baseX - anchorX - marginX) * (1 - ax * 2)
+        offsetY += (baseY - anchorY - marginY) * (1 - ay * 2)
+
+        if (anchorKey == "TopMiddle" || anchorKey == "BottomMiddle") transitionX = 1f
+
+        val finalX = baseX + offsetX - offsetX * (if (hudEditor) 1f else transitionX)
+        val finalY = baseY + offsetY - offsetY * (if (hudEditor) 1f else transitionY)
         return finalX to finalY
     }
 
@@ -294,7 +311,11 @@ object PetOverlay {
             hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
-        drawItem(drawContext, currentPet, iconX, iconY, 1f)
+        val showItem = ModConfig.petOverlayShowItem
+        drawItem(drawContext, currentPet, iconX, iconY + if (!barStyle && showItem) 2 else 0, 1.0f)
+        if (showItem) {
+            drawItem(drawContext, heldItem, iconX, iconY - 3 - if (barStyle) 2 else 0, 0.8f)
+        }
     }
 
     private fun renderBars(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
@@ -318,7 +339,7 @@ object PetOverlay {
     private fun renderCircles(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
         if (ModConfig.petOverlayAnimation_Idle) {
             val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
-            val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress));
+            val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
             CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 11f + 5f * idleProgress, color, color, 0f, 0f, false, false)
         }
         val alt = ModConfig.petOverlayType == ModConfig.Type.CircularALT
@@ -330,7 +351,5 @@ object PetOverlay {
         CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 10.54f, color3, color3, 0f, 0f, false, false)
         // XP
         CircleChart.draw(drawContext, x + 12, y - 4, animatedXp * 1.01f, 10.52f - if (alt) 1.5f else 0f, color1, color1, Math.PI.toFloat() / 2, 0f, false, false)
-        // Icon Background
-        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 6f, color3, color3, 0f, 0f, false, false)
     }
 }

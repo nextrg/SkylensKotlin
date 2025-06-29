@@ -6,8 +6,8 @@ import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets.isGoldenDragon
-import org.nextrg.skylens.helpers.Other.onSkyblock
-import org.nextrg.skylens.helpers.Strings.textToString
+import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
+import org.nextrg.skylens.helpers.StringsUtil.textToString
 import java.util.regex.Pattern
 
 

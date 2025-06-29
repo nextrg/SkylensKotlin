@@ -17,8 +17,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.nextrg.skylens.helpers.Strings;
 import org.nextrg.skylens.features.HudEditor;
+import org.nextrg.skylens.helpers.StringsUtil;
 
 import java.awt.*;
 import java.time.LocalDate;
@@ -89,7 +89,7 @@ public class ModConfig implements ModMenuApi {
         
         @Override
         public Text getDisplayName() {
-            return Text.literal(Strings.INSTANCE.codeFromName(name().toLowerCase()) + name()
+            return Text.literal(StringsUtil.INSTANCE.codeFromName(name().toLowerCase()) + name()
                     .replace("Pet", "Pet Rarity"));
         }
     }
@@ -160,6 +160,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean petOverlayFlip = false;
     @SerialEntry
+    public static boolean petOverlayShowItem = false;
+    @SerialEntry
     public static Color petOverlayColor1 = Color.WHITE;
     @SerialEntry
     public static Color petOverlayColor2 = Color.GRAY;
@@ -190,6 +192,7 @@ public class ModConfig implements ModMenuApi {
                         .controller(opt -> EnumControllerBuilder.create(opt)
                                 .enumClass(Type.class))
                         .build())
+                .option(createBooleanOption(petOverlayShowItem, "Show Pet Item", "Renders item directly above pet's icon.", () -> petOverlayShowItem, newValue -> petOverlayShowItem = newValue))
                 .option(createBooleanOption(petOverlayInvert, "Invert Level/XP Color", "", () -> petOverlayInvert, newValue -> petOverlayInvert = newValue))
                 .option(createBooleanOption(petOverlayFlip, "Flip Icon Position", "Available only using the bar style.", () -> petOverlayFlip, newValue -> petOverlayFlip = newValue))
                 
@@ -197,13 +200,8 @@ public class ModConfig implements ModMenuApi {
                 .option(Option.<Anchor>createBuilder()
                         .name(Text.literal("Anchor"))
                         .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
-                        .binding(
-                                Anchor.BottomMiddle,
-                                () -> petOverlayAnchor,
-                                newVal -> petOverlayAnchor = newVal
-                        )
-                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                .enumClass(Anchor.class))
+                        .binding(Anchor.BottomMiddle, () -> petOverlayAnchor, newValue -> petOverlayAnchor = newValue)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
@@ -214,13 +212,8 @@ public class ModConfig implements ModMenuApi {
                 .option(label("Themes"))
                 .option(Option.<Theme>createBuilder()
                         .name(Text.literal("Theme"))
-                        .binding(
-                                Theme.Pet,
-                                () -> petOverlayTheme,
-                                newVal -> petOverlayTheme = newVal
-                        )
-                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                .enumClass(Theme.class))
+                        .binding(Theme.Pet, () -> petOverlayTheme, newVal -> petOverlayTheme = newVal)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Theme.class))
                         .build())
                 .option(createColorOption(Color.WHITE, "Level", () -> petOverlayColor1, newValue -> petOverlayColor1 = newValue))
                 .option(createColorOption(Color.GRAY, "XP", () -> petOverlayColor2, newValue -> petOverlayColor2 = newValue))

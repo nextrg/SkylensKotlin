@@ -16,12 +16,12 @@ import org.nextrg.skylens.features.PetOverlay.levelUp
 import org.nextrg.skylens.features.PetOverlay.showOverlay
 import org.nextrg.skylens.features.PetOverlay.updatePet
 import org.nextrg.skylens.features.PetOverlay.updateStats
-import org.nextrg.skylens.helpers.Items.tooltipFromItemStack
-import org.nextrg.skylens.helpers.Other.getTabData
-import org.nextrg.skylens.helpers.Strings.colorFromCode
-import org.nextrg.skylens.helpers.Strings.colorToRarity
-import org.nextrg.skylens.helpers.Variables.sToMs
-import org.nextrg.skylens.helpers.Variables.toFixed
+import org.nextrg.skylens.helpers.ItemsUtil.tooltipFromItemStack
+import org.nextrg.skylens.helpers.OtherUtil.getTabData
+import org.nextrg.skylens.helpers.StringsUtil.colorFromCode
+import org.nextrg.skylens.helpers.StringsUtil.colorToRarity
+import org.nextrg.skylens.helpers.VariablesUtil.sToMs
+import org.nextrg.skylens.helpers.VariablesUtil.toFixed
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -46,6 +46,7 @@ object Pets {
     private var level: Int = 1
     private var maxLevel: Int = 100
     private var xp: Float = 0f
+    private var heldItem: String = ""
 
     fun init() {
         ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
@@ -67,6 +68,7 @@ object Pets {
     fun getPetLevel(): Int = level
     fun getPetMaxLevel(): Int = maxLevel
     fun getPetXp(): Float = xp
+    fun getPetHeldItem(): String = heldItem
 
     fun getPetRarity(element: Text): String {
         return colorToRarity(element.style.color.toString())
@@ -85,7 +87,7 @@ object Pets {
         return string.contains(Regex("(Golden|Jade) Dragon"))
     }
 
-    fun checkPetScreen(client: MinecraftClient) {
+    private fun checkPetScreen(client: MinecraftClient) {
         val screen = client.currentScreen
         if (isPetMenu && (screen !is GenericContainerScreen || screen.title.string?.startsWith("Pets") != true)) {
             isPetMenu = false
@@ -103,19 +105,27 @@ object Pets {
         val petName = pet.customName ?: return
         level = parseLevel(petName, 0)
         maxLevel = if (isGoldenDragon(petName.string)) 200 else 100
+        heldItem = ""
 
         for (line in tooltip) {
             val string = line.toString()
 
             if (string.contains("Progress to") && string.contains("%")) {
-                if (line.siblings.size < 2) return
-                val displayXp = line.siblings[1].string.replace("%", "")
-                xp = (displayXp.toFloat() / 100f).toFixed(3)
+                if (line.siblings.size > 2) {
+                    val displayXp = line.siblings[1].string.replace("%", "")
+                    xp = (displayXp.toFloat() / 100f).toFixed(3)
+                }
             }
 
             if (string.contains("MAX LEVEL")) {
                 xp = 1f
                 level = maxLevel
+            }
+
+            if (string.contains("Held Item:")) {
+                if (line.siblings.size > 1) {
+                    heldItem = line.siblings[1].string
+                }
             }
         }
 
@@ -148,7 +158,7 @@ object Pets {
     }
 
     // Real-time updating values based on tab list, updates every 2.5 seconds
-    fun readTab(client: MinecraftClient, cooldown: Boolean) {
+    private fun readTab(client: MinecraftClient, cooldown: Boolean) {
         if (System.currentTimeMillis() - lastUpdate < 2500 && cooldown) return
         lastUpdate = System.currentTimeMillis()
 
@@ -182,9 +192,9 @@ object Pets {
         updateStats()
     }
 
-    fun readInventory(screen: GenericContainerScreen) {
+    private fun readInventory(screen: GenericContainerScreen) {
         if (screen == currentPetScreen) return
-        currentPetScreen = screen; isPetMenu = true;
+        currentPetScreen = screen; isPetMenu = true
         var hasCached = false
 
         ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
@@ -192,7 +202,7 @@ object Pets {
 
             cachedPets.clear()
 
-            var equippedPet = "";
+            var equippedPet = ""
             var rarity = "common"
 
             getPetSlots(screen).forEach { slot ->
@@ -234,7 +244,7 @@ object Pets {
         }
     }
 
-    fun messageEvents(message: Text) {
+    private fun messageEvents(message: Text) {
         val string = message.string
         val content = Formatting.strip(string).toString()
         if (content.contains("You summoned your") || content.contains("You despawned your")) {

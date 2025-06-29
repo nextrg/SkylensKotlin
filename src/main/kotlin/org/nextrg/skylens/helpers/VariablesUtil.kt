@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import java.awt.Color
 import kotlin.math.pow
 
-object Variables {
+object VariablesUtil {
     fun animateFloat(
         start: Float,
         end: Float,

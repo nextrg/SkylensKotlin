@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
 
-object Items {
+object ItemsUtil {
     private val itemRarities = arrayOf(
         "COMMON",
         "UNCOMMON",

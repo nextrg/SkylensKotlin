@@ -9,16 +9,16 @@ import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.nextrg.skylens.ModConfig
-import org.nextrg.skylens.helpers.Items.getItemEnchants
-import org.nextrg.skylens.helpers.Items.getItemType
-import org.nextrg.skylens.helpers.Items.getTooltipMiddle
-import org.nextrg.skylens.helpers.Other.errorMessage
-import org.nextrg.skylens.helpers.Other.jsonNeu
-import org.nextrg.skylens.helpers.Other.onSkyblock
-import org.nextrg.skylens.helpers.Strings.codeFromName
-import org.nextrg.skylens.helpers.Strings.getFormatCode
-import org.nextrg.skylens.helpers.Strings.titleCase
-import org.nextrg.skylens.helpers.Variables.colorToARGB
+import org.nextrg.skylens.helpers.ItemsUtil.getItemEnchants
+import org.nextrg.skylens.helpers.ItemsUtil.getItemType
+import org.nextrg.skylens.helpers.ItemsUtil.getTooltipMiddle
+import org.nextrg.skylens.helpers.OtherUtil.errorMessage
+import org.nextrg.skylens.helpers.OtherUtil.jsonNeu
+import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
+import org.nextrg.skylens.helpers.StringsUtil.codeFromName
+import org.nextrg.skylens.helpers.StringsUtil.getFormatCode
+import org.nextrg.skylens.helpers.StringsUtil.titleCase
+import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
 import java.awt.Color
 import kotlin.math.max
 
