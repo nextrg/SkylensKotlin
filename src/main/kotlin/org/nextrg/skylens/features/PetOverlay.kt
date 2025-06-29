@@ -53,8 +53,9 @@ object PetOverlay {
     private var transitionDuration = 300L
     private var levelUpDelay = sToMs(2f)
 
-    private var transitionX = 0f
-    private var transitionY = 0f
+    var hudEditor = false
+    var transitionX = 0f
+    var transitionY = 0f
     private var hidden: Boolean = true
 
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
@@ -68,7 +69,7 @@ object PetOverlay {
         "common", intArrayOf(0xFF9A9A9A.toInt(), 0xFFFFFFFF.toInt(), 0xFF636363.toInt())
     )
 
-    private val anchors: Map<String, FloatArray> = java.util.Map.of(
+    val anchors: Map<String, FloatArray> = java.util.Map.of(
         "TopLeft", floatArrayOf(0f, 0f), // (X, Y)
         "MiddleLeft", floatArrayOf(0f, 0.5f),
         "BottomLeft", floatArrayOf(0f, 1f),
@@ -174,7 +175,7 @@ object PetOverlay {
         return map(x) to map(y)
     }
 
-    private fun getPosition(): Pair<Float, Float> {
+    fun getPosition(): Pair<Float, Float> {
         val client = MinecraftClient.getInstance()
         val screenWidth = client.window.scaledWidth
         val screenHeight = client.window.scaledHeight
@@ -190,8 +191,10 @@ object PetOverlay {
         val marginX = 2 * (1 - anchorsX * 2)
         val marginY = 2 * (1 - anchorsY * 2)
 
-        val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 1f, screenWidth.toFloat() - 2 - 50)
-        val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 17f, screenHeight.toFloat() - 10)
+        val isBar = ModConfig.petOverlayType == ModConfig.Type.Bar
+
+        val x = Math.clamp(anchorX + marginX + ModConfig.petOverlayX, 4f, screenWidth.toFloat() - 2 - 26 - if (isBar) 27 else 0)
+        val y = Math.clamp(anchorY + marginY + ModConfig.petOverlayY, 19f + if (!isBar) 17 else 0, screenHeight.toFloat() - 12)
 
         var (offsetX, offsetY) = getAnimationOffset(anchorsX, anchorsY)
         offsetX -= (x - anchorX - marginX) * (1 - anchorsX * 2)
@@ -201,8 +204,8 @@ object PetOverlay {
             transitionX = 1f
         }
 
-        val finalX = x + offsetX - offsetX * transitionX
-        val finalY = y + offsetY - offsetY * transitionY
+        val finalX = x + offsetX - offsetX * (if (hudEditor) 1f else transitionX)
+        val finalY = y + offsetY - offsetY * (if (hudEditor) 1f else transitionY)
 
         return finalX to finalY
     }
@@ -246,7 +249,7 @@ object PetOverlay {
     }
 
     fun render(drawContext: DrawContext) {
-        if (!ModConfig.petOverlay || !onSkyblock()) return
+        if ((!ModConfig.petOverlay && !hudEditor) || !onSkyblock()) return
 
         val (x, y) = getPosition()
         var (color1, color2, color3) = getColors(rarity)
@@ -270,7 +273,7 @@ object PetOverlay {
         val flipped = ModConfig.petOverlayFlip
 
         val iconX = x + 3 + (if (!barStyle) 1 else 0) + if (barStyle && flipped) 29 else 0
-        val iconY = y - 17 + (if (!barStyle) 4 else 0)
+        val iconY = y - 17 + (if (!barStyle) 4.5f else 0f)
 
         val textX = x + 34 - (if (!barStyle) 21.5f else 0f) - if (barStyle && flipped) 16 else 0
         val textY = y - 10 - (if (!barStyle) 15.5f else 0f)
@@ -296,7 +299,7 @@ object PetOverlay {
 
     private fun renderBars(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
         if (ModConfig.petOverlayAnimation_Idle) {
-            val idleProgress = (Util.getMeasuringTimeMs() / 2000.0).toFloat() % 1
+            val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
             legacyRoundRectangle(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
@@ -304,9 +307,6 @@ object PetOverlay {
             )
         }
 
-        // Shadow
-        RoundedRectangle.draw(drawContext, x - 2, y - 2, 51 + 4, 8 + 4, 0x34000000, 0, 6.5f, 0)
-        RoundedRectangle.draw(drawContext, x - 1, y - 1, 51 + 2, 8 + 2, 0x64000000, 0, 6.5f, 0)
         // Background
         RoundedRectangle.draw(drawContext, x, y, 51, 8, color3, 0, 4.5f, 0)
         // Level
@@ -316,9 +316,14 @@ object PetOverlay {
     }
 
     private fun renderCircles(drawContext: DrawContext, x: Int, y: Int, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
+        if (ModConfig.petOverlayAnimation_Idle) {
+            val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
+            val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress));
+            CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 11f + 5f * idleProgress, color, color, 0f, 0f, false, false)
+        }
         val alt = ModConfig.petOverlayType == ModConfig.Type.CircularALT
+
         // Background
-        CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 13.1f, 0x34000000, 0x34000000, 0f, 0f, false, false)
         CircleChart.draw(drawContext, x + 12, y - 4, 1.01f, 12.5f, color2, color2, 0f, 0f, false, false)
         // Level
         CircleChart.draw(drawContext, x + 12, y - 4, levelProgress * 1.01f, 12.7f, color3, color3, Math.PI.toFloat() / 2, 0f, true, false)

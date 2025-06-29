@@ -61,23 +61,22 @@ object CircleChart {
         val scaledY = y * scale
         val scaledRadius = radius * scale
 
-        val yOffset = window.framebufferHeight - scaledY * 2.0f
+        val flippedY = window.framebufferHeight - scaledY
+
         val matrix = graphics.matrices.peek().positionMatrix
         val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
 
-        buffer.vertex(matrix, x - radius, y - radius, 1.0f)
-        buffer.vertex(matrix, x - radius, y + radius, 1.0f)
-        buffer.vertex(matrix, x + radius, y + radius, 1.0f)
-        buffer.vertex(matrix, x + radius, y - radius, 1.0f)
+        buffer.vertex(matrix, x - radius, y - radius, 0.0f)
+        buffer.vertex(matrix, x - radius, y + radius, 0.0f)
+        buffer.vertex(matrix, x + radius, y + radius, 0.0f)
+        buffer.vertex(matrix, x + radius, y - radius, 0.0f)
 
-        PipelineRenderer.draw(
-            PIPELINE, buffer.end()
-        ) { pass: RenderPass ->
+        PipelineRenderer.draw(PIPELINE, buffer.end()) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
             pass.setUniform("startColor", *colorToVec4f(startColor))
             pass.setUniform("endColor", *colorToVec4f(endColor))
-            pass.setUniform("center", scaledX, scaledY + yOffset)
+            pass.setUniform("center", scaledX, flippedY)
             pass.setUniform("radius", scaledRadius)
             pass.setUniform("progress", progress)
             pass.setUniform("time", time)

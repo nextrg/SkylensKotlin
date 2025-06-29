@@ -11,8 +11,10 @@ import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig.openConfig
 import org.nextrg.skylens.features.CompactPetLevel
+import org.nextrg.skylens.features.HudEditor
 import org.nextrg.skylens.features.MissingEnchants
 import org.nextrg.skylens.features.PetOverlay
+
 
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
@@ -36,11 +38,21 @@ class Skylens : ClientModInitializer {
         }
 
         fun registerCommands() {
-            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, _: CommandRegistryAccess? ->
-                dispatcher.register(ClientCommandManager.literal("skylens").executes {
-                    openConfig()
-                    1
-                })
+            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, registryAccess: CommandRegistryAccess? ->
+                dispatcher.register(
+                    ClientCommandManager.literal("skylens")
+                        .executes {
+                            openConfig()
+                            1
+                        }
+                        .then(
+                            ClientCommandManager.literal("hudedit")
+                                .executes {
+                                    HudEditor.openScreen(null)
+                                    1
+                                }
+                        )
+                )
             })
         }
     }

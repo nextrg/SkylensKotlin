@@ -13,10 +13,12 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.nextrg.skylens.helpers.Strings;
+import org.nextrg.skylens.features.HudEditor;
 
 import java.awt.*;
 import java.time.LocalDate;
@@ -203,8 +205,11 @@ public class ModConfig implements ModMenuApi {
                         .controller(opt -> EnumControllerBuilder.create(opt)
                                 .enumClass(Anchor.class))
                         .build())
-                .option(createPositionOption(121, "X", () -> petOverlayX, newValue -> petOverlayX = newValue))
-                .option(createPositionOption(-3, "Y", () -> petOverlayY, newValue -> petOverlayY = newValue))
+                .option(ButtonOption.createBuilder()
+                        .name(Text.literal("Open HUD Editor"))
+                        .text(Text.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen))
+                        .build())
                 
                 .option(label("Themes"))
                 .option(Option.<Theme>createBuilder()
