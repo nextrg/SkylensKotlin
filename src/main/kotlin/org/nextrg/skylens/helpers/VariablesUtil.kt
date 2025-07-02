@@ -63,4 +63,30 @@ object VariablesUtil {
     fun getAlphaProgress(amount: Float): Int {
         return (255 * amount).toInt()
     }
+
+    fun degreesToRadians(degrees: Float): Float {
+        return degrees * (Math.PI.toFloat() / 180f)
+    }
+
+    fun radiansToDegrees(radians: Float): Float {
+        return radians * (180f / Math.PI.toFloat())
+    }
+
+    fun hexStringToInt(colorString: String, defaultColor: Int = 0xFF000000.toInt()): Int {
+        val color = colorString.trim().removePrefix("#")
+        return try {
+            when (color.length) {
+                6 -> {
+                    val rgba = "FF$color"
+                    rgba.toLong(16).toInt()
+                }
+                8 -> {
+                    color.toLong(16).toInt()
+                }
+                else -> defaultColor
+            }
+        } catch (e: Exception) {
+            defaultColor
+        }
+    }
 }

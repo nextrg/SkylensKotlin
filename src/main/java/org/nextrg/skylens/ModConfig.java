@@ -7,7 +7,6 @@ import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -115,18 +114,6 @@ public class ModConfig implements ModMenuApi {
                 .build();
     }
     
-    private static Option<Integer> createPositionOption(int variable, String type, Supplier<Integer> getter, Consumer<Integer> setter) {
-        return Option.<Integer>createBuilder()
-                .name(Text.literal(type + " Position"))
-                .description(OptionDescription.of(Text.literal("Offsets from the " + type + " anchor. Automatically adjusts when positioned off-screen.")))
-                .binding(variable, getter, setter)
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                        .range(-500, 500)
-                        .step(1)
-                        .formatValue(val -> Text.literal(val + "px")))
-                .build();
-    }
-    
     private static Option<Color> createColorOption(Color color, String type, Supplier<Color> getter, Consumer<Color> setter) {
         return Option.<Color>createBuilder()
                 .name(Text.literal(type + " Color"))
@@ -141,7 +128,18 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean compactPetLevel = true;
     @SerialEntry
+    public static boolean hidePressure = false;
+    @SerialEntry
     public static boolean onlySkyblock = true;
+    
+    @SerialEntry
+    public static boolean pressureDisplay = true;
+    @SerialEntry
+    public static Anchor pressureDisplayAnchor = Anchor.BottomMiddle;
+    @SerialEntry
+    public static int pressureDisplayX = 0;
+    @SerialEntry
+    public static int pressureDisplayY = 0;
     
     @SerialEntry
     public static boolean petOverlay = true;
@@ -206,7 +204,7 @@ public class ModConfig implements ModMenuApi {
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
                         .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Pet Overlay"))
                         .build())
                 
                 .option(label("Themes"))
@@ -223,26 +221,57 @@ public class ModConfig implements ModMenuApi {
                 .option(createBooleanOption(petOverlayAnimation_Idle, "Idle", "", () -> petOverlayAnimation_Idle, newValue -> petOverlayAnimation_Idle = newValue))
                 .option(createBooleanOption(petOverlayAnimation_LevelUp, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
                 .option(createBooleanOption(petOverlayAnimation_LevelXp, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
+                .build();
+    }
+    
+    public static OptionGroup pressureDisplayGroup() {
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Pressure Display"))
+                .description(OptionDescription.of(Text.literal("Displays the pressure percentage caused by waters in Galatea.")))
+                .collapsed(true)
+                .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
                 
+                .option(label("Position"))
+                .option(Option.<Anchor>createBuilder()
+                        .name(Text.literal("Anchor"))
+                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .binding(Anchor.BottomMiddle, () -> pressureDisplayAnchor, newValue -> pressureDisplayAnchor = newValue)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
+                        .build())
+                .option(ButtonOption.createBuilder()
+                        .name(Text.literal("Open HUD Editor"))
+                        .text(Text.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Pressure Display"))
+                        .build())
+                .build();
+    }
+    
+    public static OptionGroup otherFeaturesGroup() {
+        var randomLevel = Math.round(15 + Math.random() * 75);
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Other"))
+                .collapsed(false)
+                .option(createBooleanOption(missingEnchants, "Show Missing Enchants",
+                        "Displays a list of missing enchants the hovered item has.",
+                        () -> missingEnchants, newValue -> missingEnchants = newValue))
+                .option(createBooleanOption(compactPetLevel, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
+                                randomLevel + "] §6Pet §f→ §8[§7" +
+                                randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
+                        () -> compactPetLevel, newValue -> compactPetLevel = newValue))
+                .option(createBooleanOption(hidePressure, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
                 .build();
     }
     
     public Screen config(Screen parent) {
-        var randomLevel = Math.round(15 + Math.random() * 75);
         return YetAnotherConfigLib.createBuilder()
                 .title(Text.literal("Skylens"))
                 .category(
                         ConfigCategory.createBuilder()
                                 .name(title())
-                                .option(createBooleanOption(missingEnchants, "Show Missing Enchants",
-                                        "Displays a list of missing enchants the hovered item has.",
-                                        () -> missingEnchants, newValue -> missingEnchants = newValue))
-                                .option(createBooleanOption(compactPetLevel, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
-                                                randomLevel + "] §6Pet §f→ §8[§7" +
-                                                randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
-                                        () -> compactPetLevel, newValue -> compactPetLevel = newValue))
                                 .option(createBooleanOption(onlySkyblock, "Only in Skyblock", "", () -> onlySkyblock, newValue -> onlySkyblock = newValue))
                                 .group(petOverlayGroup())
+                                .group(pressureDisplayGroup())
+                                .group(otherFeaturesGroup())
                                 .build())
                 .save(this::update)
                 .build()

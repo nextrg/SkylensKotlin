@@ -86,7 +86,7 @@ object OtherUtil {
                 val path = "/f75fb6876c1cc0179b47546e273389a21f8968a7/items/$behind" +
                 itemName.uppercase(Locale.getDefault()).replace(" ", "_").replace("EXP_", "SKILL_") + rarity + ".json"
                 val petJson = jsonNeu(path)
-                if (expBoostItem) {
+                if (!petJson.toString().contains("SkullOwner")) {
                     val string: String = petJson.toString()
                     val itemString = string.substring(string.indexOf("itemid") + 9, string.indexOf("\",\"")).replace("minecraft:", "")
                     itemStack = ItemStack(Registries.ITEM.get(Identifier.ofVanilla(itemString)))

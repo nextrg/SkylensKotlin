@@ -10,20 +10,25 @@ import net.fabricmc.loader.api.ModContainer
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig.openConfig
-import org.nextrg.skylens.features.CompactPetLevel
-import org.nextrg.skylens.features.HudEditor
-import org.nextrg.skylens.features.MissingEnchants
-import org.nextrg.skylens.features.PetOverlay
+import org.nextrg.skylens.api.Pets
+import org.nextrg.skylens.api.PlayerStats
+import org.nextrg.skylens.features.*
 
 
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
         getModContainer()
         ModConfig().init()
+        registerCommands()
+
+        // APIs
+        Pets.init()
+        PlayerStats.init()
+
         MissingEnchants.prepare()
         PetOverlay.prepare()
+        PressureDisplay.prepare()
         CompactPetLevel.prepare()
-        registerCommands()
     }
 
     companion object {
@@ -48,9 +53,23 @@ class Skylens : ClientModInitializer {
                         .then(
                             ClientCommandManager.literal("hudedit")
                                 .executes {
-                                    HudEditor.openScreen(null)
+                                    HudEditor.openScreen(null, "")
                                     1
                                 }
+                                .then(
+                                    ClientCommandManager.literal("petoverlay")
+                                        .executes {
+                                            HudEditor.openScreen(null, "Pet Overlay")
+                                            1
+                                        }
+                                )
+                                .then(
+                                    ClientCommandManager.literal("pressuredisplay")
+                                        .executes {
+                                            HudEditor.openScreen(null, "Pressure Display")
+                                            1
+                                        }
+                                )
                         )
                 )
             })
