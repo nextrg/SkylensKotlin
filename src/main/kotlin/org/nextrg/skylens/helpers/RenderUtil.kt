@@ -111,7 +111,7 @@ object RenderUtil {
         val transformX = if (centered) x - width / 2f else x
 
         context.matrices.push()
-        context.matrices.translate(transformX, y, 0f)
+        context.matrices.translate(transformX, y, 1f)
         context.matrices.scale(scale, scale, scale)
 
         context.drawText(textRenderer, text, 0, 0, color, shadow)
