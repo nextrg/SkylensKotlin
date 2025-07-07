@@ -10,6 +10,6 @@
 - [X] Missing Enchantments
 - [ ] Enhanced Noteblock Sounds
 - [X] Compact Level Display
-- [ ] Low HP Indicator
+- [X] Low HP Indicator
 - [X] HUD Editor
 - [X] Custom Shaders
