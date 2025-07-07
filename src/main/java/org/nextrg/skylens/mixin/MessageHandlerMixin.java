@@ -24,7 +24,7 @@ public abstract class MessageHandlerMixin {
     private void onGameMessage(Text text, boolean isActionBar, CallbackInfo callbackInfo) {
         if (isActionBar) {
             PlayerStats.INSTANCE.readActionBar(text);
-            var hidePressure = ModConfig.pressureDisplay;
+            var hidePressure = ModConfig.hidePressure;
             if (hidePressure) {
                 var string = text.getString();
                 var array = new ArrayList<>(Arrays.asList(string.split(" {5}")));

@@ -7,6 +7,7 @@ import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
+import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -18,6 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.nextrg.skylens.features.HudEditor;
 import org.nextrg.skylens.helpers.StringsUtil;
+import org.nextrg.skylens.helpers.VariablesUtil;
 
 import java.awt.*;
 import java.time.LocalDate;
@@ -128,8 +130,6 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean compactPetLevel = true;
     @SerialEntry
-    public static boolean lowHpIndicator = true;
-    @SerialEntry
     public static boolean hidePressure = false;
     @SerialEntry
     public static boolean onlySkyblock = true;
@@ -173,6 +173,13 @@ public class ModConfig implements ModMenuApi {
     public static boolean petOverlayAnimation_LevelUp = true;
     @SerialEntry
     public static boolean petOverlayAnimation_LevelXp = true;
+    
+    @SerialEntry
+    public static boolean lowHpIndicator = true;
+    @SerialEntry
+    public static boolean lowHpIndicatorHeartbeat = true;
+    @SerialEntry
+    public static float lowHpIndicatorTransparency = 0.4f;
     
     public static OptionGroup petOverlayGroup() {
         return OptionGroup.createBuilder()
@@ -248,6 +255,28 @@ public class ModConfig implements ModMenuApi {
                 .build();
     }
     
+    public static OptionGroup lowHpIndicatorGroup() {
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Low HP Indicator"))
+                .description(OptionDescription.of(Text.literal("Reddens the screen the lower player's HP is.")))
+                .collapsed(true)
+                .option(createBooleanEnableOption(lowHpIndicator, () -> lowHpIndicator, newValue -> lowHpIndicator = newValue))
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Transparency"))
+                        .binding(0.4f, () -> lowHpIndicatorTransparency, newVal -> lowHpIndicatorTransparency = newVal)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0.2f, 1f)
+                                .step(0.01f)
+                                .formatValue(val -> {
+                                    float red = Math.max(0f, Math.min(1f, (val - 0.71f) / (1f - 0.71f)));
+                                    Color color = new Color(255, (int) Math.clamp(255 - red * 115, 0, 255), (int) Math.clamp(255 - red * 115, 0, 255));
+                                    return Text.literal(Math.floor(val * 100) + "%").withColor(VariablesUtil.INSTANCE.colorToARGB(color));
+                                }))
+                        .build())
+                .option(createBooleanOption(lowHpIndicatorHeartbeat, "Pulse Animation", "", () -> lowHpIndicatorHeartbeat, newValue -> lowHpIndicatorHeartbeat = newValue))
+                .build();
+    }
+    
     public static OptionGroup otherFeaturesGroup() {
         var randomLevel = Math.round(15 + Math.random() * 75);
         return OptionGroup.createBuilder()
@@ -260,10 +289,7 @@ public class ModConfig implements ModMenuApi {
                                 randomLevel + "] §6Pet §f→ §8[§7" +
                                 randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
                         () -> compactPetLevel, newValue -> compactPetLevel = newValue))
-                .option(createBooleanOption(lowHpIndicator, "Low HP Indicator",
-                        "Reddens the screen the lower player's HP is.\nHas pulse animation.",
-                        () -> lowHpIndicator, newValue -> lowHpIndicator = newValue))
-                .option(createBooleanOption(hidePressure, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
+                .option(createBooleanOption(false, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
                 .build();
     }
     
@@ -276,6 +302,7 @@ public class ModConfig implements ModMenuApi {
                                 .option(createBooleanOption(onlySkyblock, "Only in Skyblock", "", () -> onlySkyblock, newValue -> onlySkyblock = newValue))
                                 .group(petOverlayGroup())
                                 .group(pressureDisplayGroup())
+                                .group(lowHpIndicatorGroup())
                                 .group(otherFeaturesGroup())
                                 .build())
                 .save(this::update)

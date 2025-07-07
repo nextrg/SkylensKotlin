@@ -96,9 +96,9 @@ object PressureDisplay {
     private fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
         val steps = 8;
         for (i in 0..steps) {
-            val lastTwo = i > steps - 2
-            val lineColor = if (!lastTwo) color else 0xFF993333.toInt()
-            val boldness = (if (!lastTwo) 0.1f else 0.5f)
+            val last = i == steps
+            val lineColor = if (!last) color else 0xFF993333.toInt()
+            val boldness = (if (!last) 0.1f else 0.5f)
             drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f , hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
             drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f , lineColor, 1f, boldness, 0f, 2)
         }

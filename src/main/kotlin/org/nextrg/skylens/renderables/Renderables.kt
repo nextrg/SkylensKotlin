@@ -9,52 +9,11 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
+import org.nextrg.skylens.renderables.Pipelines.ROUND_GRADIENT
+
 
 object Renderables {
-    fun drawPie(
-        graphics: DrawContext,
-        x: Float,
-        y: Float,
-        progress: Float,
-        radius: Float,
-        color: Int,
-        startAngle: Float,
-        time: Float,
-        invert: Boolean,
-        reverse: Boolean
-    ) {
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledRadius = radius * scale
-
-        val flippedY = window.framebufferHeight - scaledY
-
-        val matrix = graphics.matrices.peek().positionMatrix
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
-
-        buffer.vertex(matrix, x - radius, y - radius, 0.0f)
-        buffer.vertex(matrix, x - radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y - radius, 0.0f)
-
-        PipelineRenderer.draw(Pipelines.CIRCLECHART, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
-            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            pass.setUniform("startColor", *colorToVec4f(color))
-            pass.setUniform("endColor", *colorToVec4f(color))
-            pass.setUniform("center", scaledX, flippedY)
-            pass.setUniform("radius", scaledRadius)
-            pass.setUniform("progress", progress)
-            pass.setUniform("time", time)
-            pass.setUniform("startAngle", startAngle)
-            pass.setUniform("reverse", if (reverse) 1 else 0)
-            pass.setUniform("invert", if (invert) 1 else 0)
-        }
-    }
-
-    fun drawPieGradient(
+    private fun pie(
         graphics: DrawContext,
         x: Float,
         y: Float,
@@ -83,7 +42,7 @@ object Renderables {
         buffer.vertex(matrix, x + radius, y + radius, 0.0f)
         buffer.vertex(matrix, x + radius, y - radius, 0.0f)
 
-        PipelineRenderer.draw(Pipelines.CIRCLECHART, buffer.end()) { pass: RenderPass ->
+        PipelineRenderer.draw(Pipelines.CIRCLE_CHART, buffer.end()) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
             pass.setUniform("startColor", *colorToVec4f(startColor))
@@ -96,6 +55,37 @@ object Renderables {
             pass.setUniform("reverse", if (reverse) 1 else 0)
             pass.setUniform("invert", if (invert) 1 else 0)
         }
+    }
+
+    fun drawPie(
+        graphics: DrawContext,
+        x: Float,
+        y: Float,
+        progress: Float,
+        radius: Float,
+        color: Int,
+        startAngle: Float,
+        time: Float,
+        invert: Boolean,
+        reverse: Boolean
+    ) {
+        pie(graphics, x, y, progress, radius, color, color, startAngle, time, invert, reverse)
+    }
+
+    fun drawPieGradient(
+        graphics: DrawContext,
+        x: Float,
+        y: Float,
+        progress: Float,
+        radius: Float,
+        startColor: Int,
+        endColor: Int,
+        startAngle: Float,
+        time: Float,
+        invert: Boolean,
+        reverse: Boolean
+    ) {
+        pie(graphics, x, y, progress, radius, startColor, endColor, startAngle, time, invert, reverse)
     }
 
     fun drawLine(
@@ -126,7 +116,7 @@ object Renderables {
         buffer.vertex(matrix, x + radius, y + radius, 0.0f)
         buffer.vertex(matrix, x + radius, y - radius, 0.0f)
 
-        PipelineRenderer.draw(Pipelines.RADIALLINE, buffer.end()) { pass: RenderPass ->
+        PipelineRenderer.draw(Pipelines.RADIAL_LINE, buffer.end()) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
             pass.setUniform("lineColor", *colorToVec4f(lineColor))
@@ -157,37 +147,74 @@ object Renderables {
         val scaledY = y * scale
         val scaledWidth = width * scale
         val scaledHeight = height * scale
-        val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
+
+        val flippedYWithHeight = window.framebufferHeight - (scaledY + scaledHeight)
+
         val matrix = graphics.matrices.peek().positionMatrix
         val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
         buffer.vertex(matrix, x, y, 0.0f).color(backgroundColor)
         buffer.vertex(matrix, x, (y + height), 0.0f).color(backgroundColor)
         buffer.vertex(matrix, (x + width), (y + height), 0.0f).color(backgroundColor)
         buffer.vertex(matrix, (x + width), y, 0.0f).color(backgroundColor)
+
         PipelineRenderer.draw(RoundedRectangle.PIPELINE, buffer.end()) { pass: RenderPass ->
-            pass.setUniform(
-                "borderColor",
-                *floatArrayOf(
-                    (borderColor shr 16 and 255).toFloat() / 255.0f,
-                    (borderColor shr 8 and 255).toFloat() / 255.0f,
-                    (borderColor and 255).toFloat() / 255.0f,
-                    (borderColor shr 24 and 255).toFloat() / 255.0f
-                )
-            )
+            pass.setUniform("borderColor", *colorToVec4f(borderColor))
             pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
-            pass.setUniform("borderWidth", *floatArrayOf(borderWidth.toFloat()))
-            pass.setUniform(
-                "size",
-                *floatArrayOf(
-                    scaledWidth - borderWidth.toFloat() * 2.0f * scale,
-                    scaledHeight - borderWidth.toFloat() * 2.0f * scale
-                )
-            )
-            pass.setUniform(
-                "center",
-                *floatArrayOf(scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
-            )
-            pass.setUniform("scaleFactor", *floatArrayOf(scale))
+            pass.setUniform("borderWidth", borderWidth.toFloat())
+            pass.setUniform("size", scaledWidth - borderWidth * 2f, scaledHeight - borderWidth * 2f)
+            pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + (scaledHeight / 2f))
+            pass.setUniform("scaleFactor", scale)
+        }
+    }
+
+    fun roundGradient(
+        graphics: DrawContext,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        startColor: Int,
+        endColor: Int,
+        gradientDirection: Int,
+        time: Float,
+        borderColor: Int,
+        borderRadius: Float,
+        borderWidth: Float
+    ) {
+        val window = MinecraftClient.getInstance().window
+        val scale = window.scaleFactor.toFloat()
+        val scaledX = x * scale
+        val scaledY = y * scale
+        val scaledWidth = width * scale
+        val scaledHeight = height * scale
+
+        val flippedYWithHeight = window.framebufferHeight - (scaledY + scaledHeight)
+        val flippedY = window.framebufferHeight - scaledY
+
+        val matrix = graphics.matrices.peek().positionMatrix
+        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
+
+        buffer.vertex(matrix, scaledX, flippedYWithHeight, 0.0f)
+        buffer.vertex(matrix, scaledX, flippedY, 0.0f)
+        buffer.vertex(matrix, scaledX + scaledWidth, flippedY, 0.0f)
+        buffer.vertex(matrix, scaledX + scaledWidth, flippedYWithHeight, 0.0f)
+
+        PipelineRenderer.draw(
+            ROUND_GRADIENT, buffer.end()
+        ) { pass: RenderPass ->
+            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
+            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
+            pass.setUniform("startColor", *colorToVec4f(startColor))
+            pass.setUniform("endColor", *colorToVec4f(endColor))
+            pass.setUniform("gradientDirection", gradientDirection)
+            pass.setUniform("borderRadius", borderRadius, borderRadius, borderRadius, borderRadius)
+            pass.setUniform("borderWidth", borderWidth)
+            pass.setUniform("scaleFactor", scale)
+            pass.setUniform("size", scaledWidth - borderWidth * 2f, scaledHeight - borderWidth * 2f)
+            pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + scaledHeight / 2f)
+            pass.setUniform("borderColor", *colorToVec4f(borderColor))
+            pass.setUniform("time", time)
         }
     }
 

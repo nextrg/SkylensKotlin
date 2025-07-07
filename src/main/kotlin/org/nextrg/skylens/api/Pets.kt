@@ -231,7 +231,6 @@ object Pets {
             val petRarity = getPetRarity(getPetRarityText(pet))
             if (nameWithoutFormat?.contains(petName) == true && petRarity == rarity) {
                 updateByTab = false
-
                 scheduledResetTask?.cancel(false)
 
                 scheduledResetTask = scheduler.schedule({

@@ -45,10 +45,10 @@ object OtherUtil {
     }
 
     fun onSkyblock(): Boolean {
-        if (ModConfig.onlySkyblock) {
-            return MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer;
+        return if (ModConfig.onlySkyblock) {
+            MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer;
         } else {
-            return true;
+            true;
         }
     }
 

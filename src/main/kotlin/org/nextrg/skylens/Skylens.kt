@@ -58,14 +58,14 @@ class Skylens : ClientModInitializer {
                                     1
                                 }
                                 .then(
-                                    ClientCommandManager.literal("petoverlay")
+                                    ClientCommandManager.literal("pet_overlay")
                                         .executes {
                                             HudEditor.openScreen(null, "Pet Overlay")
                                             1
                                         }
                                 )
                                 .then(
-                                    ClientCommandManager.literal("pressuredisplay")
+                                    ClientCommandManager.literal("pressure_display")
                                         .executes {
                                             HudEditor.openScreen(null, "Pressure Display")
                                             1
