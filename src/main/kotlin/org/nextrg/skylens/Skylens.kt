@@ -29,6 +29,7 @@ class Skylens : ClientModInitializer {
         PetOverlay.prepare()
         PressureDisplay.prepare()
         CompactPetLevel.prepare()
+        LowHpIndicator.prepare()
     }
 
     companion object {

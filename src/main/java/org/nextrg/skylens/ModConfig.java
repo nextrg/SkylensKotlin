@@ -128,6 +128,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean compactPetLevel = true;
     @SerialEntry
+    public static boolean lowHpIndicator = true;
+    @SerialEntry
     public static boolean hidePressure = false;
     @SerialEntry
     public static boolean onlySkyblock = true;
@@ -258,6 +260,9 @@ public class ModConfig implements ModMenuApi {
                                 randomLevel + "] §6Pet §f→ §8[§7" +
                                 randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
                         () -> compactPetLevel, newValue -> compactPetLevel = newValue))
+                .option(createBooleanOption(lowHpIndicator, "Low HP Indicator",
+                        "Reddens the screen the lower player's HP is.\nHas pulse animation.",
+                        () -> lowHpIndicator, newValue -> lowHpIndicator = newValue))
                 .option(createBooleanOption(hidePressure, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
                 .build();
     }

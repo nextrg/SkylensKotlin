@@ -191,7 +191,7 @@ object Renderables {
         }
     }
 
-    fun colorToVec4f(color: Int): FloatArray {
+    private fun colorToVec4f(color: Int): FloatArray {
         return floatArrayOf(
             (color shr 16 and 0xFF) / 255f,
             (color shr 8 and 0xFF) / 255f,

@@ -26,12 +26,17 @@ object CompactPetLevel {
         if (stack.item != Items.PLAYER_HEAD || !itemName.contains("[Lvl ") || stack.name.siblings.size <= 1) return
 
         val original = textToString(stack.customName!!)
-        val match = PATTERN.matcher(original).takeIf { it.find() } ?: return
-
-        val level = match.group(1).toInt()
-        val rarity = if ((isGoldenDragon(itemName) && level == 200) || level == 100) match.group(2) else "§7"
+        var level = 1; var rarity = "§7"
+        if (!original.contains("[Lvl 1 → 100]")) {
+            val match = PATTERN.matcher(original).takeIf { it.find() } ?: return
+            level = match.group(1).toInt()
+            if ((isGoldenDragon(itemName) && level == 200) || level == 100) {
+                rarity = match.group(2)
+            }
+        }
 
         val displayText = original
+            .replace("[Lvl 1 → 100]", "§8[$rarity"+"1 §8→$rarity 100§8]")
             .replace("[Lvl $level]", "§8[$rarity$level§8]")
             .replace("Lvl ", "")
 

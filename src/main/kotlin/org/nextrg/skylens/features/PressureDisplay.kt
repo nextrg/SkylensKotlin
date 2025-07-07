@@ -93,7 +93,7 @@ object PressureDisplay {
         drawText(drawContext, (PlayerStats.pressure * 100).toInt().toString() + "%", x, y - 14f, color1, 1f, true, true)
     }
 
-    fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
+    private fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
         val steps = 8;
         for (i in 0..steps) {
             val lastTwo = i > steps - 2

@@ -1,6 +1,8 @@
 package org.nextrg.skylens.api
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
+import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import java.util.regex.Pattern
@@ -8,10 +10,17 @@ import java.util.regex.Pattern
 object PlayerStats {
     private var PRESSURE_PATTERN: Pattern = Pattern.compile("(?<=Pressure: ❍)(\\d+)(?=%)")
     var pressure = 0f
+    var health = 0f
 
     fun init() {
         ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
             messageEvents(message)
+        })
+        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick {
+            val player = MinecraftClient.getInstance().player
+            if (player != null) {
+                health = player.health / player.maxHealth
+            }
         })
     }
 
