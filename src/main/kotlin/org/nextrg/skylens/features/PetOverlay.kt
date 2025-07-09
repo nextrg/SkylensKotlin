@@ -66,6 +66,15 @@ object PetOverlay {
     private var cacheColor2 = colorToARGB(ModConfig.petOverlayColor1)
     private var cacheColor3 = colorToARGB(ModConfig.petOverlayColor3)
 
+    private var isBarType = false
+    private var altStyle = false
+    private var flipped = false
+    private var invertColor = false
+    private var showItem = false
+    private var idleAnim = false
+    private var levelUpAnim = false
+    private var valueChangeAnim = false
+
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
         "special", intArrayOf(-0x55dedf, -0xcdce, -0x88eaeb),
         "divine", intArrayOf(-0xf7aa67, -0xee5523, -0xfac99a),
@@ -89,7 +98,7 @@ object PetOverlay {
     }
 
     fun levelUp() {
-        if (!ModConfig.petOverlayAnimation_LevelUp) return
+        if (!levelUpAnim) return
         scope.launch {
             animateFloat(1f, 0f, transitionDuration * 2, ::quad).collect { animatedXp = it }
             animateFloat(0f, 1f, transitionDuration, ::quad).collect { animatedLevelUp = it }
@@ -115,15 +124,19 @@ object PetOverlay {
             xp = newXp
 
             if (ModConfig.petOverlayAnimation_LevelXp) {
-                val levelAnimation = animateFloat(animatedLevelProgress, newLevel.toFloat() / newMaxLevel, transitionDuration, ::quad)
-                val xpAnimation = animateFloat(animatedXp, newXp, transitionDuration, ::quad)
-
-                kotlinx.coroutines.coroutineScope {
-                    launch {
-                        levelAnimation.collect { animatedLevelProgress = it }
+                scope.launch {
+                    animateFloat(
+                        animatedLevelProgress,
+                        newLevel.toFloat() / newMaxLevel,
+                        transitionDuration,
+                        ::quad
+                    ).collect {
+                        animatedLevelProgress = it
                     }
-                    launch {
-                        xpAnimation.collect { animatedXp = it }
+                }
+                scope.launch {
+                    animateFloat(animatedXp, newXp, transitionDuration, ::quad).collect {
+                        animatedXp = it
                     }
                 }
             } else {
@@ -170,6 +183,7 @@ object PetOverlay {
     }
 
     fun prepare() {
+        updateTheme()
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
             wrap.attachLayerAfter(
                 IdentifiedLayer.HOTBAR_AND_BARS,
@@ -190,7 +204,7 @@ object PetOverlay {
         val intX = x.toInt() - margin
         val intY = y.toInt() - 18 - margin
 
-        if (ModConfig.petOverlayType == ModConfig.Type.Bar) {
+        if (isBarType) {
             context.fill(intX, intY + 3, intX + 51 + margin * 2, intY + 26 + margin * 2, 0x14FFFFFF)
         } else {
             context.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 26 + margin * 2, 0x14FFFFFF)
@@ -203,7 +217,6 @@ object PetOverlay {
     }
 
     fun getPosition(): Pair<Float, Float> {
-        val isBar = ModConfig.petOverlayType == ModConfig.Type.Bar
         val anchorKey = ModConfig.petOverlayAnchor.toString()
         val offsetX = ModConfig.petOverlayX.toFloat()
         val offsetY = ModConfig.petOverlayY.toFloat()
@@ -213,12 +226,12 @@ object PetOverlay {
                 anchorKey = anchorKey,
                 offsetX = offsetX,
                 offsetY = offsetY,
-                isBar = isBar,
+                isBar = isBarType,
                 clampX = { pos, screenW ->
-                    clamp(pos, 4f, screenW.toFloat() - 2 - 26 - if (isBar) 27 else 0)
+                    clamp(pos, 4f, screenW.toFloat() - 2 - 26 - if (isBarType) 27 else 0)
                 },
                 clampY = { pos, screenH ->
-                    clamp(pos, 19f + if (!isBar) 17 else 0, screenH.toFloat() - 12)
+                    clamp(pos, 19f + if (!isBarType) 17 else 0, screenH.toFloat() - 12)
                 }
             )
         )
@@ -245,7 +258,19 @@ object PetOverlay {
         return finalX to finalY
     }
 
-    fun updateTheme() {
+    fun updateConfigValues() {
+        isBarType = ModConfig.petOverlayType == ModConfig.Type.Bar
+        flipped = ModConfig.petOverlayFlip
+        altStyle = ModConfig.petOverlayType == ModConfig.Type.CircularALT
+        invertColor = ModConfig.petOverlayInvert
+        showItem = ModConfig.petOverlayShowItem
+        idleAnim = ModConfig.petOverlayAnimation_Idle
+        valueChangeAnim = ModConfig.petOverlayAnimation_LevelXp
+        levelUpAnim = ModConfig.petOverlayAnimation_LevelUp
+        updateTheme()
+    }
+
+    private fun updateTheme() {
         val configTheme = ModConfig.petOverlayTheme.toString()
         val isCustom = configTheme == "Custom"
 
@@ -276,11 +301,11 @@ object PetOverlay {
         var color1 = cacheColor1; var color2 = cacheColor2; var color3 = cacheColor3
 
         val textColor = color2
-        if (ModConfig.petOverlayInvert) {
+        if (invertColor) {
             color1 = color2.also { color2 = color1 }
         }
 
-        if (ModConfig.petOverlayType == ModConfig.Type.Bar) {
+        if (isBarType) {
             renderBars(drawContext, x, y, animatedLevelProgress, color1, color2, color3)
         } else {
             renderCircles(drawContext, x, y, animatedLevelProgress, color1, color2, color3)
@@ -290,14 +315,12 @@ object PetOverlay {
 
     private fun renderText(drawContext: DrawContext, x: Float, y: Float, color: Int) {
         val isLevelMax = level == maxLevel
-        val barStyle = ModConfig.petOverlayType == ModConfig.Type.Bar
-        val flipped = ModConfig.petOverlayFlip
 
-        val iconX = x + 3 + (if (!barStyle) 1 else 0) + if (barStyle && flipped) 29 else 0
-        val iconY = y - 17 + (if (!barStyle) 4.5f else 0f)
+        val iconX = x + 3 + (if (!isBarType) 1 else 0) + if (isBarType && flipped) 29 else 0
+        val iconY = y - 17 + (if (!isBarType) 4.5f else 0f)
 
-        val textX = x + 34 - (if (!barStyle) 21.5f else 0f) - if (barStyle && flipped) 16 else 0
-        val textY = y - 10 - (if (!barStyle) 15.5f else 0f)
+        val textX = x + 34 - (if (!isBarType) 21.5f else 0f) - if (isBarType && flipped) 16 else 0
+        val textY = y - 10 - (if (!isBarType) 15.5f else 0f)
 
         val displayLevel = if (isLevelMax) "LV MX" else "Lvl $level"
         if (!isLevelMax) {
@@ -315,12 +338,11 @@ object PetOverlay {
             hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
-        val showItem = ModConfig.petOverlayShowItem
         val isPlayerHead = heldItem.itemName.toString().contains("player_head")
-        drawItem(drawContext, currentPet, iconX, iconY + if (!barStyle && showItem && isPlayerHead) 2 else 0, 1.0f)
+        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, 1.0f)
         if (showItem) {
             val offsetX = if (isPlayerHead) 0 else 7
-            val offsetY = -3 - (if (barStyle) 2 else 0) + (if (isPlayerHead) 0 else 8)
+            val offsetY = -3 - (if (isBarType) 2 else 0) + (if (isPlayerHead) 0 else 8)
             val scale = 0.8f - if (isPlayerHead) 0f else 0.3f
 
             drawItem(drawContext, heldItem, iconX + offsetX, iconY + offsetY, scale)
@@ -328,7 +350,7 @@ object PetOverlay {
     }
 
     private fun renderBars(drawContext: DrawContext, x: Float, y: Float, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
-        if (ModConfig.petOverlayAnimation_Idle) {
+        if (idleAnim) {
             val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
             legacyRoundRectangle(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
@@ -346,12 +368,11 @@ object PetOverlay {
     }
 
     private fun renderCircles(drawContext: DrawContext, x: Float, y: Float, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
-        if (ModConfig.petOverlayAnimation_Idle) {
+        if (idleAnim) {
             val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
             val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
             drawPie(drawContext, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, color, 0f, 0f, false, false)
         }
-        val alt = ModConfig.petOverlayType == ModConfig.Type.CircularALT
 
         // Background
         drawPie(drawContext, x + 12f, y - 4f, 1.01f, 12.5f, color2, 0f, 0f, false, false)
@@ -359,6 +380,6 @@ object PetOverlay {
         drawPie(drawContext, x + 12f, y - 4f, levelProgress * 1.01f, 12.7f, color3, Math.PI.toFloat() / 2, 0f, true, false)
         drawPie(drawContext, x + 12f, y - 4f, 1.01f, 10.54f, color3, 0f, 0f, false, false)
         // XP
-        drawPie(drawContext, x + 12f, y - 4f, animatedXp * 1.01f, 10.52f - if (alt) 1.5f else 0f, color1, Math.PI.toFloat() / 2, 0f, false, false)
+        drawPie(drawContext, x + 12f, y - 4f, animatedXp * 1.01f, 10.52f - if (altStyle) 1.5f else 0f, color1, Math.PI.toFloat() / 2, 0f, false, false)
     }
 }

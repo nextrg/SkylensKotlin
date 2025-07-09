@@ -22,23 +22,35 @@ import java.lang.Math.clamp
 
 object PressureDisplay {
     private var animatedPressure = 0f
+
+    private var lineTransparency = 130
     private var color1 = hexStringToInt("afafaf")
     private var color2 = hexStringToInt("3d3d41")
     private var color3 = hexStringToInt("1d1d21")
-    private var defaultStyle = Triple("afafaf", "3d3d41", "1d1d21")
+    private var theme_nighttime = Triple("afafaf", "3d3d41", "1d1d21")
+    private var theme_peach = Triple("ffdab9", "f0a080", "AC5f4A")
 
-    fun updateTheme() {
-        val (c1, c2, c3) = when (ModConfig.pressureDisplayTheme) {
-            0 -> defaultStyle
-            1 -> Triple("ffffff", "000000", "436456")
-            else -> defaultStyle
-        }
+    private val themes = mapOf(
+        0 to (theme_nighttime to 130),
+        1 to (theme_peach to 180)
+    )
+
+    private fun updateTheme() {
+        val (colors, transparency) =
+            themes[ModConfig.pressureDisplayTheme] ?: (theme_nighttime to 130)
+        val (c1, c2, c3) = colors
         color1 = hexStringToInt(c1)
         color2 = hexStringToInt(c2)
         color3 = hexStringToInt(c3)
+        lineTransparency = transparency
+    }
+
+    fun updateConfigValues() {
+        updateTheme()
     }
 
     fun prepare() {
+        updateConfigValues()
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
             wrap.attachLayerAfter(
                 IdentifiedLayer.HOTBAR_AND_BARS,
@@ -68,7 +80,7 @@ object PressureDisplay {
                 anchorKey = ModConfig.pressureDisplayAnchor.toString(),
                 offsetX = ModConfig.pressureDisplayX.toFloat(),
                 offsetY = ModConfig.pressureDisplayY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 14.5f, screenW.toFloat() - 14.5f) },
+                clampX = { pos, screenW -> clamp(pos, 14f, screenW.toFloat() - 14f) },
                 clampY = { pos, screenH -> clamp(pos, 15f, screenH.toFloat() - 22) }
             )
         )
@@ -80,34 +92,32 @@ object PressureDisplay {
 
         val min = degreesToRadians(225f)
         val max = degreesToRadians(225f + 90f - 360f)
-        val displayPressure = MathHelper.lerp(quad(animatedPressure), min, max)
 
         val (x, y) = getPosition()
+        draw(drawContext, x, y, MathHelper.lerp(quad(animatedPressure), min, max))
+    }
 
-        color1 = hexStringToInt("0f0f0f")
-        
-        val meterY = y + 8f
-
+    private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
         // Background
-        drawPie(drawContext, x, meterY, 1.01f, 13f, color2, 0f, 0f, false, false)
-        drawPie(drawContext, x, meterY, 1.01f, 12f, color3, 0f, 0f, false, false)
+        drawPie(drawContext, x, y + 8f, 1.01f, 13f, color2, 0f, 0f, false, false)
+        drawPie(drawContext, x, y + 8f, 1.01f, 12f, color3, 0f, 0f, false, false)
 
-        drawMarkerLines(drawContext, x, meterY, hexTransparent(color2, 130))
-
-        drawPie(drawContext, x, meterY, 1.01f * 3/4, 7.5f, color2, degreesToRadians(-45f), 0f, false, false)
-        drawPie(drawContext, x, meterY, 1.01f, 6.825f, color3, 0f, 0f, false, false)
+        // Markers
+        drawMarkerLines(drawContext, x, y + 8f, hexTransparent(color2, lineTransparency))
+        drawPie(drawContext, x, y + 8f, 1.01f * 3/4, 7.5f, color2, degreesToRadians(-45f), 0f, false, false)
+        drawPie(drawContext, x, y + 8f, 1.01f, 6.825f, color3, 0f, 0f, false, false)
 
         // Measure
-        drawLine(drawContext, x, meterY, displayPressure, 10.25f, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
-        drawPie(drawContext, x, meterY, 1.01f * 1/6, 12f, color3, degreesToRadians(225f), 0f, false, false)
-        drawLine(drawContext, x, meterY, displayPressure, 10.25f, color1, 1f, 0.25f, 1f, 2)
-        drawPie(drawContext, x, meterY, 1.01f,  1.5f, color2, 0f, 0f, false, false)
+        drawLine(drawContext, x, y + 8f, value, 10.25f, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
+        drawPie(drawContext, x, y + 8f, 1.01f * 1/6, 12f, color3, degreesToRadians(225f), 0f, false, false)
+        drawLine(drawContext, x, y + 8f, value, 10.25f, color1, 1f, 0.25f, 1f, 2)
+        drawPie(drawContext, x, y + 8f, 1.01f,  1.5f, color2, 0f, 0f, false, false)
 
-        drawText(drawContext, (PlayerStats.pressure * 100).toInt().toString() + "%", x, y - 14f, color1, 1f, true, true)
+        drawText(drawContext, (PlayerStats.pressure * 100).toInt().toString() + "%", x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
     }
 
     private fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
-        val steps = 8;
+        val steps = 8
         for (i in 0..steps) {
             val last = i == steps
             val lineColor = if (!last) color else 0xFF993333.toInt()

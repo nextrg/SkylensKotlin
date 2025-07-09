@@ -260,7 +260,12 @@ public class ModConfig implements ModMenuApi {
                         .binding(0, () -> pressureDisplayTheme, newVal -> pressureDisplayTheme = newVal)
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                 .range(0, 1)
-                                .step(1))
+                                .step(1)
+                                .formatValue(val -> Text.literal(switch(val) {
+                                    case 1 -> "\uD83C\uDF51 Peach"; default -> "\uD83C\uDF03 Nighttime";
+                                }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
+                                    case 1 -> new Color(255, 193, 124); default -> new Color(147, 156, 177);
+                                }))))
                         .build())
                 .build();
     }
@@ -322,8 +327,8 @@ public class ModConfig implements ModMenuApi {
     
     public void update() {
         ModConfig.HANDLER.save();
-        PressureDisplay.INSTANCE.updateTheme();
-        PetOverlay.INSTANCE.updateTheme();
+        PressureDisplay.INSTANCE.updateConfigValues();
+        PetOverlay.INSTANCE.updateConfigValues();
     }
     
     public static ModConfig get() {
@@ -347,5 +352,7 @@ public class ModConfig implements ModMenuApi {
     
     public void init() {
         ModConfig.HANDLER.load();
+        PressureDisplay.INSTANCE.updateConfigValues();
+        PetOverlay.INSTANCE.updateConfigValues();
     }
 }
