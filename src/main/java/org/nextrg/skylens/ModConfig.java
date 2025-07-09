@@ -283,9 +283,15 @@ public class ModConfig implements ModMenuApi {
                                 .range(0.2f, 1f)
                                 .step(0.01f)
                                 .formatValue(val -> {
-                                    float red = Math.max(0f, Math.min(1f, (val - 0.71f) / (1f - 0.71f)));
-                                    Color color = new Color(255, (int) Math.clamp(255 - red * 115, 0, 255), (int) Math.clamp(255 - red * 115, 0, 255));
-                                    return Text.literal(Math.floor(val * 100) + "%").withColor(VariablesUtil.INSTANCE.colorToARGB(color));
+                                    float scaled = (val - 0.675f) / 0.16f;
+                                    int warning = Math.max(0, (int) Math.ceil(scaled));
+                                    
+                                    int defaultColor = Math.clamp(255 - warning * 45L, 0, 255);
+                                    Color color = new Color(255, defaultColor, defaultColor);
+                                    String percentage = String.format("%.1f%%", Math.floor(val * 1000) / 10);
+                                    
+                                    return Text.literal("⚠".repeat(warning) + " " + percentage)
+                                            .withColor(VariablesUtil.INSTANCE.colorToARGB(color));
                                 }))
                         .build())
                 .option(createBooleanOption(lowHpIndicatorHeartbeat, "Pulse Animation", "", () -> lowHpIndicatorHeartbeat, newValue -> lowHpIndicatorHeartbeat = newValue))
