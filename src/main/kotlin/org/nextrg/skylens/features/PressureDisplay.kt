@@ -22,6 +22,21 @@ import java.lang.Math.clamp
 
 object PressureDisplay {
     private var animatedPressure = 0f
+    private var color1 = hexStringToInt("afafaf")
+    private var color2 = hexStringToInt("3d3d41")
+    private var color3 = hexStringToInt("1d1d21")
+    private var defaultStyle = Triple("afafaf", "3d3d41", "1d1d21")
+
+    fun updateTheme() {
+        val (c1, c2, c3) = when (ModConfig.pressureDisplayTheme) {
+            0 -> defaultStyle
+            1 -> Triple("ffffff", "000000", "436456")
+            else -> defaultStyle
+        }
+        color1 = hexStringToInt(c1)
+        color2 = hexStringToInt(c2)
+        color3 = hexStringToInt(c3)
+    }
 
     fun prepare() {
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
@@ -69,9 +84,7 @@ object PressureDisplay {
 
         val (x, y) = getPosition()
 
-        val color1 = hexStringToInt("afafaf")
-        val color2 = hexStringToInt("3d3d41")
-        val color3 = hexStringToInt("1d1d21")
+        color1 = hexStringToInt("0f0f0f")
         
         val meterY = y + 8f
 

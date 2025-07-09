@@ -35,7 +35,8 @@ object MissingEnchants {
     ): Pair<MutableList<String>, MutableList<String>> {
         val missingEnchants = mutableListOf<String>()
         val ultimateEnchants = mutableListOf<String>()
-        val neuEnchants: JsonObject = enchants!!["enchants"].asJsonObject
+        val enchantData = enchants ?: return Pair(mutableListOf(), mutableListOf())
+        val neuEnchants = enchantData["enchants"].asJsonObject
         val neuEnchantPools: JsonArray = enchants!!["enchant_pools"].asJsonArray
 
         try {
@@ -44,15 +45,10 @@ object MissingEnchants {
                     val enc: String = encElement.asString.lowercase()
                     var conflictFound = false
                     for (conflictGroup in neuEnchantPools) {
-                        if (conflictGroup.toString().lowercase().contains(enc.lowercase())) {
-                            val array: JsonArray? = conflictGroup.getAsJsonArray()
-                            if (array != null) {
-                                for (i in 0..<array.size()) {
-                                    if (itemEnchants.contains(array.get(i).asString.lowercase())) {
-                                        conflictFound = true
-                                        break
-                                    }
-                                }
+                        val array = conflictGroup.asJsonArray
+                        if (array.any { it.asString.lowercase() == enc }) {
+                            if (array.any { itemEnchants.contains(it.asString.lowercase()) }) {
+                                conflictFound = true
                             }
                         }
                         if (conflictFound) break
@@ -93,14 +89,17 @@ object MissingEnchants {
             val displayList: MutableList<Text> = ArrayList()
             var i = list.size - 1
             while (i >= 0) {
-                val sb = StringBuilder()
-                for (j in i downTo max(0.0, (i - 2).toDouble()).toInt()) {
-                    sb.append(list[j])
-                    if (j != 0) {
-                        sb.append(codeFromName("gray")).append(getFormatCode("reset")).append(", ")
+                val group = buildString {
+                    for (j in i downTo max(0, i - 2)) {
+                        append(list[j])
+                        if (j != max(0, i - 2)) {
+                            append(codeFromName("gray"))
+                            append(getFormatCode("reset"))
+                            append(", ")
+                        }
                     }
                 }
-                displayList.add(Text.literal("⋗ " + sb.toString().trim { it <= ' ' }).formatted(Formatting.GRAY))
+                displayList.add(Text.literal("⋗ ${group.trim()}").formatted(Formatting.GRAY))
                 i -= 3
             }
             lines.addAll(targetIndex, displayList)

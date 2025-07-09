@@ -76,7 +76,7 @@ object StringsUtil {
     }
 
     fun textToString(text: Text): String {
-        var name: String = ""
+        var name = ""
         for (sibling in text.siblings) {
             name += codeFromName(sibling.style.color.toString()) + sibling.string
         }

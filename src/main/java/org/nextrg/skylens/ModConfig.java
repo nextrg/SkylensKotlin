@@ -4,10 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
-import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
-import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
-import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
+import dev.isxander.yacl3.api.controller.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -18,6 +15,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.nextrg.skylens.features.HudEditor;
+import org.nextrg.skylens.features.PetOverlay;
+import org.nextrg.skylens.features.PressureDisplay;
 import org.nextrg.skylens.helpers.StringsUtil;
 import org.nextrg.skylens.helpers.VariablesUtil;
 
@@ -142,6 +141,8 @@ public class ModConfig implements ModMenuApi {
     public static int pressureDisplayX = 0;
     @SerialEntry
     public static int pressureDisplayY = 0;
+    @SerialEntry
+    public static int pressureDisplayTheme = 0;
     
     @SerialEntry
     public static boolean petOverlay = true;
@@ -235,7 +236,7 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup pressureDisplayGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Pressure Display"))
+                .name(Text.literal("Pressure Meter Display"))
                 .description(OptionDescription.of(Text.literal("Displays the pressure percentage caused by waters in Galatea.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
@@ -251,6 +252,15 @@ public class ModConfig implements ModMenuApi {
                         .name(Text.literal("Open HUD Editor"))
                         .text(Text.literal("→"))
                         .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Pressure Display"))
+                        .build())
+                
+                .option(label("Themes"))
+                .option(Option.<Integer>createBuilder()
+                        .name(Text.literal("Theme"))
+                        .binding(0, () -> pressureDisplayTheme, newVal -> pressureDisplayTheme = newVal)
+                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                .range(0, 1)
+                                .step(1))
                         .build())
                 .build();
     }
@@ -312,6 +322,8 @@ public class ModConfig implements ModMenuApi {
     
     public void update() {
         ModConfig.HANDLER.save();
+        PressureDisplay.INSTANCE.updateTheme();
+        PetOverlay.INSTANCE.updateTheme();
     }
     
     public static ModConfig get() {

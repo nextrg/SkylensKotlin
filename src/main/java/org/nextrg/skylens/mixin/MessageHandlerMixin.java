@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Mixin(value = MessageHandler.class, priority = 100)
 public abstract class MessageHandlerMixin {
@@ -28,15 +27,12 @@ public abstract class MessageHandlerMixin {
             if (hidePressure) {
                 var string = text.getString();
                 var array = new ArrayList<>(Arrays.asList(string.split(" {5}")));
-                if (array.get(1).contains("Pressure")) {
+                if (array.size() > 1 && array.get(1).contains("Pressure")) {
                     array.remove(1);
                 }
-                var display = array.stream()
-                        .map(String::valueOf)
-                        .collect(Collectors.joining("     "));
-                text = Text.literal(display);
+                var display = String.join("     ", array);
                 callbackInfo.cancel();
-                client.inGameHud.setOverlayMessage(text, false);
+                client.inGameHud.setOverlayMessage(Text.literal(display), false);
             }
         }
     }

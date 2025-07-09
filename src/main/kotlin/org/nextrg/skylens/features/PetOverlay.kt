@@ -62,6 +62,10 @@ object PetOverlay {
     private var transitionY = 0f
     private var hidden: Boolean = true
 
+    private var cacheColor1 = colorToARGB(ModConfig.petOverlayColor2)
+    private var cacheColor2 = colorToARGB(ModConfig.petOverlayColor1)
+    private var cacheColor3 = colorToARGB(ModConfig.petOverlayColor3)
+
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
         "special", intArrayOf(-0x55dedf, -0xcdce, -0x88eaeb),
         "divine", intArrayOf(-0xf7aa67, -0xee5523, -0xfac99a),
@@ -80,6 +84,7 @@ object PetOverlay {
             val pet = getCurrentPet()
             currentPet = pet
             rarity = getPetRarity(getPetRarityText(pet))
+            updateTheme()
         }
     }
 
@@ -110,19 +115,15 @@ object PetOverlay {
             xp = newXp
 
             if (ModConfig.petOverlayAnimation_LevelXp) {
-                scope.launch {
-                    animateFloat(
-                        animatedLevelProgress,
-                        newLevel.toFloat() / newMaxLevel,
-                        transitionDuration,
-                        ::quad
-                    ).collect {
-                        animatedLevelProgress = it
+                val levelAnimation = animateFloat(animatedLevelProgress, newLevel.toFloat() / newMaxLevel, transitionDuration, ::quad)
+                val xpAnimation = animateFloat(animatedXp, newXp, transitionDuration, ::quad)
+
+                kotlinx.coroutines.coroutineScope {
+                    launch {
+                        levelAnimation.collect { animatedLevelProgress = it }
                     }
-                }
-                scope.launch {
-                    animateFloat(animatedXp, newXp, transitionDuration, ::quad).collect {
-                        animatedXp = it
+                    launch {
+                        xpAnimation.collect { animatedXp = it }
                     }
                 }
             } else {
@@ -244,8 +245,7 @@ object PetOverlay {
         return finalX to finalY
     }
 
-
-    private fun getColors(rarity: String): Triple<Int, Int, Int> {
+    fun updateTheme() {
         val configTheme = ModConfig.petOverlayTheme.toString()
         val isCustom = configTheme == "Custom"
 
@@ -257,14 +257,15 @@ object PetOverlay {
 
         return if (!isCustom) {
             val colors = rarityColors[displayTheme.lowercase()]
-                ?: error("[Skylens] Missing theme: $displayTheme")
-            Triple(colors[0], colors[1], colors[2])
+            if (colors != null) {
+                cacheColor1 = colors[0]
+                cacheColor2 = colors[1]
+                cacheColor3 = colors[2]
+            } else { }
         } else {
-            Triple(
-                colorToARGB(ModConfig.petOverlayColor2),
-                colorToARGB(ModConfig.petOverlayColor1),
-                colorToARGB(ModConfig.petOverlayColor3)
-            )
+            cacheColor1 = colorToARGB(ModConfig.petOverlayColor2)
+            cacheColor2 = colorToARGB(ModConfig.petOverlayColor1)
+            cacheColor3 = colorToARGB(ModConfig.petOverlayColor3)
         }
     }
 
@@ -272,7 +273,7 @@ object PetOverlay {
         if ((!ModConfig.petOverlay && !hudEditor) || !onSkyblock()) return
 
         val (x, y) = getPosition()
-        var (color1, color2, color3) = getColors(rarity)
+        var color1 = cacheColor1; var color2 = cacheColor2; var color3 = cacheColor3
 
         val textColor = color2
         if (ModConfig.petOverlayInvert) {
