@@ -83,7 +83,7 @@ object OtherUtil {
                     behind = "PET_ITEM_"
                     rarity = "_COMMON"
                 }
-                val path = "/f75fb6876c1cc0179b47546e273389a21f8968a7/items/$behind" +
+                val path = "/refs/heads/master/items/$behind" +
                 itemName.uppercase(Locale.getDefault()).replace(" ", "_").replace("EXP_", "SKILL_") + rarity + ".json"
                 val petJson = jsonNeu(path)
                 if (!petJson.toString().contains("SkullOwner")) {
