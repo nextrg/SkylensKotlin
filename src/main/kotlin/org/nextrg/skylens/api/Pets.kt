@@ -111,7 +111,7 @@ object Pets {
             val string = line.toString()
 
             if (string.contains("Progress to") && string.contains("%")) {
-                if (line.siblings.size > 2) {
+                if (line.siblings.size > 1) {
                     val displayXp = line.siblings[1].string.replace("%", "")
                     xp = (displayXp.toFloat() / 100f).toFixed(3)
                 }
