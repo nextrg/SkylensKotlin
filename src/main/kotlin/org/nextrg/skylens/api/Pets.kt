@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -37,7 +36,8 @@ object Pets {
 
     private var cachedPets: MutableList<ItemStack> = mutableListOf()
     private var isPetMenu = false
-    private var currentPetScreen: Screen? = null
+    private var currentPetScreen: GenericContainerScreen? = null
+    private var hasCached = false
 
     private var lastUpdate = System.currentTimeMillis()
     private var updateByTab = true
@@ -193,12 +193,21 @@ object Pets {
     }
 
     private fun readInventory(screen: GenericContainerScreen) {
-        if (screen == currentPetScreen) return
-        currentPetScreen = screen; isPetMenu = true
-        var hasCached = false
+        if (screen != currentPetScreen) {
+            currentPetScreen = screen
+            hasCached = false
+        }
 
+        isPetMenu = true
+
+        var ticks = 0
         ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
             if (!isPetMenu || hasCached) return@AfterTick
+
+            if (ticks < 2) {
+                ticks++
+                return@AfterTick
+            }
 
             cachedPets.clear()
 
@@ -210,11 +219,9 @@ object Pets {
                 if (!stack.isEmpty && stack.item == Items.PLAYER_HEAD) {
                     cachedPets.add(stack)
                     val content = tooltipFromItemStack(stack).toString()
-                    if (content.contains("Click to despawn!")) {
-                        if (stack.customName != null) {
-                            equippedPet = stack.customName!!.string
-                            rarity = getPetRarity(stack.customName!!)
-                        }
+                    if ("Click to despawn!" in content && stack.customName != null) {
+                        equippedPet = stack.customName!!.string
+                        rarity = getPetRarity(stack.customName!!)
                     }
                 }
             }
@@ -229,7 +236,12 @@ object Pets {
             val cachedPetName = pet.customName
             val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
             val petRarity = getPetRarity(getPetRarityText(pet))
-            if (nameWithoutFormat?.contains(petName) == true && petRarity == rarity) {
+            val petNameWithoutLvl = if (petName.contains("]")) {
+                petName.substringAfter("] ").trim()
+            } else {
+                petName
+            }
+            if (nameWithoutFormat?.contains(petNameWithoutLvl) == true && petRarity == rarity) {
                 updateByTab = false
                 scheduledResetTask?.cancel(false)
 

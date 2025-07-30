@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.awt.Color
+import kotlin.math.abs
 import kotlin.math.pow
 
 object VariablesUtil {
@@ -77,8 +78,8 @@ object VariablesUtil {
         return try {
             when (color.length) {
                 6 -> {
-                    val rgba = "FF$color"
-                    rgba.toLong(16).toInt()
+                    val rgb = color.toLong(16).toInt()
+                    (0xFF shl 24) or (rgb and 0xFFFFFF)
                 }
                 8 -> {
                     color.toLong(16).toInt()
@@ -88,5 +89,39 @@ object VariablesUtil {
         } catch (e: Exception) {
             defaultColor
         }
+    }
+
+    fun getRainbow(steps: Int, brightness: Float = 1f): MutableList<Int> {
+        val colors = mutableListOf<Int>()
+        val hueStep = 360f / steps
+
+        for (i in 0 until steps) {
+            val hue = (hueStep * i) % 360f
+            colors.add(hsvToRgb(hue, value = brightness.coerceIn(0f, 1f)))
+        }
+
+        return colors
+    }
+
+    fun hsvToRgb(hue: Float, saturation: Float = 1f, value: Float = 1f): Int {
+        val c = value * saturation
+        val x = c * (1 - abs((hue / 60f) % 2 - 1))
+        val m = value - c
+
+        val (r1, g1, b1) = when {
+            hue < 60f -> Triple(c, x, 0f)
+            hue < 120f -> Triple(x, c, 0f)
+            hue < 180f -> Triple(0f, c, x)
+            hue < 240f -> Triple(0f, x, c)
+            hue < 300f -> Triple(x, 0f, c)
+            else -> Triple(c, 0f, x)
+        }
+
+        val r = ((r1 + m) * 255).toInt()
+        val g = ((g1 + m) * 255).toInt()
+        val b = ((b1 + m) * 255).toInt()
+        val a = 255
+
+        return (a shl 24) or (r shl 16) or (g shl 8) or b
     }
 }

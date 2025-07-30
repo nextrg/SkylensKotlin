@@ -2,13 +2,19 @@ package org.nextrg.skylens.api
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
-import net.minecraft.client.MinecraftClient
+import net.minecraft.client.network.ClientPlayerEntity
+import net.minecraft.fluid.Fluids
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.nextrg.skylens.features.PressureDisplay
 import java.util.regex.Pattern
 
 object PlayerStats {
     private var PRESSURE_PATTERN: Pattern = Pattern.compile("(?<=Pressure: ❍)(\\d+)(?=%)")
+
+    private var lastCheckTime = 0L
+    private var wasInWater = false
+
     var pressure = 0f
     var health = 0f
 
@@ -16,12 +22,33 @@ object PlayerStats {
         ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
             messageEvents(message)
         })
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick {
-            val player = MinecraftClient.getInstance().player
-            if (player != null) {
-                health = player.health / player.maxHealth
-            }
+        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client ->
+            val player = client.player ?: return@EndTick
+
+            updateHealth(player); checkInWater(player)
         })
+    }
+
+    private fun checkInWater(player: ClientPlayerEntity) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastCheckTime < 500L) return
+
+        lastCheckTime = currentTime
+        val inWater = player.world.getFluidState(player.blockPos).fluid == Fluids.WATER
+        when {
+            !wasInWater && inWater -> {
+                PressureDisplay.show()
+            }
+            wasInWater && !inWater -> {
+                PressureDisplay.hide()
+            }
+        }
+
+        wasInWater = inWater
+    }
+
+    private fun updateHealth(player: ClientPlayerEntity) {
+        health = player.health / player.maxHealth
     }
 
     fun readActionBar(text: Text) {

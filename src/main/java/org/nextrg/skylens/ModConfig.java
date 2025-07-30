@@ -169,11 +169,17 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static Color petOverlayColor3 = Color.DARK_GRAY;
     @SerialEntry
-    public static boolean petOverlayAnimation_Idle = true;
+    public static boolean petOverlayAnimation_IdlePulse = true;
     @SerialEntry
     public static boolean petOverlayAnimation_LevelUp = true;
     @SerialEntry
     public static boolean petOverlayAnimation_LevelXp = true;
+    @SerialEntry
+    public static boolean petOverlayRainbowLvl = false;
+    @SerialEntry
+    public static boolean petOverlayRainbowXp = false;
+    @SerialEntry
+    public static boolean petOverlayRainbowBg = false;
     
     @SerialEntry
     public static boolean lowHpIndicator = true;
@@ -228,9 +234,14 @@ public class ModConfig implements ModMenuApi {
                 .option(createColorOption(Color.DARK_GRAY, "Background", () -> petOverlayColor3, newValue -> petOverlayColor3 = newValue))
                 
                 .option(label("Animations"))
-                .option(createBooleanOption(petOverlayAnimation_Idle, "Idle", "", () -> petOverlayAnimation_Idle, newValue -> petOverlayAnimation_Idle = newValue))
+                .option(createBooleanOption(petOverlayAnimation_IdlePulse, "Idle", "", () -> petOverlayAnimation_IdlePulse, newValue -> petOverlayAnimation_IdlePulse = newValue))
                 .option(createBooleanOption(petOverlayAnimation_LevelUp, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
                 .option(createBooleanOption(petOverlayAnimation_LevelXp, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
+               
+                .option(label("Other"))
+                .option(createBooleanOption(petOverlayRainbowLvl, "Rainbow Level", "Overrides level color.", () -> petOverlayRainbowLvl, newValue -> petOverlayRainbowLvl = newValue))
+                .option(createBooleanOption(petOverlayRainbowXp, "Rainbow XP", "Overrides XP color.", () -> petOverlayRainbowXp, newValue -> petOverlayRainbowXp = newValue))
+                .option(createBooleanOption(petOverlayRainbowBg, "Rainbow Background", "Overrides background color.", () -> petOverlayRainbowBg, newValue -> petOverlayRainbowBg = newValue))
                 .build();
     }
     

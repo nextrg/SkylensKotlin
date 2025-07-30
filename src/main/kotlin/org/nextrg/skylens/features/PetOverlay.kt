@@ -1,9 +1,6 @@
 package org.nextrg.skylens.features
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback
 import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer
 import net.fabricmc.fabric.api.client.rendering.v1.LayeredDrawerWrapper
@@ -30,10 +27,12 @@ import org.nextrg.skylens.helpers.RenderUtil.legacyRoundRectangle
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
+import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
 import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
 import org.nextrg.skylens.renderables.Renderables.drawPie
+import org.nextrg.skylens.renderables.Renderables.drawPieGradient
 import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import java.util.*
@@ -71,9 +70,14 @@ object PetOverlay {
     private var flipped = false
     private var invertColor = false
     private var showItem = false
-    private var idleAnim = false
+    private var idleAnimPulse = false
     private var levelUpAnim = false
     private var valueChangeAnim = false
+    private var rainbowLevel = false
+    private var rainbowXp = false
+    private var rainbowBg = false
+
+    private var updatePetScope: Job? = null
 
     private val rarityColors: Map<String, IntArray> = java.util.Map.of(
         "special", intArrayOf(-0x55dedf, -0xcdce, -0x88eaeb),
@@ -87,7 +91,8 @@ object PetOverlay {
     )
 
     fun updatePet() {
-        scope.launch {
+        updatePetScope?.cancel()
+        updatePetScope = scope.launch {
             delay((transition * transitionDuration).toLong())
 
             val pet = getCurrentPet()
@@ -264,9 +269,12 @@ object PetOverlay {
         altStyle = ModConfig.petOverlayType == ModConfig.Type.CircularALT
         invertColor = ModConfig.petOverlayInvert
         showItem = ModConfig.petOverlayShowItem
-        idleAnim = ModConfig.petOverlayAnimation_Idle
+        idleAnimPulse = ModConfig.petOverlayAnimation_IdlePulse
         valueChangeAnim = ModConfig.petOverlayAnimation_LevelXp
         levelUpAnim = ModConfig.petOverlayAnimation_LevelUp
+        rainbowLevel = ModConfig.petOverlayRainbowLvl
+        rainbowXp = ModConfig.petOverlayRainbowXp
+        rainbowBg = ModConfig.petOverlayRainbowBg
         updateTheme()
     }
 
@@ -339,7 +347,7 @@ object PetOverlay {
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
         val isPlayerHead = heldItem.itemName.toString().contains("player_head")
-        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, 1.0f)
+        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, transition)
         if (showItem) {
             val offsetX = if (isPlayerHead) 0 else 7
             val offsetY = -3 - (if (isBarType) 2 else 0) + (if (isPlayerHead) 0 else 8)
@@ -350,8 +358,8 @@ object PetOverlay {
     }
 
     private fun renderBars(drawContext: DrawContext, x: Float, y: Float, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
-        if (idleAnim) {
-            val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
+        val idleProgress = getIdleProgress()
+        if (idleAnimPulse) {
             legacyRoundRectangle(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
@@ -368,18 +376,44 @@ object PetOverlay {
     }
 
     private fun renderCircles(drawContext: DrawContext, x: Float, y: Float, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
-        if (idleAnim) {
-            val idleProgress = (Util.getMeasuringTimeMs() / 1700.0).toFloat() % 1
+        val idleProgress = getIdleProgress()
+        if (idleAnimPulse) {
             val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
             drawPie(drawContext, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, color, 0f, 0f, false, false)
         }
 
-        // Background
-        drawPie(drawContext, x + 12f, y - 4f, 1.01f, 12.5f, color2, 0f, 0f, false, false)
-        // Level
-        drawPie(drawContext, x + 12f, y - 4f, levelProgress * 1.01f, 12.7f, color3, Math.PI.toFloat() / 2, 0f, true, false)
-        drawPie(drawContext, x + 12f, y - 4f, 1.01f, 10.54f, color3, 0f, 0f, false, false)
-        // XP
-        drawPie(drawContext, x + 12f, y - 4f, animatedXp * 1.01f, 10.52f - if (altStyle) 1.5f else 0f, color1, Math.PI.toFloat() / 2, 0f, false, false)
+        drawCircleLevel(drawContext, x + 12f, y - 4f, color2, idleProgress)
+        drawCircleBg(drawContext, x + 12f, y - 4f, color3, levelProgress, idleProgress)
+        drawCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
+    }
+
+    private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color3: Int, levelProgress: Float, idleProgress: Float) {
+        if (!rainbowBg) {
+            drawPie(drawContext, x, y, levelProgress * 1.01f, 12.7f, color3, Math.PI.toFloat() / 2, 0f, true, false)
+            drawPie(drawContext, x, y, 1.01f, 10.54f, color3, 0f, 0f, false, false)
+        } else {
+            drawPieGradient(drawContext, x, y, levelProgress * 1.01f, 12.7f, getRainbow(8, 0.3f), Math.PI.toFloat() / 2, idleProgress, true, false)
+            drawPieGradient(drawContext, x, y, 1.01f, 10.54f, getRainbow(8, 0.3f), 0f, idleProgress, false, false)
+        }
+    }
+
+    private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+        if (!rainbowLevel) {
+            drawPie(drawContext, x, y, 1.01f, 12.5f, color, 0f, 0f, false, false)
+        } else {
+            drawPieGradient(drawContext, x, y, 1.01f, 12.5f, getRainbow(8), 0f, idleProgress, false, false)
+        }
+    }
+
+    private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+        if (!rainbowXp) {
+            drawPie(drawContext, x, y, animatedXp * 1.01f, 10.52f - if (altStyle) 1.5f else 0f, color, Math.PI.toFloat() / 2, 0f, false, false)
+        } else {
+            drawPieGradient(drawContext, x, y, animatedXp * 1.01f, 10.52f - if (altStyle) 1.5f else 0f, getRainbow(8), Math.PI.toFloat() / 2, idleProgress, false, false)
+        }
+    }
+
+    private fun getIdleProgress(time: Double = 1700.0): Float {
+        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
     }
 }

@@ -19,8 +19,7 @@ object Renderables {
         y: Float,
         progress: Float,
         radius: Float,
-        startColor: Int,
-        endColor: Int,
+        color: List<Int>,
         startAngle: Float,
         time: Float,
         invert: Boolean,
@@ -42,11 +41,22 @@ object Renderables {
         buffer.vertex(matrix, x + radius, y + radius, 0.0f)
         buffer.vertex(matrix, x + radius, y - radius, 0.0f)
 
+        val maxColors = 8
+
         PipelineRenderer.draw(Pipelines.CIRCLE_CHART, buffer.end()) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            pass.setUniform("startColor", *colorToVec4f(startColor))
-            pass.setUniform("endColor", *colorToVec4f(endColor))
+            val baseColors = color.ifEmpty { listOf(0xFFFFFFFF.toInt()) }
+            val safeColors = if (baseColors.size >= maxColors) {
+                baseColors.subList(0, maxColors)
+            } else {
+                baseColors + List(maxColors - baseColors.size) { baseColors.last() }
+            }
+            for (i in 0 until maxColors) {
+                pass.setUniform("color$i", *colorToVec4f(safeColors[i]))
+            }
+            val colorCountSafe = baseColors.size.coerceIn(1, maxColors)
+            pass.setUniform("colorCount", colorCountSafe)
             pass.setUniform("center", scaledX, flippedY)
             pass.setUniform("radius", scaledRadius)
             pass.setUniform("progress", progress)
@@ -69,7 +79,7 @@ object Renderables {
         invert: Boolean,
         reverse: Boolean
     ) {
-        pie(graphics, x, y, progress, radius, color, color, startAngle, time, invert, reverse)
+        pie(graphics, x, y, progress, radius, mutableListOf(color), startAngle, time, invert, reverse)
     }
 
     fun drawPieGradient(
@@ -78,14 +88,13 @@ object Renderables {
         y: Float,
         progress: Float,
         radius: Float,
-        startColor: Int,
-        endColor: Int,
+        color: List<Int>,
         startAngle: Float,
         time: Float,
         invert: Boolean,
         reverse: Boolean
     ) {
-        pie(graphics, x, y, progress, radius, startColor, endColor, startAngle, time, invert, reverse)
+        pie(graphics, x, y, progress, radius, color, startAngle, time, invert, reverse)
     }
 
     fun drawLine(
@@ -174,8 +183,7 @@ object Renderables {
         y: Float,
         width: Float,
         height: Float,
-        startColor: Int,
-        endColor: Int,
+        color: MutableList<Int>,
         gradientDirection: Int,
         time: Float,
         borderColor: Int,
@@ -188,31 +196,40 @@ object Renderables {
         val scaledY = y * scale
         val scaledWidth = width * scale
         val scaledHeight = height * scale
-
-        val flippedYWithHeight = window.framebufferHeight - (scaledY + scaledHeight)
-        val flippedY = window.framebufferHeight - scaledY
+        val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
 
         val matrix = graphics.matrices.peek().positionMatrix
         val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
 
-        buffer.vertex(matrix, scaledX, flippedYWithHeight, 0.0f)
-        buffer.vertex(matrix, scaledX, flippedY, 0.0f)
-        buffer.vertex(matrix, scaledX + scaledWidth, flippedY, 0.0f)
-        buffer.vertex(matrix, scaledX + scaledWidth, flippedYWithHeight, 0.0f)
+        buffer.vertex(matrix, x, y, 0.0f)
+        buffer.vertex(matrix, x, (y + height), 0.0f)
+        buffer.vertex(matrix, (x + width), (y + height), 0.0f)
+        buffer.vertex(matrix, (x + width), y, 0.0f)
 
-        PipelineRenderer.draw(
-            ROUND_GRADIENT, buffer.end()
-        ) { pass: RenderPass ->
+        val maxColors = 8
+
+        PipelineRenderer.draw(ROUND_GRADIENT, buffer.end()) { pass: RenderPass ->
             pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
             pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            pass.setUniform("startColor", *colorToVec4f(startColor))
-            pass.setUniform("endColor", *colorToVec4f(endColor))
+            val baseColors = color.ifEmpty { listOf(0xFFFFFFFF.toInt()) }
+            val safeColors = if (baseColors.size >= maxColors) {
+                baseColors.subList(0, maxColors)
+            } else {
+                baseColors + List(maxColors - baseColors.size) { baseColors.last() }
+            }
+            for (i in 0 until maxColors) {
+                pass.setUniform("color$i", *colorToVec4f(safeColors[i]))
+            }
             pass.setUniform("gradientDirection", gradientDirection)
-            pass.setUniform("borderRadius", borderRadius, borderRadius, borderRadius, borderRadius)
+            pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
             pass.setUniform("borderWidth", borderWidth)
             pass.setUniform("scaleFactor", scale)
-            pass.setUniform("size", scaledWidth - borderWidth * 2f, scaledHeight - borderWidth * 2f)
-            pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + scaledHeight / 2f)
+            pass.setUniform(
+                "size",
+                scaledWidth - borderWidth * 2.0f * scale,
+                scaledHeight - borderWidth * 2.0f * scale
+            )
+            pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
             pass.setUniform("borderColor", *colorToVec4f(borderColor))
             pass.setUniform("time", time)
         }
@@ -225,5 +242,17 @@ object Renderables {
             (color and 0xFF) / 255f,
             (color shr 24 and 0xFF) / 255f
         )
+    }
+
+    private fun colorsToVec4f(colors: List<Int>): FloatArray {
+        val result = FloatArray(colors.size * 4)
+        for ((i, color) in colors.withIndex()) {
+            val vec4 = colorToVec4f(color)
+            result[i * 4]     = vec4[0]
+            result[i * 4 + 1] = vec4[1]
+            result[i * 4 + 2] = vec4[2]
+            result[i * 4 + 3] = vec4[3]
+        }
+        return result
     }
 }

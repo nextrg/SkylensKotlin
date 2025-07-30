@@ -52,7 +52,7 @@ object LowHpIndicator {
 
         for (direction in 0..1) {
             roundGradient(drawContext, 0f, 0f, screenX.toFloat(), screenY.toFloat(),
-                color1, color2, direction, 0f, 0, 0f, 0f)
+                mutableListOf(color1, color2), direction, 0f, 0, 0f, 0f)
         }
     }
 
