@@ -14,6 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.nextrg.skylens.features.DrillFuelBar;
 import org.nextrg.skylens.features.HudEditor;
 import org.nextrg.skylens.features.PetOverlay;
 import org.nextrg.skylens.features.PressureDisplay;
@@ -144,6 +145,17 @@ public class ModConfig implements ModMenuApi {
     public static int pressureDisplayY = 0;
     @SerialEntry
     public static int pressureDisplayTheme = 0;
+    
+    @SerialEntry
+    public static boolean drillFuelBar = true;
+    @SerialEntry
+    public static Anchor drillFuelBarAnchor = Anchor.BottomMiddle;
+    @SerialEntry
+    public static int drillFuelBarX = 0;
+    @SerialEntry
+    public static int drillFuelBarY = 0;
+    @SerialEntry
+    public static int drillFuelBarTheme = 0;
     
     @SerialEntry
     public static boolean petOverlay = true;
@@ -282,6 +294,42 @@ public class ModConfig implements ModMenuApi {
                 .build();
     }
     
+    public static OptionGroup drillFuelBarGroup() {
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Drill Fuel Bar"))
+                .description(OptionDescription.of(Text.literal("Displays the current value of fuel in the drill.")))
+                .collapsed(true)
+                .option(createBooleanEnableOption(drillFuelBar, () -> drillFuelBar, newValue -> drillFuelBar = newValue))
+                
+                .option(label("Position"))
+                .option(Option.<Anchor>createBuilder()
+                        .name(Text.literal("Anchor"))
+                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .binding(Anchor.BottomMiddle, () -> drillFuelBarAnchor, newValue -> drillFuelBarAnchor = newValue)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
+                        .build())
+                .option(ButtonOption.createBuilder()
+                        .name(Text.literal("Open HUD Editor"))
+                        .text(Text.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Drill Fuel Bar"))
+                        .build())
+                
+                .option(label("Themes"))
+                .option(Option.<Integer>createBuilder()
+                        .name(Text.literal("Theme"))
+                        .binding(0, () -> drillFuelBarTheme, newVal -> drillFuelBarTheme = newVal)
+                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                .range(0, 1)
+                                .step(1)
+                                .formatValue(val -> Text.literal(switch(val) {
+                                    case 1 -> "✨ Mystic"; default -> "♻ Eco";
+                                }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
+                                    case 1 -> new Color(175, 132, 189); default -> new Color(140, 255, 144);
+                                }))))
+                        .build())
+                .build();
+    }
+    
     public static OptionGroup lowHpIndicatorGroup() {
         return OptionGroup.createBuilder()
                 .name(Text.literal("Low HP Indicator"))
@@ -335,6 +383,7 @@ public class ModConfig implements ModMenuApi {
                                 .option(createBooleanOption(onlySkyblock, "Only in Skyblock", "", () -> onlySkyblock, newValue -> onlySkyblock = newValue))
                                 .group(petOverlayGroup())
                                 .group(pressureDisplayGroup())
+                                .group(drillFuelBarGroup())
                                 .group(lowHpIndicatorGroup())
                                 .group(otherFeaturesGroup())
                                 .build())
@@ -347,6 +396,7 @@ public class ModConfig implements ModMenuApi {
         ModConfig.HANDLER.save();
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
+        DrillFuelBar.INSTANCE.updateConfigValues();
     }
     
     public static ModConfig get() {
@@ -372,5 +422,6 @@ public class ModConfig implements ModMenuApi {
         ModConfig.HANDLER.load();
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
+        DrillFuelBar.INSTANCE.updateConfigValues();
     }
 }

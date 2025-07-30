@@ -386,7 +386,7 @@ object PetOverlay {
         drawCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
     }
 
-    private fun getIdleProgress(time: Double = 1700.0): Float {
+    fun getIdleProgress(time: Double = 1700.0): Float {
         return (Util.getMeasuringTimeMs() / time).toFloat() % 1
     }
 

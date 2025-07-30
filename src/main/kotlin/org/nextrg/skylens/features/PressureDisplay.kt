@@ -34,9 +34,9 @@ object PressureDisplay {
     private var transitionDuration = 300L
 
     private var lineTransparency = 130
-    private var color1 = hexStringToInt("afafaf")
-    private var color2 = hexStringToInt("3d3d41")
-    private var color3 = hexStringToInt("1d1d21")
+    private var color1 = 0
+    private var color2 = 0
+    private var color3 = 0
     private var theme_nighttime = Triple("afafaf", "3d3d41", "1d1d21")
     private var theme_peach = Triple("ffdab9", "f0a080", "AC5f4A")
 
@@ -150,6 +150,7 @@ object PressureDisplay {
     fun render(drawContext: DrawContext) {
         if (!onSkyblock() || !ModConfig.pressureDisplay) return
         animatedPressure += (PlayerStats.pressure - animatedPressure) * 0.09f
+        animatedPressure = clamp(animatedPressure, 0f, 1f)
 
         val min = degreesToRadians(225f)
         val max = degreesToRadians(225f + 90f - 360f)

@@ -13,6 +13,7 @@ import org.nextrg.skylens.helpers.RenderUtil.getScaledWidthHeight
 class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEditor")) : Screen(title) {
     private var petOverlayHovered: Boolean = false
     private var pressureDisplayHovered: Boolean = false
+    private var drillFuelBarHovered: Boolean = false
     private var currentFeature = ""
 
     override fun init() {}
@@ -32,6 +33,11 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             PressureDisplay.render(context)
             PressureDisplay.highlight(context)
         }
+
+        if (currentFeature == "Drill Fuel Bar") {
+            DrillFuelBar.render(context)
+            DrillFuelBar.highlight(context)
+        }
     }
 
     private fun drawTextInfo(context: DrawContext) {
@@ -49,6 +55,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             displayX = ModConfig.pressureDisplayX
             displayY = ModConfig.pressureDisplayY
             anchorSource = ModConfig.pressureDisplayAnchor.toString()
+        } else if (currentFeature.contains("Drill Fuel Bar")) {
+            displayX = ModConfig.drillFuelBarX
+            displayY = ModConfig.drillFuelBarY
+            anchorSource = ModConfig.drillFuelBarAnchor.toString()
         }
         val anchor = anchorSource
             .replace("Left", " Left")
@@ -68,8 +78,8 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val dx = mouseX - x; val dy = mouseY - y
 
         val left = -4.0; val bottom = 11.0
-        val right = if (ModConfig.petOverlayType == ModConfig.Type.Bar) 54.0 else 27.0
-        val top = if (ModConfig.petOverlayType == ModConfig.Type.Bar) -19.0 else -36.0
+        val right = if (ModConfig.petOverlayType.toString().contains("Bar")) 54.0 else 27.0
+        val top = if (ModConfig.petOverlayType.toString().contains("Bar")) -19.0 else -36.0
 
         return dx in left..right && dy in top..bottom
     }
@@ -80,6 +90,16 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
         val left = -15.0; val right = 14.5
         val top = -15.0; val bottom = 24.0
+
+        return dx in left..right && dy in top..bottom
+    }
+
+    private fun isOverDrillFuelBar(mouseX: Double, mouseY: Double, position: Pair<Float, Float>): Boolean {
+        val (x, y) = position
+        val dx = mouseX - x; val dy = mouseY - y
+
+        val left = -1.0; val right = 91.0
+        val top = -1.0; val bottom = 23.0
 
         return dx in left..right && dy in top..bottom
     }
@@ -103,6 +123,15 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
                 setPressureDisplayMargin(mouseX, mouseY)
             }
         }
+        if (isOverDrillFuelBar(mouseX, mouseY, DrillFuelBar.getPosition()) && currentFeature.contains("Drill Fuel Bar")) {
+            if (button != 0) {
+                drillFuelBarHovered = false
+                setDrillFuelBarMargin(-9999.0, 0.0)
+            } else {
+                drillFuelBarHovered = true
+                setDrillFuelBarMargin(mouseX, mouseY)
+            }
+        }
         return super.mouseClicked(mouseX, mouseY, button)
     }
 
@@ -112,6 +141,9 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         }
         if (pressureDisplayHovered) {
             setPressureDisplayMargin(mouseX, mouseY)
+        }
+        if (drillFuelBarHovered) {
+            setDrillFuelBarMargin(mouseX, mouseY)
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
     }
@@ -124,6 +156,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         if (pressureDisplayHovered) {
             pressureDisplayHovered = false
             setPressureDisplayMargin(mouseX, mouseY)
+        }
+        if (drillFuelBarHovered) {
+            drillFuelBarHovered = false
+            setDrillFuelBarMargin(mouseX, mouseY)
         }
         return super.mouseReleased(mouseX, mouseY, button)
     }
@@ -139,12 +175,19 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     private fun setPressureDisplayMargin(x: Double, y: Double) {
         setOverlayMargin(x, y,
             anchorKey = ModConfig.pressureDisplayAnchor.toString(), overlayType = null,
-            defaultX = { ModConfig.pressureDisplayX = it }, defaultY = { ModConfig.pressureDisplayY = it },
-            isPetOverlay = false
+            defaultX = { ModConfig.pressureDisplayX = it }, defaultY = { ModConfig.pressureDisplayY = it }
         )
     }
 
-    private fun setOverlayMargin(x: Double, y: Double, anchorKey: String, overlayType: ModConfig.Type?, defaultX: (Int) -> Unit, defaultY: (Int) -> Unit, isPetOverlay: Boolean) {
+    private fun setDrillFuelBarMargin(x: Double, y: Double) {
+        setOverlayMargin(x, y,
+            anchorKey = ModConfig.drillFuelBarAnchor.toString(), overlayType = null,
+            defaultX = { ModConfig.drillFuelBarX = it }, defaultY = { ModConfig.drillFuelBarY = it },
+            isDrillBar = true
+        )
+    }
+
+    private fun setOverlayMargin(x: Double, y: Double, anchorKey: String, overlayType: ModConfig.Type?, defaultX: (Int) -> Unit, defaultY: (Int) -> Unit, isPetOverlay: Boolean = false, isDrillBar: Boolean = false) {
         if (x <= -9998.0) {
             defaultX(0)
             defaultY(0)
@@ -154,13 +197,17 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             val (anchorX, anchorY) = anchor
 
             val offsetX = if (isPetOverlay) {
-                (27 * -1 * (1 - anchorX * 2)).toInt() + if (overlayType == ModConfig.Type.Bar) 0 else 14
+                (27 * -1 * (1 - anchorX * 2)).toInt() + if (overlayType.toString().contains("Bar")) 0 else 14
+            } else if (isDrillBar) {
+                (27 * -1 * (1 - anchorX * 2)).toInt() - 17
             } else {
                 (27 * anchorX * 2).toInt()
             }
 
             val offsetY = if (isPetOverlay) {
-                3 * (5 * anchorY).toInt() + if (overlayType == ModConfig.Type.Bar) 0 else 8
+                3 * (5 * anchorY).toInt() + if (overlayType.toString().contains("Bar")) 0 else 8
+            } else if (isDrillBar) {
+                3 * (5 * anchorY).toInt() - 8
             } else {
                 2 * (5 * anchorY).toInt()
             }

@@ -16,8 +16,6 @@ object RenderUtil {
         val isBar: Boolean = false, val clampX: (Float, Int) -> Float, val clampY: (Float, Int) -> Float
     )
 
-    data class ElementBounds(val left: Double, val right: Double, val top: Double, val bottom: Double)
-
     val anchors: Map<String, FloatArray> = java.util.Map.of(
         "TopLeft", floatArrayOf(0f, 0f), // (X, Y)
         "MiddleLeft", floatArrayOf(0f, 0.5f),

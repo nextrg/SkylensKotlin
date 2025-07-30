@@ -82,4 +82,37 @@ object StringsUtil {
         }
         return name
     }
+
+    fun parseSuffix(input: String): Int {
+        val lower = input.lowercase()
+        return when {
+            lower.endsWith("k") -> {
+                val number = lower.removeSuffix("k").toFloatOrNull() ?: return 0
+                (number * 1_000).toInt()
+            }
+            lower.endsWith("m") -> {
+                val number = lower.removeSuffix("m").toFloatOrNull() ?: return 0
+                (number * 1_000_000).toInt()
+            }
+            else -> input.toIntOrNull() ?: 0
+        }
+    }
+
+    fun formatSuffix(value: Int): String {
+        return when {
+            value >= 1_000_000 -> {
+                val formatted = (value / 1_000_000f).let {
+                    if (it % 1 == 0f) it.toInt().toString() else String.format("%.1f", it).replace(",", ".")
+                }
+                "${formatted}m"
+            }
+            value >= 1_000 -> {
+                val formatted = (value / 1_000f).let {
+                    if (it % 1 == 0f) it.toInt().toString() else String.format("%.1f", it).replace(",", ".")
+                }
+                "${formatted}k"
+            }
+            else -> value.toString()
+        }
+    }
 }

@@ -28,6 +28,7 @@ class Skylens : ClientModInitializer {
         MissingEnchants.prepare()
         PetOverlay.prepare()
         PressureDisplay.prepare()
+        DrillFuelBar.prepare()
         CompactPetLevel.prepare()
         LowHpIndicator.prepare()
     }
@@ -68,6 +69,13 @@ class Skylens : ClientModInitializer {
                                     ClientCommandManager.literal("pressure_display")
                                         .executes {
                                             HudEditor.openScreen(null, "Pressure Display")
+                                            1
+                                        }
+                                )
+                                .then(
+                                    ClientCommandManager.literal("drill_fuel_bar")
+                                        .executes {
+                                            HudEditor.openScreen(null, "Drill Fuel Bar")
                                             1
                                         }
                                 )

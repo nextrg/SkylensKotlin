@@ -6,17 +6,21 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.fluid.Fluids
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.nextrg.skylens.features.DrillFuelBar
 import org.nextrg.skylens.features.PressureDisplay
+import org.nextrg.skylens.helpers.StringsUtil.parseSuffix
 import java.util.regex.Pattern
 
 object PlayerStats {
     private var PRESSURE_PATTERN: Pattern = Pattern.compile("(?<=Pressure: ❍)(\\d+)(?=%)")
+    private val DRILL_FUEL_PATTERN: Pattern = Pattern.compile("(\\d+)/([^\\s]+)\\s+Drill Fuel$")
 
     private var lastCheckTime = 0L
     private var wasInWater = false
 
     var pressure = 0f
     var health = 0f
+    var fuel = "0/3000"
 
     fun init() {
         ClientReceiveMessageEvents.GAME.register(ClientReceiveMessageEvents.Game { message, _ ->
@@ -58,6 +62,17 @@ object PlayerStats {
             if (matcher.find()) {
                 pressure = matcher.group(1).toFloat() / 100
             }
+        }
+        if (string.contains("Drill Fuel")) {
+            val noFormatting = Formatting.strip(string)
+            val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString())
+            if (matcher.find()) {
+                fuel = "${matcher.group(1)}/${parseSuffix(matcher.group(2))}"
+                fuel = "3000/3000"
+                DrillFuelBar.show()
+            }
+        } else {
+            DrillFuelBar.hide()
         }
     }
 
