@@ -65,6 +65,7 @@ public class ModConfig implements ModMenuApi {
     
     public enum Type implements NameableEnum {
         Bar,
+        BarALT,
         Circular,
         CircularALT;
         

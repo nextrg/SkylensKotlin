@@ -265,9 +265,10 @@ object PetOverlay {
     }
 
     fun updateConfigValues() {
-        isBarType = ModConfig.petOverlayType == ModConfig.Type.Bar
+        val type = ModConfig.petOverlayType
+        isBarType = type.toString().contains("Bar")
+        altStyle = type.toString().contains("ALT")
         flipped = ModConfig.petOverlayFlip
-        altStyle = ModConfig.petOverlayType == ModConfig.Type.CircularALT
         invertColor = ModConfig.petOverlayInvert
         showItem = ModConfig.petOverlayShowItem
         idleAnimPulse = ModConfig.petOverlayAnimation_IdlePulse
@@ -307,7 +308,7 @@ object PetOverlay {
         if ((!ModConfig.petOverlay && !hudEditor) || !onSkyblock()) return
 
         val (x, y) = getPosition()
-        var color1 = cacheColor1; var color2 = cacheColor2; var color3 = cacheColor3
+        var color1 = cacheColor1; var color2 = cacheColor2; val color3 = cacheColor3
 
         val textColor = color2
         if (invertColor) {
@@ -364,7 +365,7 @@ object PetOverlay {
             legacyRoundRectangle(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
-                12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
+                if (altStyle) 0f else 12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
             )
         }
 
@@ -417,25 +418,25 @@ object PetOverlay {
 
     private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         if (!rainbowBg) {
-            roundRectangleFloat(drawContext, x, y, 51f, 8f, color, 0, 4.5f, 0)
+            roundRectangleFloat(drawContext, x, y, 51f, 8f, color, 0, if (altStyle) 0f else 4.5f, 0)
         } else {
-            roundGradient(drawContext, x, y, 51f, 8f, getRainbow(8, 0.15f), 2, idleProgress, 0, 4.5f, 0f)
+            roundGradient(drawContext, x, y, 51f, 8f, getRainbow(8, 0.15f), 2, idleProgress, 0, if (altStyle) 0f else 4.5f, 0f)
         }
     }
 
     private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, levelProgress: Float, idleProgress: Float) {
         if (!rainbowLevel) {
-            roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color, 0, 4.5f, 0)
+            roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color, 0, if (altStyle) 0f else 4.5f, 0)
         } else {
-            roundGradient(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, getRainbow(8, 1f), 2, idleProgress, 0, 4.5f, 0f)
+            roundGradient(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, getRainbow(8, 1f), 2, idleProgress, 0, if (altStyle) 0f else 4.5f, 0f)
         }
     }
 
     private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         if (!rainbowXp) {
-            roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color, 0, 2.5f, 0)
+            roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color, 0, if (altStyle) 0f else 2.5f, 0)
         } else {
-            roundGradient(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, getRainbow(8, 0.5f), 2, idleProgress, 0, 2.5f, 0f)
+            roundGradient(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, getRainbow(8, 0.5f), 2, idleProgress, 0, if (altStyle) 0f else 2.5f, 0f)
         }
     }
 }
