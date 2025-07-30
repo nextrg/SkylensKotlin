@@ -85,7 +85,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (isOverPetOverlay(mouseX, mouseY, PetOverlay.getPosition())) {
+        if (isOverPetOverlay(mouseX, mouseY, PetOverlay.getPosition()) && currentFeature.contains("Pet Overlay")) {
             if (button != 0) {
                 petOverlayHovered = false
                 setPetOverlayMargin(-9999.0, 0.0)
@@ -94,7 +94,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
                 setPetOverlayMargin(mouseX, mouseY)
             }
         }
-        if (isOverPressureDisplay(mouseX, mouseY, PressureDisplay.getPosition())) {
+        if (isOverPressureDisplay(mouseX, mouseY, PressureDisplay.getPosition()) && currentFeature.contains("Pressure Display")) {
             if (button != 0) {
                 pressureDisplayHovered = false
                 setPressureDisplayMargin(-9999.0, 0.0)

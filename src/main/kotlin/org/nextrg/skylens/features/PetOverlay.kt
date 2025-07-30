@@ -33,6 +33,7 @@ import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
 import org.nextrg.skylens.renderables.Renderables.drawPie
 import org.nextrg.skylens.renderables.Renderables.drawPieGradient
+import org.nextrg.skylens.renderables.Renderables.roundGradient
 import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import java.util.*
@@ -367,12 +368,9 @@ object PetOverlay {
             )
         }
 
-        // Background
-        roundRectangleFloat(drawContext, x, y, 51f, 8f, color3, 0, 4.5f, 0)
-        // Level
-        roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color2, 0, 4.5f, 0)
-        // XP
-        roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color1, 0,2.5f, 0)
+        renderBarBg(drawContext, x, y, color3, idleProgress)
+        renderBarLevel(drawContext, x, y, color2, levelProgress, idleProgress)
+        renderBarXp(drawContext, x, y, color1, idleProgress)
     }
 
     private fun renderCircles(drawContext: DrawContext, x: Float, y: Float, levelProgress: Float, color1: Int, color2: Int, color3: Int) {
@@ -385,6 +383,10 @@ object PetOverlay {
         drawCircleLevel(drawContext, x + 12f, y - 4f, color2, idleProgress)
         drawCircleBg(drawContext, x + 12f, y - 4f, color3, levelProgress, idleProgress)
         drawCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
+    }
+
+    private fun getIdleProgress(time: Double = 1700.0): Float {
+        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
     }
 
     private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color3: Int, levelProgress: Float, idleProgress: Float) {
@@ -413,7 +415,27 @@ object PetOverlay {
         }
     }
 
-    private fun getIdleProgress(time: Double = 1700.0): Float {
-        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
+    private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+        if (!rainbowBg) {
+            roundRectangleFloat(drawContext, x, y, 51f, 8f, color, 0, 4.5f, 0)
+        } else {
+            roundGradient(drawContext, x, y, 51f, 8f, getRainbow(8, 0.15f), 2, idleProgress, 0, 4.5f, 0f)
+        }
+    }
+
+    private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, levelProgress: Float, idleProgress: Float) {
+        if (!rainbowLevel) {
+            roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color, 0, 4.5f, 0)
+        } else {
+            roundGradient(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, getRainbow(8, 1f), 2, idleProgress, 0, 4.5f, 0f)
+        }
+    }
+
+    private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+        if (!rainbowXp) {
+            roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color, 0, 2.5f, 0)
+        } else {
+            roundGradient(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, getRainbow(8, 0.5f), 2, idleProgress, 0, 2.5f, 0f)
+        }
     }
 }
