@@ -23,7 +23,7 @@ object OtherUtil {
     private val air = ItemStack(Items.AIR)
     private val bone = ItemStack(Items.BONE)
     private const val BASE_NEU_PATH = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO"
-    private const val BASE_NEU_ITEM_PATH = "/f75fb6876c1cc0179b47546e273389a21f8968a7/items/"
+    private const val BASE_NEU_ITEM_PATH = "/refs/heads/master/items/"
 
     fun jsonNeu(path: String): JsonObject {
         return json("$BASE_NEU_PATH$path");
@@ -41,9 +41,9 @@ object OtherUtil {
 
     fun onSkyblock(): Boolean {
         return if (ModConfig.onlySkyblock) {
-            MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer;
+            MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer
         } else {
-            true;
+            true
         }
     }
 

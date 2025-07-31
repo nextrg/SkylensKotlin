@@ -6,7 +6,7 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.fluid.Fluids
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
-import org.nextrg.skylens.features.DrillFuelBar
+import org.nextrg.skylens.features.DrillFuelMeter
 import org.nextrg.skylens.features.PressureDisplay
 import org.nextrg.skylens.helpers.StringsUtil.parseSuffix
 import java.util.regex.Pattern
@@ -68,10 +68,10 @@ object PlayerStats {
             val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString())
             if (matcher.find()) {
                 fuel = "${matcher.group(1)}/${parseSuffix(matcher.group(2))}"
-                DrillFuelBar.show()
+                DrillFuelMeter.show()
             }
         } else {
-            DrillFuelBar.hide()
+            DrillFuelMeter.hide()
         }
     }
 

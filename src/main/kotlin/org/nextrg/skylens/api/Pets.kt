@@ -231,6 +231,15 @@ object Pets {
         })
     }
 
+    private fun preventTabUpdate() {
+        updateByTab = false
+        scheduledResetTask?.cancel(false)
+
+        scheduledResetTask = scheduler.schedule({
+            updateByTab = true; scheduledResetTask = null
+        }, sToMs(2.5f), TimeUnit.MILLISECONDS)
+    }
+
     private fun findPetFromInventory(petName: String, rarity: String) {
         for (pet in cachedPets) {
             val cachedPetName = pet.customName
@@ -242,12 +251,7 @@ object Pets {
                 petName
             }
             if (nameWithoutFormat?.contains(petNameWithoutLvl) == true && petRarity == rarity) {
-                updateByTab = false
-                scheduledResetTask?.cancel(false)
-
-                scheduledResetTask = scheduler.schedule({
-                    updateByTab = true; scheduledResetTask = null
-                }, sToMs(2.5f), TimeUnit.MILLISECONDS)
+                preventTabUpdate()
 
                 currentPet = pet; updatePet(); getPetStats(pet)
                 break
@@ -307,6 +311,7 @@ object Pets {
                 xp = 0f
                 updateStats()
                 levelUp()
+                preventTabUpdate()
             }
         }
     }

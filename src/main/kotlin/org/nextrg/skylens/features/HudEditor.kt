@@ -5,6 +5,8 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
+import org.joml.Math.clamp
+import org.lwjgl.glfw.GLFW
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.helpers.RenderUtil.anchors
 import org.nextrg.skylens.helpers.RenderUtil.drawText
@@ -15,29 +17,51 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     private var pressureDisplayHovered: Boolean = false
     private var drillFuelBarHovered: Boolean = false
     private var currentFeature = ""
+    private val features = mutableListOf("Pet Overlay", "Pressure Display", "Drill Fuel Meter")
 
     override fun init() {}
+
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        var move = features.indexOf(currentFeature)
+        when (keyCode) {
+            GLFW.GLFW_KEY_A -> move = if (move - 1 < 0) features.size - 1 else move - 1
+            GLFW.GLFW_KEY_D -> move = (move + 1) % features.size
+        }
+        companionFeature = features[clamp(move, 0, features.size)]
+
+        return super.keyPressed(keyCode, scanCode, modifiers)
+    }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         super.render(context, mouseX, mouseY, deltaTicks)
         this.currentFeature = companionFeature
 
+        drawHotbar(context)
         drawTextInfo(context)
 
-        if (currentFeature == "Pet Overlay") {
+        if (currentFeature == features[0]) {
             PetOverlay.render(context)
             PetOverlay.highlight(context)
         }
-
-        if (currentFeature == "Pressure Display") {
+        if (currentFeature == features[1]) {
             PressureDisplay.render(context)
             PressureDisplay.highlight(context)
         }
-
-        if (currentFeature == "Drill Fuel Meter") {
-            DrillFuelBar.render(context)
-            DrillFuelBar.highlight(context)
+        if (currentFeature == features[2]) {
+            DrillFuelMeter.render(context)
+            DrillFuelMeter.highlight(context)
         }
+    }
+
+    private fun drawHotbar(context: DrawContext) {
+        val (screenX, screenY) = getScaledWidthHeight()
+        val width = 182
+        val height = 22
+        val x = screenX / 2 - width / 2
+        val y = screenY - height
+        context.fill(x, y, x + width, y + height, 0x2a000000)
+        context.fillGradient(x, y, x + width, y + height, 0, 0xBA000000.toInt())
+        drawText(context, "Hotbar", x.toFloat() + width / 2, y.toFloat() + height / 2 - textRenderer.fontHeight / 2, 0x99FFFFFF.toInt(), 1.0f, true, false)
     }
 
     private fun drawTextInfo(context: DrawContext) {
@@ -51,14 +75,14 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             displayX = ModConfig.petOverlayX
             displayY = ModConfig.petOverlayY
             anchorSource = ModConfig.petOverlayAnchor.toString()
-        } else if (currentFeature.contains("Pressure Meter Display")) {
+        } else if (currentFeature.contains("Pressure Display")) {
             displayX = ModConfig.pressureDisplayX
             displayY = ModConfig.pressureDisplayY
             anchorSource = ModConfig.pressureDisplayAnchor.toString()
         } else if (currentFeature.contains("Drill Fuel Meter")) {
-            displayX = ModConfig.drillFuelBarX
-            displayY = ModConfig.drillFuelBarY
-            anchorSource = ModConfig.drillFuelBarAnchor.toString()
+            displayX = ModConfig.drillFuelMeterX
+            displayY = ModConfig.drillFuelMeterY
+            anchorSource = ModConfig.drillFuelMeterAnchor.toString()
         }
         val anchor = anchorSource
             .replace("Left", " Left")
@@ -67,6 +91,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
         drawText(context, "Press left-click on an element to move it.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 3, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         drawText(context, "Press right/middle-click to reset its position.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 2, 0xFFFFFFFF.toInt(), 1.0f, true, true)
+        drawText(context, "Press A/D to switch elements.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         drawText(context, "Currently changing: $displayFeature", (screenX / 2).toFloat(), (screenY / 2).toFloat(), 0xFFFFFFFF.toInt(), 1.0f, true, true)
         if (!empty) {
             drawText(context, "Current position: [$displayX, $displayY]  Current anchor: $anchor", (screenX / 2).toFloat(), (screenY / 2).toFloat() + line, 0xFFFFFFFF.toInt(), 1.0f, true, true)
@@ -123,7 +148,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
                 setPressureDisplayMargin(mouseX, mouseY)
             }
         }
-        if (isOverDrillFuelBar(mouseX, mouseY, DrillFuelBar.getPosition()) && currentFeature.contains("Drill Fuel Meter")) {
+        if (isOverDrillFuelBar(mouseX, mouseY, DrillFuelMeter.getPosition()) && currentFeature.contains("Drill Fuel Meter")) {
             if (button != 0) {
                 drillFuelBarHovered = false
                 setDrillFuelBarMargin(-9999.0, 0.0)
@@ -181,8 +206,8 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
     private fun setDrillFuelBarMargin(x: Double, y: Double) {
         setOverlayMargin(x, y,
-            anchorKey = ModConfig.drillFuelBarAnchor.toString(), overlayType = null,
-            defaultX = { ModConfig.drillFuelBarX = it }, defaultY = { ModConfig.drillFuelBarY = it },
+            anchorKey = ModConfig.drillFuelMeterAnchor.toString(), overlayType = null,
+            defaultX = { ModConfig.drillFuelMeterX = it }, defaultY = { ModConfig.drillFuelMeterY = it },
             isDrillBar = true
         )
     }
@@ -209,7 +234,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             } else if (isDrillBar) {
                 2 * (5 * anchorY).toInt() - 16
             } else {
-                3 * (5 * anchorY).toInt()
+                3 * (5 * anchorY).toInt() - 8
             }
 
             defaultX(x.toInt() - (screenX * anchorX).toInt() + offsetX)
@@ -217,15 +242,14 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         }
     }
 
-
     override fun close() {
         ModConfig.get().update()
+        PetOverlay.hudEditor = false
         val open = booleanArrayOf(false)
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
             if (!open[0]) {
                 open[0] = true
                 client.setScreen(parent)
-                PetOverlay.hudEditor = false
                 parent = null
             }
         })
@@ -234,10 +258,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     companion object {
         var companionFeature = ""
         fun openScreen(screen: Screen?, name: String) {
+            PetOverlay.hudEditor = true
             val open = booleanArrayOf(false)
             ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
                 if (!open[0]) {
-                    PetOverlay.hudEditor = true
                     open[0] = true
                     client.setScreen(HudEditor(screen))
                     companionFeature = name

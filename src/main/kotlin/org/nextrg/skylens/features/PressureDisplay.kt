@@ -157,23 +157,32 @@ object PressureDisplay {
         draw(drawContext, x, y, MathHelper.lerp(quad(animatedPressure), min, max))
     }
 
+    private fun getPressureString(): String = (PlayerStats.pressure * 100).toInt().toString() + "%"
+
     private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
+        val meterY = y + 8f
+
         // Background
-        drawPie(drawContext, x, y + 8f, 1.01f, 13f, color2, 0f, 0f, false, false)
-        drawPie(drawContext, x, y + 8f, 1.01f, 12f, color3, 0f, 0f, false, false)
+        val bgRadius = 13f
+        drawPie(drawContext, x, meterY, 1.01f, bgRadius, color2, 0f, 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f, bgRadius - 1f, color3, 0f, 0f, false, false)
 
         // Markers
-        drawMarkerLines(drawContext, x, y + 8f, hexTransparent(color2, lineTransparency))
-        drawPie(drawContext, x, y + 8f, 1.01f * 3/4, 7.5f, color2, degreesToRadians(-45f), 0f, false, false)
-        drawPie(drawContext, x, y + 8f, 1.01f, 6.825f, color3, 0f, 0f, false, false)
+        val markerRadius = 7.5f
+        drawMarkerLines(drawContext, x, meterY, hexTransparent(color2, lineTransparency))
+        drawPie(drawContext, x, meterY, 1.01f * 3/4, markerRadius, color2, degreesToRadians(-45f), 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f, markerRadius - 0.675f, color3, 0f, 0f, false, false)
 
         // Measure
-        drawLine(drawContext, x, y + 8f, value, 10.25f, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
-        drawPie(drawContext, x, y + 8f, 1.01f * 1/6, 12f, color3, degreesToRadians(225f), 0f, false, false)
-        drawLine(drawContext, x, y + 8f, value, 10.25f, color1, 1f, 0.25f, 1f, 2)
-        drawPie(drawContext, x, y + 8f, 1.01f,  1.5f, color2, 0f, 0f, false, false)
+        val lineRadius = 10.25f
+        drawLine(drawContext, x, meterY, value, lineRadius, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
+        drawPie(drawContext, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, color3, degreesToRadians(225f), 0f, false, false)
+        drawLine(drawContext, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
 
-        drawText(drawContext, (PlayerStats.pressure * 100).toInt().toString() + "%", x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
+        val circleRadius = 1.5f
+        drawPie(drawContext, x, meterY, 1.01f, circleRadius, color2, 0f, 0f, false, false)
+
+        drawText(drawContext, getPressureString(), x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
     }
 
     private fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
@@ -182,8 +191,8 @@ object PressureDisplay {
             val last = i == steps
             val lineColor = if (!last) color else 0xFF993333.toInt()
             val boldness = (if (!last) 0.1f else 0.5f)
-            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f , hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
-            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f , lineColor, 1f, boldness, 0f, 2)
+            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
+            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
         }
     }
 }

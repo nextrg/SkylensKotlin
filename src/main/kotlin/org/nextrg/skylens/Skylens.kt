@@ -28,7 +28,7 @@ class Skylens : ClientModInitializer {
         MissingEnchants.prepare()
         PetOverlay.prepare()
         PressureDisplay.prepare()
-        DrillFuelBar.prepare()
+        DrillFuelMeter.prepare()
         CompactPetLevel.prepare()
         LowHpIndicator.prepare()
     }

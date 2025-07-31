@@ -14,7 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.nextrg.skylens.features.DrillFuelBar;
+import org.nextrg.skylens.features.DrillFuelMeter;
 import org.nextrg.skylens.features.HudEditor;
 import org.nextrg.skylens.features.PetOverlay;
 import org.nextrg.skylens.features.PressureDisplay;
@@ -151,11 +151,11 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean drillFuelMeter = true;
     @SerialEntry
-    public static Anchor drillFuelBarAnchor = Anchor.BottomMiddle;
+    public static Anchor drillFuelMeterAnchor = Anchor.BottomMiddle;
     @SerialEntry
-    public static int drillFuelBarX = 0;
+    public static int drillFuelMeterX = 0;
     @SerialEntry
-    public static int drillFuelBarY = 0;
+    public static int drillFuelMeterY = 0;
     @SerialEntry
     public static int drillFuelMeterTheme = 0;
     
@@ -221,7 +221,7 @@ public class ModConfig implements ModMenuApi {
                         .controller(opt -> EnumControllerBuilder.create(opt)
                                 .enumClass(Type.class))
                         .build())
-                .option(createBooleanOption(true, "Show Pet Item", "Renders item directly above pet's icon.", () -> petOverlayShowItem, newValue -> petOverlayShowItem = newValue))
+                .option(createBooleanOption(false, "Show Pet Item", "Renders item directly above pet's icon.", () -> petOverlayShowItem, newValue -> petOverlayShowItem = newValue))
                 .option(createBooleanOption(false, "Invert Level/XP Color", "", () -> petOverlayInvert, newValue -> petOverlayInvert = newValue))
                 .option(createBooleanOption(false, "Flip Icon Position", "Available only using the bar style.", () -> petOverlayFlip, newValue -> petOverlayFlip = newValue))
                 
@@ -296,7 +296,7 @@ public class ModConfig implements ModMenuApi {
                 .build();
     }
     
-    public static OptionGroup drillFuelBarGroup() {
+    public static OptionGroup drillFuelMeterGroup() {
         return OptionGroup.createBuilder()
                 .name(Text.literal("Drill Fuel Meter"))
                 .description(OptionDescription.of(Text.literal("Displays the current value of fuel in the drill.")))
@@ -307,7 +307,7 @@ public class ModConfig implements ModMenuApi {
                 .option(Option.<Anchor>createBuilder()
                         .name(Text.literal("Anchor"))
                         .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
-                        .binding(Anchor.BottomMiddle, () -> drillFuelBarAnchor, newValue -> drillFuelBarAnchor = newValue)
+                        .binding(Anchor.BottomMiddle, () -> drillFuelMeterAnchor, newValue -> drillFuelMeterAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
@@ -386,7 +386,7 @@ public class ModConfig implements ModMenuApi {
                                 .option(createBooleanOption(onlySkyblock, "Only in Skyblock", "", () -> onlySkyblock, newValue -> onlySkyblock = newValue))
                                 .group(petOverlayGroup())
                                 .group(pressureDisplayGroup())
-                                .group(drillFuelBarGroup())
+                                .group(drillFuelMeterGroup())
                                 .group(lowHpIndicatorGroup())
                                 .group(otherFeaturesGroup())
                                 .build())
@@ -399,7 +399,7 @@ public class ModConfig implements ModMenuApi {
         ModConfig.HANDLER.save();
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
-        DrillFuelBar.INSTANCE.updateConfigValues();
+        DrillFuelMeter.INSTANCE.updateConfigValues();
     }
     
     public static ModConfig get() {
@@ -425,6 +425,6 @@ public class ModConfig implements ModMenuApi {
         ModConfig.HANDLER.load();
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
-        DrillFuelBar.INSTANCE.updateConfigValues();
+        DrillFuelMeter.INSTANCE.updateConfigValues();
     }
 }

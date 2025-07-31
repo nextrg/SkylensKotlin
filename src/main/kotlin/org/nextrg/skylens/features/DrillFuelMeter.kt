@@ -25,7 +25,7 @@ import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import kotlin.math.ceil
 
-object DrillFuelBar {
+object DrillFuelMeter {
     private val scope = CoroutineScope(Dispatchers.Default)
     private var transition = 0f
     private var transitionX = 0f
@@ -87,8 +87,8 @@ object DrillFuelBar {
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
             wrap.attachLayerAfter(
                 IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "drill-fuel-bar"),
-                DrillFuelBar::prepareRender
+                Identifier.of("skylens", "drill-fuel-meter"),
+                DrillFuelMeter::prepareRender
             )
         })
     }
@@ -110,16 +110,16 @@ object DrillFuelBar {
     fun getPosition(): Pair<Float, Float> {
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
-                anchorKey = ModConfig.drillFuelBarAnchor.toString(),
-                offsetX = ModConfig.drillFuelBarX.toFloat(),
-                offsetY = ModConfig.drillFuelBarY.toFloat(),
+                anchorKey = ModConfig.drillFuelMeterAnchor.toString(),
+                offsetX = ModConfig.drillFuelMeterX.toFloat(),
+                offsetY = ModConfig.drillFuelMeterY.toFloat(),
                 clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f)) },
                 clampY = { pos, screenH -> clamp(pos, 1f + 9f, screenH.toFloat() - (40f + 1f)) }
             )
         )
 
         val (screenW, screenH) = RenderUtil.getScaledWidthHeight()
-        val (ax, ay) = RenderUtil.anchors[ModConfig.drillFuelBarAnchor.toString()] ?: floatArrayOf(0.5f, 1f)
+        val (ax, ay) = RenderUtil.anchors[ModConfig.drillFuelMeterAnchor.toString()] ?: floatArrayOf(0.5f, 1f)
 
         val anchorX = screenW * ax - 50 * ax
         val anchorY = screenH * ay - 8 * ay
@@ -132,7 +132,7 @@ object DrillFuelBar {
         offsetX -= (baseX - anchorX - marginX) * (1 - ax * 2)
         offsetY += (baseY - anchorY - marginY) * (1 - ay * 2)
 
-        if (ModConfig.drillFuelBarAnchor.toString() in listOf("TopMiddle", "BottomMiddle")) {
+        if (ModConfig.drillFuelMeterAnchor.toString() in listOf("TopMiddle", "BottomMiddle")) {
             transitionX = 1f
         }
 
@@ -142,7 +142,9 @@ object DrillFuelBar {
         return finalX to finalY
     }
 
-    private fun parseFuel(): Float {
+    fun hasFuel(): Boolean = fuel.split("/").getOrNull(0)?.toIntOrNull()?.let { it > 0 } ?: false
+
+    private fun getFuel(): Float {
         try {
             val parts = fuel.split("/")
             return clamp(parts[0].toFloat() / parts[1].toFloat(), 0f, 1f)
@@ -151,7 +153,7 @@ object DrillFuelBar {
         }
     }
 
-    private fun fuelString(): String {
+    private fun getFuelString(): String {
         val percentage = animatedFuel * 100
         val value = ceil(percentage * 10f) / 10f
 
@@ -162,7 +164,7 @@ object DrillFuelBar {
 
     fun render(drawContext: DrawContext) {
         if (!hudEditor && (!ModConfig.drillFuelMeter || transition == 0f) || !onSkyblock()) return
-        animatedFuel += (parseFuel() - animatedFuel) * 0.09f
+        animatedFuel += (getFuel() - animatedFuel) * 0.09f
         animatedFuel = clamp(animatedFuel, 0f, 1f)
 
         val (x, y) = getPosition()
@@ -170,12 +172,18 @@ object DrillFuelBar {
     }
 
     private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
-        roundRectangleFloat(drawContext, x, y, 20f, 40f, color3, 0, 4.5f, 0f)
-        roundRectangleFloat(drawContext, x + 2f, y + 2f, 16f, 36f, color2, 0, 2.5f, 1f)
-        if (fuel.split("/")[0].toInt() > 0) {
-            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(), -28.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
-            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
+        val width = 20f; val height = 40f
+
+        // Background
+        roundRectangleFloat(drawContext, x, y, width, height, color3, 0, 5f, 0f)
+        roundRectangleFloat(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, color2, 0, 2.5f, 1f)
+
+        // Fuel
+        if (hasFuel()) {
+            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(2900.0), -26.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
+            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
         }
-        drawText(drawContext, fuelString(), x + 10f, y - 9f, color1, 1f, true, true)
+
+        drawText(drawContext, getFuelString(), x + width / 2, y - 9f, color1, 1f, true, true)
     }
 }
