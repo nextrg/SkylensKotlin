@@ -68,7 +68,6 @@ object PlayerStats {
             val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString())
             if (matcher.find()) {
                 fuel = "${matcher.group(1)}/${parseSuffix(matcher.group(2))}"
-                fuel = "3000/3000"
                 DrillFuelBar.show()
             }
         } else {

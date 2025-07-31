@@ -133,6 +133,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean hidePressure = false;
     @SerialEntry
+    public static boolean hideDrillFuel = false;
+    @SerialEntry
     public static boolean onlySkyblock = true;
     
     @SerialEntry
@@ -147,7 +149,7 @@ public class ModConfig implements ModMenuApi {
     public static int pressureDisplayTheme = 0;
     
     @SerialEntry
-    public static boolean drillFuelBar = true;
+    public static boolean drillFuelMeter = true;
     @SerialEntry
     public static Anchor drillFuelBarAnchor = Anchor.BottomMiddle;
     @SerialEntry
@@ -155,7 +157,7 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static int drillFuelBarY = 0;
     @SerialEntry
-    public static int drillFuelBarTheme = 0;
+    public static int drillFuelMeterTheme = 0;
     
     @SerialEntry
     public static boolean petOverlay = true;
@@ -219,9 +221,9 @@ public class ModConfig implements ModMenuApi {
                         .controller(opt -> EnumControllerBuilder.create(opt)
                                 .enumClass(Type.class))
                         .build())
-                .option(createBooleanOption(petOverlayShowItem, "Show Pet Item", "Renders item directly above pet's icon.", () -> petOverlayShowItem, newValue -> petOverlayShowItem = newValue))
-                .option(createBooleanOption(petOverlayInvert, "Invert Level/XP Color", "", () -> petOverlayInvert, newValue -> petOverlayInvert = newValue))
-                .option(createBooleanOption(petOverlayFlip, "Flip Icon Position", "Available only using the bar style.", () -> petOverlayFlip, newValue -> petOverlayFlip = newValue))
+                .option(createBooleanOption(true, "Show Pet Item", "Renders item directly above pet's icon.", () -> petOverlayShowItem, newValue -> petOverlayShowItem = newValue))
+                .option(createBooleanOption(false, "Invert Level/XP Color", "", () -> petOverlayInvert, newValue -> petOverlayInvert = newValue))
+                .option(createBooleanOption(false, "Flip Icon Position", "Available only using the bar style.", () -> petOverlayFlip, newValue -> petOverlayFlip = newValue))
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
@@ -247,20 +249,20 @@ public class ModConfig implements ModMenuApi {
                 .option(createColorOption(Color.DARK_GRAY, "Background", () -> petOverlayColor3, newValue -> petOverlayColor3 = newValue))
                 
                 .option(label("Animations"))
-                .option(createBooleanOption(petOverlayAnimation_IdlePulse, "Idle", "", () -> petOverlayAnimation_IdlePulse, newValue -> petOverlayAnimation_IdlePulse = newValue))
-                .option(createBooleanOption(petOverlayAnimation_LevelUp, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
-                .option(createBooleanOption(petOverlayAnimation_LevelXp, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
+                .option(createBooleanOption(true, "Idle", "", () -> petOverlayAnimation_IdlePulse, newValue -> petOverlayAnimation_IdlePulse = newValue))
+                .option(createBooleanOption(true, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
+                .option(createBooleanOption(true, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
                
                 .option(label("Other"))
-                .option(createBooleanOption(petOverlayRainbowLvl, "Rainbow Level", "Overrides level color.", () -> petOverlayRainbowLvl, newValue -> petOverlayRainbowLvl = newValue))
-                .option(createBooleanOption(petOverlayRainbowXp, "Rainbow XP", "Overrides XP color.", () -> petOverlayRainbowXp, newValue -> petOverlayRainbowXp = newValue))
-                .option(createBooleanOption(petOverlayRainbowBg, "Rainbow Background", "Overrides background color.", () -> petOverlayRainbowBg, newValue -> petOverlayRainbowBg = newValue))
+                .option(createBooleanOption(false, "Rainbow Level", "Overrides level color.", () -> petOverlayRainbowLvl, newValue -> petOverlayRainbowLvl = newValue))
+                .option(createBooleanOption(false, "Rainbow XP", "Overrides XP color.", () -> petOverlayRainbowXp, newValue -> petOverlayRainbowXp = newValue))
+                .option(createBooleanOption(false, "Rainbow Background", "Overrides background color.", () -> petOverlayRainbowBg, newValue -> petOverlayRainbowBg = newValue))
                 .build();
     }
     
     public static OptionGroup pressureDisplayGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Pressure Meter Display"))
+                .name(Text.literal("Pressure Display"))
                 .description(OptionDescription.of(Text.literal("Displays the pressure percentage caused by waters in Galatea.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
@@ -296,10 +298,10 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup drillFuelBarGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Drill Fuel Bar"))
+                .name(Text.literal("Drill Fuel Meter"))
                 .description(OptionDescription.of(Text.literal("Displays the current value of fuel in the drill.")))
                 .collapsed(true)
-                .option(createBooleanEnableOption(drillFuelBar, () -> drillFuelBar, newValue -> drillFuelBar = newValue))
+                .option(createBooleanEnableOption(drillFuelMeter, () -> drillFuelMeter, newValue -> drillFuelMeter = newValue))
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
@@ -311,20 +313,20 @@ public class ModConfig implements ModMenuApi {
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
                         .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Drill Fuel Bar"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Drill Fuel Meter"))
                         .build())
                 
                 .option(label("Themes"))
                 .option(Option.<Integer>createBuilder()
                         .name(Text.literal("Theme"))
-                        .binding(0, () -> drillFuelBarTheme, newVal -> drillFuelBarTheme = newVal)
+                        .binding(0, () -> drillFuelMeterTheme, newVal -> drillFuelMeterTheme = newVal)
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                 .range(0, 1)
                                 .step(1)
                                 .formatValue(val -> Text.literal(switch(val) {
-                                    case 1 -> "✨ Mystic"; default -> "♻ Eco";
+                                    case 1 -> "✨ Mithril"; default -> "♻ Biofuel";
                                 }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
-                                    case 1 -> new Color(207, 159, 207); default -> new Color(140, 255, 144);
+                                    case 1 -> new Color(159, 187, 207); default -> new Color(140, 255, 144);
                                 }))))
                         .build())
                 .build();
@@ -362,15 +364,16 @@ public class ModConfig implements ModMenuApi {
         var randomLevel = Math.round(15 + Math.random() * 75);
         return OptionGroup.createBuilder()
                 .name(Text.literal("Other"))
-                .collapsed(false)
-                .option(createBooleanOption(missingEnchants, "Show Missing Enchants",
+                .collapsed(true)
+                .option(createBooleanOption(true, "Show Missing Enchants",
                         "Displays a list of missing enchants the hovered item has.",
                         () -> missingEnchants, newValue -> missingEnchants = newValue))
-                .option(createBooleanOption(compactPetLevel, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
+                .option(createBooleanOption(true, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
                                 randomLevel + "] §6Pet §f→ §8[§7" +
                                 randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
                         () -> compactPetLevel, newValue -> compactPetLevel = newValue))
                 .option(createBooleanOption(false, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
+                .option(createBooleanOption(false, "Hide Drill Fuel in Action Bar", "", () -> hideDrillFuel, newValue -> hideDrillFuel = newValue))
                 .build();
     }
     

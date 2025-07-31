@@ -104,10 +104,10 @@ object PressureDisplay {
         val (x, y) = getPosition()
 
         val margin = 1
-        val intX = x.toInt() - margin - 13
+        val intX = x.toInt() - margin - 12
         val intY = y.toInt() - margin
 
-        context.fill(intX, intY - 14, intX + 26 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
+        context.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -116,7 +116,7 @@ object PressureDisplay {
                 anchorKey = ModConfig.pressureDisplayAnchor.toString(),
                 offsetX = ModConfig.pressureDisplayX.toFloat(),
                 offsetY = ModConfig.pressureDisplayY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 14f, screenW.toFloat() - 14f) },
+                clampX = { pos, screenW -> clamp(pos, 13f, screenW.toFloat() - 13f) },
                 clampY = { pos, screenH -> clamp(pos, 15f, screenH.toFloat() - 22) }
             )
         )

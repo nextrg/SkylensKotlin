@@ -73,9 +73,9 @@ class Skylens : ClientModInitializer {
                                         }
                                 )
                                 .then(
-                                    ClientCommandManager.literal("drill_fuel_bar")
+                                    ClientCommandManager.literal("drill_fuel_meter")
                                         .executes {
-                                            HudEditor.openScreen(null, "Drill Fuel Bar")
+                                            HudEditor.openScreen(null, "Drill Fuel Meter")
                                             1
                                         }
                                 )

@@ -18,10 +18,12 @@ import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.hexStringToInt
+import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.renderables.Renderables.roundFluidContainer
 import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
+import kotlin.math.ceil
 
 object DrillFuelBar {
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -32,18 +34,18 @@ object DrillFuelBar {
     private var transitionDuration = 300L
 
     private var color1 = 0; private var color2 = 0; private var color3 = 0
-    private var theme_eco = Triple("77ff77", "224a22", "102210")
-    private var theme_mystic = Triple("a796ff", "413543", "251527")
+    private var theme_biofuel = Triple("77ff77", "224a22", "102210")
+    private var theme_mithril = Triple("a7bfef", "354143", "152527")
 
     private var animatedFuel = 0f
 
     private val themes = mapOf(
-        0 to (theme_eco),
-        1 to (theme_mystic)
+        0 to (theme_biofuel),
+        1 to (theme_mithril)
     )
 
     private fun updateTheme() {
-        val colors = themes[ModConfig.drillFuelBarTheme] ?: theme_eco
+        val colors = themes[ModConfig.drillFuelMeterTheme] ?: theme_biofuel
         val (c1, c2, c3) = colors
         color1 = hexStringToInt(c1)
         color2 = hexStringToInt(c2)
@@ -85,7 +87,7 @@ object DrillFuelBar {
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
             wrap.attachLayerAfter(
                 IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "drillfuel-bar"),
+                Identifier.of("skylens", "drill-fuel-bar"),
                 DrillFuelBar::prepareRender
             )
         })
@@ -143,7 +145,7 @@ object DrillFuelBar {
     private fun parseFuel(): Float {
         try {
             val parts = fuel.split("/")
-            return 2600f / parts[1].toFloat()
+            return clamp(parts[0].toFloat() / parts[1].toFloat(), 0f, 1f)
         } catch (ignored: Exception) {
             return 0f
         }
@@ -151,16 +153,17 @@ object DrillFuelBar {
 
     private fun fuelString(): String {
         val percentage = animatedFuel * 100
-        val formatted = "%.0f".format(percentage).replace(",", ".")
+        val value = ceil(percentage * 10f) / 10f
+
+        val format = "%." + (if (percentage > 9.9f) "0" else "1") + "f"
+        val formatted = format.format(value).replace(",", ".")
         return "$formatted%"
     }
 
     fun render(drawContext: DrawContext) {
-        if (!hudEditor && (!ModConfig.drillFuelBar || transition == 0f) || !onSkyblock()) return
+        if (!hudEditor && (!ModConfig.drillFuelMeter || transition == 0f) || !onSkyblock()) return
         animatedFuel += (parseFuel() - animatedFuel) * 0.09f
         animatedFuel = clamp(animatedFuel, 0f, 1f)
-
-        updateTheme()
 
         val (x, y) = getPosition()
         draw(drawContext, x, y, animatedFuel)
@@ -169,8 +172,9 @@ object DrillFuelBar {
     private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
         roundRectangleFloat(drawContext, x, y, 20f, 40f, color3, 0, 4.5f, 0f)
         roundRectangleFloat(drawContext, x + 2f, y + 2f, 16f, 36f, color2, 0, 2.5f, 1f)
-        if (value > 0f) {
-            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, color1, 0, Pair(25f * getIdleProgress(), -38f + 38f * 2 * value), 0, 2.5f, 0f)
+        if (fuel.split("/")[0].toInt() > 0) {
+            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(), -28.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
+            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
         }
         drawText(drawContext, fuelString(), x + 10f, y - 9f, color1, 1f, true, true)
     }

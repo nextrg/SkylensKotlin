@@ -34,7 +34,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             PressureDisplay.highlight(context)
         }
 
-        if (currentFeature == "Drill Fuel Bar") {
+        if (currentFeature == "Drill Fuel Meter") {
             DrillFuelBar.render(context)
             DrillFuelBar.highlight(context)
         }
@@ -51,11 +51,11 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             displayX = ModConfig.petOverlayX
             displayY = ModConfig.petOverlayY
             anchorSource = ModConfig.petOverlayAnchor.toString()
-        } else if (currentFeature.contains("Pressure Display")) {
+        } else if (currentFeature.contains("Pressure Meter Display")) {
             displayX = ModConfig.pressureDisplayX
             displayY = ModConfig.pressureDisplayY
             anchorSource = ModConfig.pressureDisplayAnchor.toString()
-        } else if (currentFeature.contains("Drill Fuel Bar")) {
+        } else if (currentFeature.contains("Drill Fuel Meter")) {
             displayX = ModConfig.drillFuelBarX
             displayY = ModConfig.drillFuelBarY
             anchorSource = ModConfig.drillFuelBarAnchor.toString()
@@ -123,7 +123,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
                 setPressureDisplayMargin(mouseX, mouseY)
             }
         }
-        if (isOverDrillFuelBar(mouseX, mouseY, DrillFuelBar.getPosition()) && currentFeature.contains("Drill Fuel Bar")) {
+        if (isOverDrillFuelBar(mouseX, mouseY, DrillFuelBar.getPosition()) && currentFeature.contains("Drill Fuel Meter")) {
             if (button != 0) {
                 drillFuelBarHovered = false
                 setDrillFuelBarMargin(-9999.0, 0.0)
