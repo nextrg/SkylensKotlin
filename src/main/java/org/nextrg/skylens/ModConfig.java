@@ -324,7 +324,7 @@ public class ModConfig implements ModMenuApi {
                                 .formatValue(val -> Text.literal(switch(val) {
                                     case 1 -> "✨ Mystic"; default -> "♻ Eco";
                                 }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
-                                    case 1 -> new Color(175, 132, 189); default -> new Color(140, 255, 144);
+                                    case 1 -> new Color(207, 159, 207); default -> new Color(140, 255, 144);
                                 }))))
                         .build())
                 .build();

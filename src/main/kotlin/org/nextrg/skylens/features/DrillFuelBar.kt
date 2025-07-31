@@ -11,16 +11,17 @@ import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats.fuel
+import org.nextrg.skylens.features.PetOverlay.getIdleProgress
 import org.nextrg.skylens.features.PetOverlay.hudEditor
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
-import org.nextrg.skylens.helpers.StringsUtil.formatSuffix
+import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.hexStringToInt
 import org.nextrg.skylens.helpers.VariablesUtil.quad
+import org.nextrg.skylens.renderables.Renderables.roundFluidContainer
 import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
-import kotlin.math.max
 
 object DrillFuelBar {
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -30,11 +31,9 @@ object DrillFuelBar {
     private var hidden = true
     private var transitionDuration = 300L
 
-    private var color1 = 0
-    private var color2 = 0
-    private var color3 = 0
-    private var theme_eco = Triple("77ff77", "88df88", "102210")
-    private var theme_mystic = Triple("a796ff", "b9b7df", "301532")
+    private var color1 = 0; private var color2 = 0; private var color3 = 0
+    private var theme_eco = Triple("77ff77", "224a22", "102210")
+    private var theme_mystic = Triple("a796ff", "413543", "251527")
 
     private var animatedFuel = 0f
 
@@ -101,9 +100,9 @@ object DrillFuelBar {
 
         val margin = 1
         val intX = x.toInt() - margin
-        val intY = y.toInt() - margin
+        val intY = y.toInt() - margin - 9
 
-        context.fill(intX, intY, intX + 90 + margin * 2, intY + 22 + margin * 2, 0x14FFFFFF)
+        context.fill(intX, intY, intX + 20 + margin * 2, intY + 49 + margin * 2, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -112,8 +111,8 @@ object DrillFuelBar {
                 anchorKey = ModConfig.drillFuelBarAnchor.toString(),
                 offsetX = ModConfig.drillFuelBarX.toFloat(),
                 offsetY = ModConfig.drillFuelBarY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (90f + 1f)) },
-                clampY = { pos, screenH -> clamp(pos, 1f, screenH.toFloat() - (22f + 1f)) }
+                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f)) },
+                clampY = { pos, screenH -> clamp(pos, 1f + 9f, screenH.toFloat() - (40f + 1f)) }
             )
         )
 
@@ -144,33 +143,35 @@ object DrillFuelBar {
     private fun parseFuel(): Float {
         try {
             val parts = fuel.split("/")
-            return parts[0].toFloat() / parts[1].toFloat()
+            return 2600f / parts[1].toFloat()
         } catch (ignored: Exception) {
             return 0f
         }
     }
 
     private fun fuelString(): String {
-        try {
-            val parts = fuel.split("/")
-            return "Fuel: " + formatSuffix(parts[0].toInt()) + "/" + formatSuffix(parts[1].toInt())
-        } catch (ignored: Exception) {
-            return "Fuel: 0/3000"
-        }
+        val percentage = animatedFuel * 100
+        val formatted = "%.0f".format(percentage).replace(",", ".")
+        return "$formatted%"
     }
 
     fun render(drawContext: DrawContext) {
-        if (!onSkyblock() || !ModConfig.drillFuelBar) return
+        if (!hudEditor && (!ModConfig.drillFuelBar || transition == 0f) || !onSkyblock()) return
         animatedFuel += (parseFuel() - animatedFuel) * 0.09f
         animatedFuel = clamp(animatedFuel, 0f, 1f)
+
+        updateTheme()
 
         val (x, y) = getPosition()
         draw(drawContext, x, y, animatedFuel)
     }
 
     private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
-        roundRectangleFloat(drawContext, x, y + 8f, 90f, 14f, color3, 0, 4.5f, 0)
-        roundRectangleFloat(drawContext, x + 2f, y + 2f + 8f, max(2f, 86f * value), 10f, color1, 0, 3f, 0)
-        RenderUtil.drawText(drawContext, fuelString(), x + 45f, y + 0.5f, color2, 0.825f, true, true)
+        roundRectangleFloat(drawContext, x, y, 20f, 40f, color3, 0, 4.5f, 0f)
+        roundRectangleFloat(drawContext, x + 2f, y + 2f, 16f, 36f, color2, 0, 2.5f, 1f)
+        if (value > 0f) {
+            roundFluidContainer(drawContext, x + 2f, y + 2f, 16f, 36f, color1, 0, Pair(25f * getIdleProgress(), -38f + 38f * 2 * value), 0, 2.5f, 0f)
+        }
+        drawText(drawContext, fuelString(), x + 10f, y - 9f, color1, 1f, true, true)
     }
 }

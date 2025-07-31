@@ -223,15 +223,11 @@ object PetOverlay {
     }
 
     fun getPosition(): Pair<Float, Float> {
-        val anchorKey = ModConfig.petOverlayAnchor.toString()
-        val offsetX = ModConfig.petOverlayX.toFloat()
-        val offsetY = ModConfig.petOverlayY.toFloat()
-
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
-                anchorKey = anchorKey,
-                offsetX = offsetX,
-                offsetY = offsetY,
+                anchorKey = ModConfig.petOverlayAnchor.toString(),
+                offsetX = ModConfig.petOverlayX.toFloat(),
+                offsetY = ModConfig.petOverlayY.toFloat(),
                 isBar = isBarType,
                 clampX = { pos, screenW ->
                     clamp(pos, 4f, screenW.toFloat() - 2 - 26 - if (isBarType) 27 else 0)
@@ -243,23 +239,25 @@ object PetOverlay {
         )
 
         val (screenW, screenH) = RenderUtil.getScaledWidthHeight()
-        val (ax, ay) = RenderUtil.anchors[anchorKey] ?: floatArrayOf(0.5f, 1f)
+        val (ax, ay) = RenderUtil.anchors[ModConfig.petOverlayAnchor.toString()] ?: floatArrayOf(0.5f, 1f)
 
         val anchorX = screenW * ax - 50 * ax
         val anchorY = screenH * ay - 8 * ay
         val marginX = 2 * (1 - ax * 2)
         val marginY = 2 * (1 - ay * 2)
 
-        var (offsetAnimX, offsetAnimY) = getAnimationOffset(ax, ay)
-        offsetAnimX -= (baseX - anchorX - marginX) * (1 - ax * 2)
-        offsetAnimY += (baseY - anchorY - marginY) * (1 - ay * 2)
+        fun map(value: Float): Float = 120f * (value - 0.5f)
+        var offsetX = map(ax)
+        var offsetY = map(ay)
+        offsetX -= (baseX - anchorX - marginX) * (1 - ax * 2)
+        offsetY += (baseY - anchorY - marginY) * (1 - ay * 2)
 
-        if (anchorKey == "TopMiddle" || anchorKey == "BottomMiddle") {
+        if (ModConfig.petOverlayAnchor.toString() in listOf("TopMiddle", "BottomMiddle")) {
             transitionX = 1f
         }
 
-        val finalX = baseX + offsetAnimX - offsetAnimX * (if (hudEditor) 1f else transitionX)
-        val finalY = baseY + offsetAnimY - offsetAnimY * (if (hudEditor) 1f else transitionY)
+        val finalX = baseX + offsetX - offsetX * (if (hudEditor) 1f else transitionX)
+        val finalY = baseY + offsetY - offsetY * (if (hudEditor) 1f else transitionY)
 
         return finalX to finalY
     }
@@ -305,7 +303,7 @@ object PetOverlay {
     }
 
     fun render(drawContext: DrawContext) {
-        if ((!ModConfig.petOverlay && !hudEditor) || !onSkyblock()) return
+        if (!hudEditor && (!ModConfig.petOverlay || transition == 0f) || !onSkyblock()) return
 
         val (x, y) = getPosition()
         var color1 = cacheColor1; var color2 = cacheColor2; val color3 = cacheColor3
@@ -349,7 +347,7 @@ object PetOverlay {
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
         val isPlayerHead = heldItem.itemName.toString().contains("player_head")
-        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, transition)
+        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, 1.1f * if (hudEditor) 1f else transition)
         if (showItem) {
             val offsetX = if (isPlayerHead) 0 else 7
             val offsetY = -3 - (if (isBarType) 2 else 0) + (if (isPlayerHead) 0 else 8)
@@ -418,7 +416,7 @@ object PetOverlay {
 
     private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         if (!rainbowBg) {
-            roundRectangleFloat(drawContext, x, y, 51f, 8f, color, 0, if (altStyle) 0f else 4.5f, 0)
+            roundRectangleFloat(drawContext, x, y, 51f, 8f, color, 0, if (altStyle) 0f else 4.5f, 0f)
         } else {
             roundGradient(drawContext, x, y, 51f, 8f, getRainbow(8, 0.15f), 2, idleProgress, 0, if (altStyle) 0f else 4.5f, 0f)
         }
@@ -426,7 +424,7 @@ object PetOverlay {
 
     private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, levelProgress: Float, idleProgress: Float) {
         if (!rainbowLevel) {
-            roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color, 0, if (altStyle) 0f else 4.5f, 0)
+            roundRectangleFloat(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, color, 0, if (altStyle) 0f else 4.5f, 0f)
         } else {
             roundGradient(drawContext, x, y, max(8f, (51 * levelProgress)), 8f, getRainbow(8, 1f), 2, idleProgress, 0, if (altStyle) 0f else 4.5f, 0f)
         }
@@ -434,7 +432,7 @@ object PetOverlay {
 
     private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         if (!rainbowXp) {
-            roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color, 0, if (altStyle) 0f else 2.5f, 0)
+            roundRectangleFloat(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, color, 0, if (altStyle) 0f else 2.5f, 0f)
         } else {
             roundGradient(drawContext, x + 2, y + 2, max(2f, (47 * animatedXp)), 4f, getRainbow(8, 0.5f), 2, idleProgress, 0, if (altStyle) 0f else 2.5f, 0f)
         }

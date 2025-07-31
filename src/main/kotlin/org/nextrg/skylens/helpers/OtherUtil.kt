@@ -21,6 +21,7 @@ import java.util.*
 
 object OtherUtil {
     private val air = ItemStack(Items.AIR)
+    private val bone = ItemStack(Items.BONE)
     private const val BASE_NEU_PATH = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO"
     private const val BASE_NEU_ITEM_PATH = "/f75fb6876c1cc0179b47546e273389a21f8968a7/items/"
 
@@ -65,7 +66,7 @@ object OtherUtil {
 
     fun getTextureFromNeu(itemName: String, isPet: Boolean): ItemStack {
         val itemStack: ItemStack
-        if (itemName.isEmpty()) return air
+        if (itemName.isEmpty()) return if (isPet) bone else air
         try {
             val (behind, rarity) = when {
                 itemName.contains("Exp Boost") -> "PET_ITEM_" to "_COMMON"
@@ -91,7 +92,7 @@ object OtherUtil {
             }
         } catch (e: java.lang.Exception) {
             errorMessage("Caught an error setting item texture (fallback)", e)
-            return air
+            return if (isPet) bone else air
         }
         return itemStack
     }

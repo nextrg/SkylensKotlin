@@ -9,8 +9,8 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormats
+import org.nextrg.skylens.renderables.Pipelines.FLUID_CONTAINER
 import org.nextrg.skylens.renderables.Pipelines.ROUND_GRADIENT
-
 
 object Renderables {
     private fun pie(
@@ -148,7 +148,7 @@ object Renderables {
         backgroundColor: Int,
         borderColor: Int,
         borderRadius: Float,
-        borderWidth: Int
+        borderWidth: Float
     ) {
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
@@ -224,14 +224,55 @@ object Renderables {
             pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
             pass.setUniform("borderWidth", borderWidth)
             pass.setUniform("scaleFactor", scale)
-            pass.setUniform(
-                "size",
-                scaledWidth - borderWidth * 2.0f * scale,
-                scaledHeight - borderWidth * 2.0f * scale
-            )
+            pass.setUniform("size", scaledWidth - borderWidth * 2.0f * scale, scaledHeight - borderWidth * 2.0f * scale)
             pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
             pass.setUniform("borderColor", *colorToVec4f(borderColor))
             pass.setUniform("time", time)
+        }
+    }
+
+    fun roundFluidContainer(
+        graphics: DrawContext,
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        color: Int,
+        waveDirection: Int,
+        offset: Pair<Float, Float>,
+        borderColor: Int,
+        borderRadius: Float,
+        borderWidth: Float
+    ) {
+        val window = MinecraftClient.getInstance().window
+        val scale = window.scaleFactor.toFloat()
+        val scaledX = x * scale
+        val scaledY = y * scale
+        val scaledWidth = width * scale
+        val scaledHeight = height * scale
+        val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
+
+        val matrix = graphics.matrices.peek().positionMatrix
+        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
+
+        buffer.vertex(matrix, x, y, 0.0f)
+        buffer.vertex(matrix, x, (y + height), 0.0f)
+        buffer.vertex(matrix, (x + width), (y + height), 0.0f)
+        buffer.vertex(matrix, (x + width), y, 0.0f)
+
+        PipelineRenderer.draw(FLUID_CONTAINER, buffer.end()) { pass: RenderPass ->
+            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
+            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
+            pass.setUniform("fillColor", *colorToVec4f(color))
+            pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
+            pass.setUniform("borderWidth", borderWidth)
+            pass.setUniform("scaleFactor", scale)
+            pass.setUniform("size", scaledWidth - borderWidth * 2.0f * scale, scaledHeight - borderWidth * 2.0f * scale)
+            pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
+            pass.setUniform("borderColor", *colorToVec4f(borderColor))
+            pass.setUniform("offsetX", offset.first)
+            pass.setUniform("offsetY", offset.second)
+            pass.setUniform("waveDirection", waveDirection)
         }
     }
 
@@ -242,17 +283,5 @@ object Renderables {
             (color and 0xFF) / 255f,
             (color shr 24 and 0xFF) / 255f
         )
-    }
-
-    private fun colorsToVec4f(colors: List<Int>): FloatArray {
-        val result = FloatArray(colors.size * 4)
-        for ((i, color) in colors.withIndex()) {
-            val vec4 = colorToVec4f(color)
-            result[i * 4]     = vec4[0]
-            result[i * 4 + 1] = vec4[1]
-            result[i * 4 + 2] = vec4[2]
-            result[i * 4 + 3] = vec4[3]
-        }
-        return result
     }
 }

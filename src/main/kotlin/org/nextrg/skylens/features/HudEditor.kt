@@ -88,7 +88,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
 
-        val left = -15.0; val right = 14.5
+        val left = -15.0; val right = 15.0
         val top = -15.0; val bottom = 24.0
 
         return dx in left..right && dy in top..bottom
@@ -98,8 +98,8 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
 
-        val left = -1.0; val right = 91.0
-        val top = -1.0; val bottom = 23.0
+        val left = -1.0; val right = 21.0
+        val top = -1.0; val bottom = 41.0
 
         return dx in left..right && dy in top..bottom
     }
@@ -199,7 +199,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             val offsetX = if (isPetOverlay) {
                 (27 * -1 * (1 - anchorX * 2)).toInt() + if (overlayType.toString().contains("Bar")) 0 else 14
             } else if (isDrillBar) {
-                (27 * -1 * (1 - anchorX * 2)).toInt() - 17
+                (27 * anchorX * 2).toInt() - 10
             } else {
                 (27 * anchorX * 2).toInt()
             }
@@ -207,9 +207,9 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             val offsetY = if (isPetOverlay) {
                 3 * (5 * anchorY).toInt() + if (overlayType.toString().contains("Bar")) 0 else 8
             } else if (isDrillBar) {
-                3 * (5 * anchorY).toInt() - 8
+                2 * (5 * anchorY).toInt() - 16
             } else {
-                2 * (5 * anchorY).toInt()
+                3 * (5 * anchorY).toInt()
             }
 
             defaultX(x.toInt() - (screenX * anchorX).toInt() + offsetX)

@@ -93,10 +93,10 @@ object VariablesUtil {
 
     fun getRainbow(steps: Int, brightness: Float = 1f): MutableList<Int> {
         val colors = mutableListOf<Int>()
-        val hueStep = 360f / steps
+        val hueSt = 360f / steps
 
         for (i in 0 until steps) {
-            val hue = (hueStep * i) % 360f
+            val hue = (hueSt * i) % 360f
             colors.add(hsvToRgb(hue, value = brightness.coerceIn(0f, 1f)))
         }
 
