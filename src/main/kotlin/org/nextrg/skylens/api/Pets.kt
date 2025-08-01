@@ -17,6 +17,7 @@ import org.nextrg.skylens.features.PetOverlay.updatePet
 import org.nextrg.skylens.features.PetOverlay.updateStats
 import org.nextrg.skylens.helpers.ItemsUtil.tooltipFromItemStack
 import org.nextrg.skylens.helpers.OtherUtil.getTabData
+import org.nextrg.skylens.helpers.OtherUtil.getTextureFromNeu
 import org.nextrg.skylens.helpers.StringsUtil.colorFromCode
 import org.nextrg.skylens.helpers.StringsUtil.colorToRarity
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
@@ -38,6 +39,9 @@ object Pets {
     private var isPetMenu = false
     private var currentPetScreen: GenericContainerScreen? = null
     private var hasCached = false
+
+    private var noCacheMode = true
+    private var noCacheRarity = "common"
 
     private var lastUpdate = System.currentTimeMillis()
     private var updateByTab = true
@@ -71,6 +75,9 @@ object Pets {
     fun getPetHeldItem(): String = heldItem
 
     fun getPetRarity(element: Text): String {
+        if (noCacheMode) {
+            return noCacheRarity
+        }
         return colorToRarity(element.style.color.toString())
     }
 
@@ -199,6 +206,7 @@ object Pets {
         }
 
         isPetMenu = true
+        noCacheMode = false
 
         var ticks = 0
         ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
@@ -240,23 +248,33 @@ object Pets {
         }, sToMs(2.5f), TimeUnit.MILLISECONDS)
     }
 
+    private fun removeLevel(petName: String): String {
+        return petName.substringAfter("] ", petName).trim()
+    }
+
     private fun findPetFromInventory(petName: String, rarity: String) {
+        val petNameWithoutLvl = removeLevel(petName)
+        if (cachedPets.isEmpty()) {
+            noCacheRarity = rarity
+            setPet(getTextureFromNeu(petName, true))
+            return
+        }
         for (pet in cachedPets) {
             val cachedPetName = pet.customName
             val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
             val petRarity = getPetRarity(getPetRarityText(pet))
-            val petNameWithoutLvl = if (petName.contains("]")) {
-                petName.substringAfter("] ").trim()
-            } else {
-                petName
-            }
             if (nameWithoutFormat?.contains(petNameWithoutLvl) == true && petRarity == rarity) {
-                preventTabUpdate()
-
-                currentPet = pet; updatePet(); getPetStats(pet)
+                setPet(pet)
                 break
             }
         }
+    }
+
+    private fun setPet(pet: ItemStack) {
+        preventTabUpdate()
+        currentPet = pet
+        updatePet()
+        getPetStats(pet)
     }
 
     private fun messageEvents(message: Text) {
