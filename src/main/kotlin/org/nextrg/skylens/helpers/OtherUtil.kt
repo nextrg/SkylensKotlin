@@ -103,7 +103,7 @@ object OtherUtil {
     }
 
     private fun applyTextureToHeadItem(string: String, itemStack: ItemStack) {
-        val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf("\"}]}},"))
+        val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf("\"}]},"))
         val gameProfile = GameProfile(UUID.randomUUID(), "CustomHead")
         gameProfile.properties.put("textures", Property("textures", texture))
         itemStack.set(DataComponentTypes.PROFILE, ProfileComponent(gameProfile))

@@ -18,6 +18,7 @@ import org.nextrg.skylens.api.Pets.getPetMaxLevel
 import org.nextrg.skylens.api.Pets.getPetRarity
 import org.nextrg.skylens.api.Pets.getPetRarityText
 import org.nextrg.skylens.api.Pets.getPetXp
+import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
 import org.nextrg.skylens.helpers.OtherUtil.getTextureFromNeu
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
@@ -56,7 +57,6 @@ object PetOverlay {
     private var transitionDuration = 300L
     private var levelUpDelay = sToMs(2f)
 
-    var hudEditor = false
     private var transition = 0f
     private var transitionX = 0f
     private var transitionY = 0f
@@ -206,20 +206,12 @@ object PetOverlay {
     fun highlight(context: DrawContext) {
         val (x, y) = getPosition()
 
-        val margin = 4
+        val margin = 1
         val intX = x.toInt() - margin
-        val intY = y.toInt() - 18 - margin
+        val intY = y.toInt() - 16 - margin
+        val x2 = intX + 24 + if (isBarType) 29 else 0 + margin * 2
 
-        if (isBarType) {
-            context.fill(intX, intY + 3, intX + 51 + margin * 2, intY + 26 + margin * 2, 0x14FFFFFF)
-        } else {
-            context.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 26 + margin * 2, 0x14FFFFFF)
-        }
-    }
-
-    private fun getAnimationOffset(x: Float, y: Float): Pair<Float, Float> {
-        fun map(value: Float): Float = 120f * (value - 0.5f)
-        return map(x) to map(y)
+        context.fill(intX, intY - if (!isBarType) 16 else 0, x2, intY + 25 + margin * 2, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -229,12 +221,8 @@ object PetOverlay {
                 offsetX = ModConfig.petOverlayX.toFloat(),
                 offsetY = ModConfig.petOverlayY.toFloat(),
                 isBar = isBarType,
-                clampX = { pos, screenW ->
-                    clamp(pos, 4f, screenW.toFloat() - 2 - 26 - if (isBarType) 27 else 0)
-                },
-                clampY = { pos, screenH ->
-                    clamp(pos, 19f + if (!isBarType) 17 else 0, screenH.toFloat() - 12)
-                }
+                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - 25 - if (isBarType) 27 else 0) },
+                clampY = { pos, screenH -> clamp(pos, 17f + if (!isBarType) 16 else 0, screenH.toFloat() - 10) }
             )
         )
 
@@ -302,8 +290,8 @@ object PetOverlay {
         }
     }
 
-    fun render(drawContext: DrawContext) {
-        if (!hudEditor && (!ModConfig.petOverlay || transition == 0f) || !onSkyblock()) return
+    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+        if (!isHudEditor && (!ModConfig.petOverlay || transition == 0f) || !onSkyblock()) return
 
         val (x, y) = getPosition()
         var color1 = cacheColor1; var color2 = cacheColor2; val color3 = cacheColor3

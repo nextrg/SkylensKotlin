@@ -40,15 +40,15 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         drawTextInfo(context)
 
         if (currentFeature == features[0]) {
-            PetOverlay.render(context)
+            PetOverlay.render(context, true)
             PetOverlay.highlight(context)
         }
         if (currentFeature == features[1]) {
-            PressureDisplay.render(context)
+            PressureDisplay.render(context, true)
             PressureDisplay.highlight(context)
         }
         if (currentFeature == features[2]) {
-            DrillFuelMeter.render(context)
+            DrillFuelMeter.render(context, true)
             DrillFuelMeter.highlight(context)
         }
     }
@@ -102,8 +102,8 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
 
-        val left = -4.0; val bottom = 11.0
-        val right = if (ModConfig.petOverlayType.toString().contains("Bar")) 54.0 else 27.0
+        val left = -1.0; val bottom = 11.0
+        val right = (if (ModConfig.petOverlayType.toString().contains("Bar")) 27.0 else 0.0) + 25.0
         val top = if (ModConfig.petOverlayType.toString().contains("Bar")) -19.0 else -36.0
 
         return dx in left..right && dy in top..bottom
@@ -244,7 +244,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
     override fun close() {
         ModConfig.get().update()
-        PetOverlay.hudEditor = false
+        hudEditor = false
         val open = booleanArrayOf(false)
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
             if (!open[0]) {
@@ -256,9 +256,11 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     }
 
     companion object {
+        var hudEditor = false
         var companionFeature = ""
+
         fun openScreen(screen: Screen?, name: String) {
-            PetOverlay.hudEditor = true
+            hudEditor = true
             val open = booleanArrayOf(false)
             ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
                 if (!open[0]) {

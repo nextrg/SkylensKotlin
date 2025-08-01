@@ -256,7 +256,7 @@ object Pets {
         val petNameWithoutLvl = removeLevel(petName)
         if (cachedPets.isEmpty()) {
             noCacheRarity = rarity
-            setPet(getTextureFromNeu(petName, true))
+            setPet(getTextureFromNeu(petName.replace(" ✦", ""), true))
             return
         }
         for (pet in cachedPets) {

@@ -12,7 +12,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats
-import org.nextrg.skylens.features.PetOverlay.hudEditor
+import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawText
@@ -145,8 +145,8 @@ object PressureDisplay {
         return finalX to finalY
     }
 
-    fun render(drawContext: DrawContext) {
-        if (!hudEditor && (!ModConfig.pressureDisplay || transition == 0f) || !onSkyblock()) return
+    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+        if (!isHudEditor && (!ModConfig.pressureDisplay || transition == 0f) || !onSkyblock()) return
         animatedPressure += (PlayerStats.pressure - animatedPressure) * 0.09f
         animatedPressure = clamp(animatedPressure, 0f, 1f)
 

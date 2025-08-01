@@ -11,8 +11,8 @@ import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats.fuel
+import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
 import org.nextrg.skylens.features.PetOverlay.getIdleProgress
-import org.nextrg.skylens.features.PetOverlay.hudEditor
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawText
@@ -142,7 +142,7 @@ object DrillFuelMeter {
         return finalX to finalY
     }
 
-    fun hasFuel(): Boolean = fuel.split("/").getOrNull(0)?.toIntOrNull()?.let { it > 0 } ?: false
+    private fun hasFuel(): Boolean = fuel.split("/").getOrNull(0)?.toIntOrNull()?.let { it > 0 } ?: false
 
     private fun getFuel(): Float {
         try {
@@ -162,8 +162,8 @@ object DrillFuelMeter {
         return "$formatted%"
     }
 
-    fun render(drawContext: DrawContext) {
-        if (!hudEditor && (!ModConfig.drillFuelMeter || transition == 0f) || !onSkyblock()) return
+    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+        if (!isHudEditor && (!ModConfig.drillFuelMeter || transition == 0f) || !onSkyblock()) return
         animatedFuel += (getFuel() - animatedFuel) * 0.09f
         animatedFuel = clamp(animatedFuel, 0f, 1f)
 
