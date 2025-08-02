@@ -28,10 +28,10 @@ public abstract class MessageHandlerMixin {
             if (hidePressure || hideDrillFuel) {
                 var string = text.getString();
                 var array = new ArrayList<>(Arrays.asList(string.split(" {5}")));
-                if (array.size() > 1 && array.get(1).contains("Pressure")) {
+                if (array.size() > 1 && array.get(1).contains("Pressure") && hidePressure) {
                     array.remove(1);
                 }
-                if (array.size() > 2 && array.get(2).contains("Drill Fuel")) {
+                if (array.size() > 2 && array.get(2).contains("Drill Fuel") && hideDrillFuel) {
                     array.remove(2);
                 }
                 var display = String.join("     ", array);
