@@ -272,7 +272,7 @@ public class ModConfig implements ModMenuApi {
                         .name(Text.literal("Show at"))
                         .binding(0f, () -> pressureDisplayShowAt, newVal -> pressureDisplayShowAt = newVal)
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
-                                .range(0f, 0.95f)
+                                .range(0.05f, 0.95f)
                                 .step(0.01f)
                                 .formatValue(val -> Text.literal(String.format("❍ %d%% Pressure", Math.round(val * 100))).withColor(0xFFB5B5F4)))
                         .build())
@@ -371,16 +371,18 @@ public class ModConfig implements ModMenuApi {
     }
     
     public static OptionGroup otherFeaturesGroup() {
-        var randomLevel = Math.round(15 + Math.random() * 75);
+        var randomLevel = Math.round(15 + Math.random() * 25);
+        var randomLevel2 = Math.round(45 + Math.random() * 35);
         return OptionGroup.createBuilder()
                 .name(Text.literal("Other"))
                 .collapsed(true)
                 .option(createBooleanOption(true, "Show Missing Enchants",
                         "Displays a list of missing enchants the hovered item has.",
                         () -> missingEnchants, newValue -> missingEnchants = newValue))
-                .option(createBooleanOption(true, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n§7[Lvl " +
-                                randomLevel + "] §6Pet §f→ §8[§7" +
-                                randomLevel + "§8] §6Pet\n§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
+                .option(createBooleanOption(true, "Compact Pet Level", "Shortens pet level display on tooltip.\nExamples:\n"
+                                + "§7[Lvl " + randomLevel + "] §aPet §f→ §8[§7" + randomLevel + "§8] §aPet\n"
+                                + "§7[Lvl " + randomLevel2 + "] §6Pet §f→ §8[§7" + randomLevel2 + "§8] §6Pet\n"
+                                + "§7[Lvl 100] §6Pet §f→ §8[§6100§8] §6Pet",
                         () -> compactPetLevel, newValue -> compactPetLevel = newValue))
                 .option(createBooleanOption(false, "Hide Pressure in Action Bar", "", () -> hidePressure, newValue -> hidePressure = newValue))
                 .option(createBooleanOption(false, "Hide Drill Fuel in Action Bar", "", () -> hideDrillFuel, newValue -> hideDrillFuel = newValue))
