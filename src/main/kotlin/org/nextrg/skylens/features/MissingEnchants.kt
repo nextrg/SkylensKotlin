@@ -67,7 +67,7 @@ object MissingEnchants {
                 }
             }
         } catch (e: Exception) {
-            errorMessage("Missing Enchants", e)
+            errorMessage("Failed to get missing enchants list", e)
         }
 
         return Pair(missingEnchants, ultimateEnchants)
@@ -113,20 +113,24 @@ object MissingEnchants {
     private fun main(stack: ItemStack, lines: MutableList<Text>) {
         if (!ModConfig.missingEnchants || !onSkyblock() || enchants == null) return
 
-        val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
-        val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
-        val data = stack.components.get(DataComponentTypes.CUSTOM_DATA)
+        try {
+            val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
+            val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
+            val data = stack.components.get(DataComponentTypes.CUSTOM_DATA)
 
-        if (itemType != "other" && data != null) {
-            val itemEnchants = getItemEnchants(data)
-            val (missingEnchants, ultimateEnchants) = getMissingEnchants(itemType.uppercase(), itemEnchants)
+            if (itemType != "other" && data != null) {
+                val itemEnchants = getItemEnchants(data)
+                val (missingEnchants, ultimateEnchants) = getMissingEnchants(itemType.uppercase(), itemEnchants)
 
-            if (missingEnchants.isNotEmpty() && itemEnchants.isNotEmpty()) {
-                if (ultimateEnchants.isNotEmpty()) {
-                    missingEnchants.add(getFormatCode("bold") + "Any Ultimate")
+                if (missingEnchants.isNotEmpty() && itemEnchants.isNotEmpty()) {
+                    if (ultimateEnchants.isNotEmpty()) {
+                        missingEnchants.add(getFormatCode("bold") + "Any Ultimate")
+                    }
+                    display(getTooltipMiddle(lines, itemEnchants), missingEnchants, lines)
                 }
-                display(getTooltipMiddle(lines, itemEnchants), missingEnchants, lines)
             }
+        } catch (e: Exception) {
+            errorMessage("Failed to show missing enchants on an item", e)
         }
     }
 
