@@ -142,9 +142,9 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static Anchor pressureDisplayAnchor = Anchor.BottomMiddle;
     @SerialEntry
-    public static int pressureDisplayX = 0;
+    public static int pressureDisplayX = -81;
     @SerialEntry
-    public static int pressureDisplayY = 0;
+    public static int pressureDisplayY = -14;
     @SerialEntry
     public static int pressureDisplayTheme = 0;
     
@@ -153,9 +153,9 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static Anchor drillFuelMeterAnchor = Anchor.BottomMiddle;
     @SerialEntry
-    public static int drillFuelMeterX = 0;
+    public static int drillFuelMeterX = -88;
     @SerialEntry
-    public static int drillFuelMeterY = 0;
+    public static int drillFuelMeterY = -32;
     @SerialEntry
     public static int drillFuelMeterTheme = 0;
     
@@ -164,9 +164,9 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static Anchor petOverlayAnchor = Anchor.BottomMiddle;
     @SerialEntry
-    public static int petOverlayX = 0;
+    public static int petOverlayX = 119;
     @SerialEntry
-    public static int petOverlayY = 0;
+    public static int petOverlayY = -2;
     @SerialEntry
     public static Type petOverlayType = Type.Bar;
     @SerialEntry

@@ -41,6 +41,8 @@ object Pets {
     private var hasCached = false
 
     private var noCacheMode = true
+    private var noCacheLevel = 1
+    private var noCacheMaxLevel = 100
     private var noCacheRarity = "common"
 
     private var lastUpdate = System.currentTimeMillis()
@@ -69,9 +71,9 @@ object Pets {
 
     fun getCurrentPet(): ItemStack = currentPet
 
-    fun getPetLevel(): Int = level
-    fun getPetMaxLevel(): Int = maxLevel
-    fun getPetXp(): Float = xp
+    fun getPetLevel(): Int = if (noCacheMode) noCacheLevel else level
+    fun getPetMaxLevel(): Int = if (noCacheMode) noCacheMaxLevel else maxLevel
+    fun getPetXp(): Float = if (noCacheMode && noCacheLevel == noCacheMaxLevel) 1f else xp
     fun getPetHeldItem(): String = heldItem
 
     fun getPetRarity(element: Text): String {
@@ -172,7 +174,7 @@ object Pets {
         if (!updateByTab) return
 
         val currentPetText = getPetRarityText(currentPet)
-        if (currentPetText == Text.empty()) return
+        if (currentPetText == Text.empty() && !noCacheMode) return
 
         val currentRarity = getPetRarity(currentPetText)
 
@@ -186,7 +188,7 @@ object Pets {
         val tabRarity = getPetRarity(tabName)
         val tabPetName = tabName.string
 
-        if (currentPetText.string != tabPetName && currentRarity != tabRarity) return
+        if (currentPetText.string != tabPetName && currentRarity != tabRarity && !noCacheMode) return
 
         level = parseLevel(tabPet, 1)
         maxLevel = if (isGoldenDragon(tabPetName)) 200 else 100
@@ -254,8 +256,7 @@ object Pets {
 
     private fun findPetFromInventory(petName: String, rarity: String) {
         val petNameWithoutLvl = removeLevel(petName)
-        if (cachedPets.isEmpty()) {
-            noCacheRarity = rarity
+        if (noCacheMode) {
             setPet(getTextureFromNeu(petName.replace(" ✦", ""), true))
             return
         }
@@ -299,7 +300,6 @@ object Pets {
             if (matcher.find()) {
                 val autopetLevel = matcher.group(1)
                 val autopetPet = matcher.group(2)
-
                 val matchIndex = string.indexOf(autopetLevel) + autopetLevel.length - 2
                 var rarity = "common"
 
@@ -310,6 +310,10 @@ object Pets {
                         rarity = color[1]
                     }
                 }
+
+                noCacheLevel = autopetLevel.toIntOrNull() ?: 1
+                noCacheRarity = rarity
+                noCacheMaxLevel = if (isGoldenDragon(autopetPet)) 200 else 100
 
                 findPetFromInventory(autopetPet, rarity)
                 showOverlay()
