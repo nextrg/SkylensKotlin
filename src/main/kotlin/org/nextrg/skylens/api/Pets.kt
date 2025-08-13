@@ -85,14 +85,10 @@ object Pets {
 
     fun getPetRarityText(customName: Text?): Text {
         val siblings = customName?.siblings
-        return if (siblings != null && siblings.size > 1) {
-            if (siblings[1].string.contains("[")) {
-                return siblings[2]
-            } else {
-                return siblings[1]
-            }
-        } else {
-            Text.empty()
+        return when {
+            siblings == null || siblings.size <= 1 -> Text.empty()
+            siblings[1].string.contains("[") -> siblings.getOrNull(2) ?: Text.empty()
+            else -> siblings[1]
         }
     }
 
@@ -154,15 +150,18 @@ object Pets {
         }
     }
 
+    private fun isFavorite(text: Text?) = text?.string?.contains("⭐") == true
+    private fun favoriteMargin(text: Text?) = if (isFavorite(text)) 1 else 0
+
     private fun parseLevel(text: Text?, index: Int): Int {
-        return text?.siblings?.getOrNull(index)?.string
+        return text?.siblings?.getOrNull(index + favoriteMargin(text))?.string
             ?.replace(Regex("""\[Lvl (\d+)]"""), "$1")
             ?.trim()
             ?.toIntOrNull() ?: 1
     }
 
     private fun parseXp(text: Text?): Float {
-        return text?.siblings?.getOrNull(4)?.string
+        return text?.siblings?.getOrNull(4 + favoriteMargin(text))?.string
             ?.removePrefix("(")
             ?.removeSuffix("%)")
             ?.trim()
