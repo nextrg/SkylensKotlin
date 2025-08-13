@@ -140,6 +140,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean pressureDisplay = true;
     @SerialEntry
+    public static Float pressureDisplayShowAt = 0f;
+    @SerialEntry
     public static Anchor pressureDisplayAnchor = Anchor.BottomMiddle;
     @SerialEntry
     public static int pressureDisplayX = -81;
@@ -266,6 +268,14 @@ public class ModConfig implements ModMenuApi {
                 .description(OptionDescription.of(Text.literal("Displays the pressure percentage caused by waters in Galatea.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Show at"))
+                        .binding(0f, () -> pressureDisplayShowAt, newVal -> pressureDisplayShowAt = newVal)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0f, 0.95f)
+                                .step(0.01f)
+                                .formatValue(val -> Text.literal(String.format("❍ %d%% Pressure", Math.round(val * 100))).withColor(0xFFB5B5F4)))
+                        .build())
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()

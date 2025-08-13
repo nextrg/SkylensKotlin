@@ -6,6 +6,7 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.fluid.Fluids
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.features.DrillFuelMeter
 import org.nextrg.skylens.features.PressureDisplay
 import org.nextrg.skylens.helpers.StringsUtil.parseSuffix
@@ -36,19 +37,18 @@ object PlayerStats {
     private fun checkInWater(player: ClientPlayerEntity) {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastCheckTime < 500L) return
-
         lastCheckTime = currentTime
+
         val inWater = player.world.getFluidState(player.blockPos).fluid == Fluids.WATER
-        when {
-            !wasInWater && inWater -> {
-                PressureDisplay.show()
-            }
-            wasInWater && !inWater -> {
-                PressureDisplay.hide()
-            }
+        val showAt = ModConfig.pressureDisplayShowAt
+
+        if (pressure >= showAt && inWater && !wasInWater) {
+            PressureDisplay.show()
+        } else if (pressure < showAt || !inWater) {
+            PressureDisplay.hide()
         }
 
-        wasInWater = inWater
+        wasInWater = inWater && pressure >= showAt
     }
 
     private fun updateHealth(player: ClientPlayerEntity) {
