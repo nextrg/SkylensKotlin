@@ -98,7 +98,7 @@ object PetOverlay {
 
             val pet = getCurrentPet()
             currentPet = pet
-            rarity = getPetRarity(getPetRarityText(pet))
+            rarity = getPetRarity(getPetRarityText(pet.customName))
             updateTheme()
         }
     }

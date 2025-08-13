@@ -83,10 +83,14 @@ object Pets {
         return colorToRarity(element.style.color.toString())
     }
 
-    fun getPetRarityText(pet: ItemStack): Text {
-        val siblings = pet.customName?.siblings
+    fun getPetRarityText(customName: Text?): Text {
+        val siblings = customName?.siblings
         return if (siblings != null && siblings.size > 1) {
-            siblings[1]
+            if (siblings[1].string.contains("[")) {
+                return siblings[2]
+            } else {
+                return siblings[1]
+            }
         } else {
             Text.empty()
         }
@@ -173,7 +177,7 @@ object Pets {
 
         if (!updateByTab) return
 
-        val currentPetText = getPetRarityText(currentPet)
+        val currentPetText = getPetRarityText(currentPet.customName)
         if (currentPetText == Text.empty() && !noCacheMode) return
 
         val currentRarity = getPetRarity(currentPetText)
@@ -231,7 +235,7 @@ object Pets {
                     val content = tooltipFromItemStack(stack).toString()
                     if ("Click to despawn!" in content && stack.customName != null) {
                         equippedPet = stack.customName!!.string
-                        rarity = getPetRarity(stack.customName!!)
+                        rarity = getPetRarity(getPetRarityText(stack.customName!!))
                     }
                 }
             }
@@ -255,15 +259,16 @@ object Pets {
     }
 
     private fun findPetFromInventory(petName: String, rarity: String) {
-        val petNameWithoutLvl = removeLevel(petName)
+        val noSymbol = petName.replace(" ✦", "").replace("⭐ ", "")
+        val petNameWithoutLvl = removeLevel(noSymbol)
         if (noCacheMode) {
-            setPet(getTextureFromNeu(petName.replace(" ✦", ""), true))
+            setPet(getTextureFromNeu(noSymbol, true))
             return
         }
         for (pet in cachedPets) {
             val cachedPetName = pet.customName
             val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
-            val petRarity = getPetRarity(getPetRarityText(pet))
+            val petRarity = getPetRarity(getPetRarityText(pet.customName))
             if (nameWithoutFormat?.contains(petNameWithoutLvl) == true && petRarity == rarity) {
                 setPet(pet)
                 break
