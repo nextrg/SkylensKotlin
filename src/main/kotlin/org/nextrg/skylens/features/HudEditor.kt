@@ -214,8 +214,13 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
     private fun setOverlayMargin(x: Double, y: Double, anchorKey: String, overlayType: ModConfig.Type?, defaultX: (Int) -> Unit, defaultY: (Int) -> Unit, isPetOverlay: Boolean = false, isDrillBar: Boolean = false) {
         if (x <= -9998.0) {
-            defaultX(0)
-            defaultY(0)
+            val (configDefaultX, configDefaultY) = when {
+                isPetOverlay -> 119 to -2
+                isDrillBar -> -88 to -32
+                else -> -81 to -14
+            }
+            defaultX(configDefaultX)
+            defaultY(configDefaultY)
         } else {
             val (screenX, screenY) = getScaledWidthHeight()
             val anchor = anchors[anchorKey] ?: floatArrayOf(0.5f, 1f)

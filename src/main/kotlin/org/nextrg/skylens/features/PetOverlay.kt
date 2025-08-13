@@ -106,7 +106,7 @@ object PetOverlay {
     fun levelUp() {
         if (!levelUpAnim) return
         scope.launch {
-            animateFloat(1f, 0f, transitionDuration * 2, ::quad).collect { animatedXp = it }
+            animateFloat(animatedXp, 1f, transitionDuration / 2, ::quad).collect { animatedXp = it }
             animateFloat(0f, 1f, transitionDuration, ::quad).collect { animatedLevelUp = it }
             delay(levelUpDelay)
             xp = 0f
