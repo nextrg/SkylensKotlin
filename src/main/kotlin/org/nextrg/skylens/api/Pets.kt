@@ -31,11 +31,14 @@ object Pets {
     private val AUTOPET_PATTERN: Pattern = Pattern.compile("^Autopet equipped your \\[Lvl (\\d+)] (.+)! VIEW RULE$")
     private val SUMMON_PATTERN: Pattern = Pattern.compile("You (summoned|despawned) your (.+?)!")
     private val LEVELUP_PATTERN: Pattern = Pattern.compile("Your (.+?) leveled up to level (\\d+)!")
+    private val PETSPAGE_PATTERN: Pattern = Pattern.compile("Pets \\((\\d+)\\/\\d+\\)")
 
     private val scheduler = Executors.newScheduledThreadPool(1)
     private var scheduledResetTask: ScheduledFuture<*>? = null
 
-    private var cachedPets: MutableList<ItemStack> = mutableListOf()
+    private var cachedPetsPage1: MutableList<ItemStack> = mutableListOf()
+    private var cachedPetsPage2: MutableList<ItemStack> = mutableListOf()
+    private var cachedPetsPage3: MutableList<ItemStack> = mutableListOf()
     private var isPetMenu = false
     private var currentPetScreen: GenericContainerScreen? = null
     private var hasCached = false
@@ -213,6 +216,19 @@ object Pets {
         isPetMenu = true
         noCacheMode = false
 
+        val screenTitle = screen.title.string
+        val matcher = PETSPAGE_PATTERN.matcher(screenTitle)
+        var page = 1
+        if (matcher.find()) {
+            page = matcher.group(1).toIntOrNull() ?: 1
+        }
+
+        val currentCachedPetsPage = when (page) {
+            2 -> cachedPetsPage2
+            3 -> cachedPetsPage3
+            else -> cachedPetsPage1
+        }
+
         var ticks = 0
         ScreenEvents.afterTick(screen).register(ScreenEvents.AfterTick { _ ->
             if (!isPetMenu || hasCached) return@AfterTick
@@ -222,7 +238,7 @@ object Pets {
                 return@AfterTick
             }
 
-            cachedPets.clear()
+            currentCachedPetsPage.clear()
 
             var equippedPet = ""
             var rarity = "common"
@@ -230,7 +246,7 @@ object Pets {
             getPetSlots(screen).forEach { slot ->
                 val stack = slot.stack
                 if (!stack.isEmpty && stack.item == Items.PLAYER_HEAD) {
-                    cachedPets.add(stack)
+                    currentCachedPetsPage.add(stack)
                     val content = tooltipFromItemStack(stack).toString()
                     if ("Click to despawn!" in content && stack.customName != null) {
                         equippedPet = stack.customName!!.string
@@ -260,14 +276,19 @@ object Pets {
     private fun findPetFromInventory(petName: String, rarity: String) {
         val noSymbol = petName.replace(" ✦", "").replace("⭐ ", "")
         val petNameWithoutLvl = removeLevel(noSymbol)
+
         if (noCacheMode) {
             setPet(getTextureFromNeu(noSymbol, true))
             return
         }
-        for (pet in cachedPets) {
+
+        val allPets = cachedPetsPage1 + cachedPetsPage2 + cachedPetsPage3
+
+        for (pet in allPets) {
             val cachedPetName = pet.customName
             val nameWithoutFormat = Formatting.strip(cachedPetName?.string)
             val petRarity = getPetRarity(getPetRarityText(pet.customName))
+
             if (nameWithoutFormat?.contains(petNameWithoutLvl) == true && petRarity == rarity) {
                 setPet(pet)
                 break
