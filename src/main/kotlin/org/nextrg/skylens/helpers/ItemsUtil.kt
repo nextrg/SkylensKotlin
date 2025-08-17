@@ -55,9 +55,12 @@ object ItemsUtil {
     fun getTooltipMiddle(lines: MutableList<Text>, itemEnch: MutableList<String>): Int {
         var index = 1
         lines.forEachIndexed { i, line ->
-            if (itemEnch.any { enchant ->
-                    line.toString().lowercase().contains(enchant.replace("ultimate_", "").replace("turbo_", "turbo-").replace("_", " "))
-                }) {
+            val lineLowercase = line.toString().lowercase()
+            if (itemEnch.any { enchant -> lineLowercase.contains(enchant
+                .replace("ultimate_", "")
+                .replace("turbo_", "turbo-")
+                .replace("_", " "))
+            }) {
                 index = index.coerceAtLeast(i)
             }
         }

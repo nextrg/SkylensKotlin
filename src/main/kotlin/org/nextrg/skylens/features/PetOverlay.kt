@@ -73,6 +73,7 @@ object PetOverlay {
     private var invertColor = false
     private var showItem = false
     private var idleAnimPulse = false
+    private var idleAnimHover = false
     private var levelUpAnim = false
     private var valueChangeAnim = false
     private var rainbowLevel = false
@@ -259,6 +260,7 @@ object PetOverlay {
         invertColor = ModConfig.petOverlayInvert
         showItem = ModConfig.petOverlayShowItem
         idleAnimPulse = ModConfig.petOverlayAnimation_IdlePulse
+        idleAnimHover = ModConfig.petOverlayAnimation_IdleHover
         valueChangeAnim = ModConfig.petOverlayAnimation_LevelXp
         levelUpAnim = ModConfig.petOverlayAnimation_LevelUp
         rainbowLevel = ModConfig.petOverlayRainbowLvl
@@ -302,7 +304,8 @@ object PetOverlay {
             color1 = color2.also { color2 = color1 }
         }
 
-        val yO = y + (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
+        // Hover animation
+        val yO = if (!idleAnimHover) y else (y + (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat())
 
         if (isBarType) {
             renderBars(drawContext, x, yO, animatedLevelProgress, color1, color2, color3)

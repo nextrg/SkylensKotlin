@@ -188,6 +188,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean petOverlayAnimation_IdlePulse = true;
     @SerialEntry
+    public static boolean petOverlayAnimation_IdleHover = true;
+    @SerialEntry
     public static boolean petOverlayAnimation_LevelUp = true;
     @SerialEntry
     public static boolean petOverlayAnimation_LevelXp = true;
@@ -251,7 +253,8 @@ public class ModConfig implements ModMenuApi {
                 .option(createColorOption(Color.DARK_GRAY, "Background", () -> petOverlayColor3, newValue -> petOverlayColor3 = newValue))
                 
                 .option(label("Animations"))
-                .option(createBooleanOption(true, "Idle", "", () -> petOverlayAnimation_IdlePulse, newValue -> petOverlayAnimation_IdlePulse = newValue))
+                .option(createBooleanOption(true, "Idle: Pulse", "", () -> petOverlayAnimation_IdlePulse, newValue -> petOverlayAnimation_IdlePulse = newValue))
+                .option(createBooleanOption(true, "Idle: Hover", "", () -> petOverlayAnimation_IdleHover, newValue -> petOverlayAnimation_IdleHover = newValue))
                 .option(createBooleanOption(true, "Level Up", "", () -> petOverlayAnimation_LevelUp, newValue -> petOverlayAnimation_LevelUp = newValue))
                 .option(createBooleanOption(true, "Level/XP Change", "", () -> petOverlayAnimation_LevelXp, newValue -> petOverlayAnimation_LevelXp = newValue))
                
