@@ -140,7 +140,7 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static boolean pressureDisplay = true;
     @SerialEntry
-    public static Float pressureDisplayShowAt = 0f;
+    public static Float pressureDisplayShowAt = 0.05f;
     @SerialEntry
     public static Anchor pressureDisplayAnchor = Anchor.BottomMiddle;
     @SerialEntry

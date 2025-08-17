@@ -39,6 +39,7 @@ import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import java.util.*
 import kotlin.math.max
+import kotlin.math.sin
 
 object PetOverlay {
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -301,12 +302,14 @@ object PetOverlay {
             color1 = color2.also { color2 = color1 }
         }
 
+        val yO = y + (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
+
         if (isBarType) {
-            renderBars(drawContext, x, y, animatedLevelProgress, color1, color2, color3)
+            renderBars(drawContext, x, yO, animatedLevelProgress, color1, color2, color3)
         } else {
-            renderCircles(drawContext, x, y, animatedLevelProgress, color1, color2, color3)
+            renderCircles(drawContext, x, yO, animatedLevelProgress, color1, color2, color3)
         }
-        renderText(drawContext, x, y, textColor)
+        renderText(drawContext, x, yO, textColor)
     }
 
     private fun renderText(drawContext: DrawContext, x: Float, y: Float, color: Int) {

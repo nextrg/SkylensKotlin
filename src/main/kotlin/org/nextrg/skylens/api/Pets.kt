@@ -353,7 +353,7 @@ object Pets {
 
         if (content.contains("leveled up to level")) {
             val matcher = LEVELUP_PATTERN.matcher(content)
-            if (matcher.find()) {
+            if (matcher.find() && content.contains(getPetRarityText(currentPet.customName).string)) {
                 level = matcher.group(2)?.toIntOrNull() ?: level
                 xp = 0f
                 updateStats()

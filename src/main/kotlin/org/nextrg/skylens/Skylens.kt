@@ -14,7 +14,6 @@ import org.nextrg.skylens.api.Pets
 import org.nextrg.skylens.api.PlayerStats
 import org.nextrg.skylens.features.*
 
-
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
         getModContainer()
