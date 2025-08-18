@@ -304,8 +304,10 @@ object PetOverlay {
             color1 = color2.also { color2 = color1 }
         }
 
-        // Hover animation
-        val yO = if (!idleAnimHover) y else (y + (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat())
+        var yO = y
+        if (idleAnimHover && !hudEditor && transition != 0f) {
+            yO += (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
+        }
 
         if (isBarType) {
             renderBars(drawContext, x, yO, animatedLevelProgress, color1, color2, color3)

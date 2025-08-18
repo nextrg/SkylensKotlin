@@ -42,6 +42,10 @@ object PlayerStats {
         val inWater = player.world.getFluidState(player.blockPos).fluid == Fluids.WATER
         val showAt = ModConfig.pressureDisplayShowAt
 
+        if (!inWater) {
+            pressure = 0f
+        }
+
         if (pressure >= showAt && inWater && !wasInWater) {
             PressureDisplay.show()
         } else if (pressure < showAt || !inWater) {
