@@ -16,6 +16,7 @@ import org.nextrg.skylens.features.PetOverlay.showOverlay
 import org.nextrg.skylens.features.PetOverlay.updatePet
 import org.nextrg.skylens.features.PetOverlay.updateStats
 import org.nextrg.skylens.helpers.ItemsUtil.tooltipFromItemStack
+import org.nextrg.skylens.helpers.OtherUtil.errorMessage
 import org.nextrg.skylens.helpers.OtherUtil.getTabData
 import org.nextrg.skylens.helpers.OtherUtil.getTextureFromNeu
 import org.nextrg.skylens.helpers.StringsUtil.colorFromCode
@@ -310,7 +311,14 @@ object Pets {
             val matcher = SUMMON_PATTERN.matcher(content)
             if (matcher.find()) {
                 if (matcher.group(1) == "summoned") {
-                    val rarity = colorToRarity(message.siblings[1].style.color.toString())
+                    var rarity = "common"
+                    try {
+                        if (message.siblings.size > 1) {
+                            rarity = colorToRarity(message.siblings[1].style.color.toString())
+                        }
+                    } catch (e: Exception) {
+                        errorMessage("Failed to retrieve summoned pet rarity", e)
+                    }
                     findPetFromInventory(matcher.group(2), rarity)
                     showOverlay()
                 }
