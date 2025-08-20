@@ -395,22 +395,24 @@ object PetOverlay {
     }
 
     private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val radius = 12.5f
+        val outerRadius = 12.5f
+        val innerRadius = outerRadius - 2.96f
         val progress = 1.01f * animatedLevelProgress
         if (!rainbowLevel) {
-            drawPie(drawContext, x, y, progress, radius, radius - 2.96f, color, 0f, 0f)
+            drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, radius - 2.96f, getRainbow(8), 0f, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
         }
     }
 
     private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val radius = 10.52f - if (altStyle) 1.5f else 0f
+        val outerRadius = 10.33f - if (altStyle) 1.33f else 0f
+        val innerRadius = 0f
         val progress = animatedXp * 1.01f
         if (!rainbowXp) {
-            drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
+            drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8), 0f, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
         }
     }
 

@@ -28,6 +28,7 @@ class Skylens : ClientModInitializer {
         PetOverlay.prepare()
         PressureDisplay.prepare()
         DrillFuelMeter.prepare()
+        DungeonScoreMeter.prepare()
         CompactPetLevel.prepare()
         LowHpIndicator.prepare()
     }
@@ -75,6 +76,13 @@ class Skylens : ClientModInitializer {
                                     ClientCommandManager.literal("drill_fuel_meter")
                                         .executes {
                                             HudEditor.openScreen(null, "Drill Fuel Meter")
+                                            1
+                                        }
+                                )
+                                .then(
+                                    ClientCommandManager.literal("dungeon_score_meter")
+                                        .executes {
+                                            HudEditor.openScreen(null, "Dungeon Score Meter")
                                             1
                                         }
                                 )

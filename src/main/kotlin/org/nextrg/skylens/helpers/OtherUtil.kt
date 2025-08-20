@@ -6,18 +6,22 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientPlayNetworkHandler
+import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.client.network.PlayerListEntry
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.component.type.ProfileComponent
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.registry.Registries
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import org.nextrg.skylens.ModConfig
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
+
 
 object OtherUtil {
     private val air = ItemStack(Items.AIR)
@@ -26,7 +30,7 @@ object OtherUtil {
     private const val BASE_NEU_ITEM_PATH = "/refs/heads/master/items/"
 
     fun jsonNeu(path: String): JsonObject {
-        return json("$BASE_NEU_PATH$path");
+        return json("$BASE_NEU_PATH$path")
     }
 
     private fun json(path: String): JsonObject {
@@ -58,6 +62,27 @@ object OtherUtil {
                 .toList()
         }
         return text
+    }
+
+    fun getScoreboardData(player: ClientPlayerEntity): List<String?> {
+        val scoreboardData: MutableList<String?> = ArrayList()
+        val scoreboard = player.scoreboard
+        val title = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.FROM_ID.apply(1))
+        if (title != null) {
+            scoreboardData.addFirst(title.displayName.copy().string)
+        }
+        for (lines in scoreboard.knownScoreHolders) {
+            if (scoreboard.getScoreHolderObjectives(lines).containsKey(title)) {
+                val team = scoreboard.getScoreHolderTeam(lines.nameForScoreboard)
+                if (team != null) {
+                    val strLine = team.prefix.string + team.suffix.string
+                    if (strLine.trim { it <= ' ' }.isNotEmpty()) {
+                        scoreboardData.add(Formatting.strip(strLine))
+                    }
+                }
+            }
+        }
+        return scoreboardData
     }
 
     fun errorMessage(message: String, exception: Exception) {

@@ -8,19 +8,24 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.features.DrillFuelMeter
+import org.nextrg.skylens.features.DungeonScoreMeter
 import org.nextrg.skylens.features.PressureDisplay
+import org.nextrg.skylens.helpers.OtherUtil.getScoreboardData
 import org.nextrg.skylens.helpers.StringsUtil.parseSuffix
 import java.util.regex.Pattern
 
 object PlayerStats {
-    private var PRESSURE_PATTERN: Pattern = Pattern.compile("(?<=Pressure: ❍)(\\d+)(?=%)")
+    private val PRESSURE_PATTERN: Pattern = Pattern.compile("(?<=Pressure: ❍)(\\d+)(?=%)")
     private val DRILL_FUEL_PATTERN: Pattern = Pattern.compile("(\\d+)/([^\\s]+)\\s+Drill Fuel$")
+    private val DUNGEON_SCORE_PATTERN: Pattern = Pattern.compile("Cleared:\\s*\\d+%\\s*\\((\\d+)\\)")
 
     private var lastCheckTime = 0L
     private var wasInWater = false
+    private var wasInDungeon = false
 
     var pressure = 0f
     var health = 0f
+    var dungeonScore = 0f
     var fuel = "0/3000"
 
     fun init() {
@@ -30,15 +35,44 @@ object PlayerStats {
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client ->
             val player = client.player ?: return@EndTick
 
-            updateHealth(player); checkInWater(player)
+            updateHealth(player)
+
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastCheckTime >= 500L) {
+                lastCheckTime = currentTime
+                checkInWater(player); checkDungeon(player)
+            }
         })
     }
 
-    private fun checkInWater(player: ClientPlayerEntity) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastCheckTime < 500L) return
-        lastCheckTime = currentTime
+    private fun checkDungeon(player: ClientPlayerEntity) {
+        val scoreboardData = getScoreboardData(player)
+        val inDungeon = scoreboardData.toString().contains("The Catacombs")
 
+        if (inDungeon) {
+            for (lines in scoreboardData) {
+                val string = lines.toString()
+                if (string.contains("Cleared:")) {
+                    val matcher = DUNGEON_SCORE_PATTERN.matcher(string)
+                    if (matcher.find()) {
+                        dungeonScore = matcher.group(1).toFloat()
+                    }
+                }
+            }
+        } else {
+            dungeonScore = 0f
+        }
+
+        if (inDungeon && !wasInDungeon) {
+            DungeonScoreMeter.show()
+        } else if (!inDungeon) {
+            DungeonScoreMeter.hide()
+        }
+
+        wasInDungeon = inDungeon
+    }
+
+    private fun checkInWater(player: ClientPlayerEntity) {
         val inWater = player.world.getFluidState(player.blockPos).fluid == Fluids.WATER
         val showAt = ModConfig.pressureDisplayShowAt
 

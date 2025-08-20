@@ -171,7 +171,7 @@ object DrillFuelMeter {
         draw(drawContext, x, y, animatedFuel)
     }
 
-    private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
+    private fun draw(drawContext: DrawContext, x: Float, y: Float, fuel: Float) {
         val width = 20f; val height = 40f
 
         // Background
@@ -180,8 +180,8 @@ object DrillFuelMeter {
 
         // Fuel
         if (hasFuel()) {
-            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(2900.0), -26.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
-            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * value), 0, 2.5f, 0f)
+            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(2900.0), -26.5f + 32.5f * 2 * fuel), 0, 2.5f, 0f)
+            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * fuel), 0, 2.5f, 0f)
         }
 
         drawText(drawContext, getFuelString(), x + width / 2, y - 9f, color1, 1f, true, true)

@@ -162,6 +162,15 @@ public class ModConfig implements ModMenuApi {
     public static int drillFuelMeterTheme = 0;
     
     @SerialEntry
+    public static boolean dungeonScoreMeter = true;
+    @SerialEntry
+    public static Anchor dungeonScoreMeterAnchor = Anchor.BottomMiddle;
+    @SerialEntry
+    public static int dungeonScoreMeterX = -116;
+    @SerialEntry
+    public static int dungeonScoreMeterY = -9;
+    
+    @SerialEntry
     public static boolean petOverlay = true;
     @SerialEntry
     public static Anchor petOverlayAnchor = Anchor.BottomMiddle;
@@ -345,6 +354,28 @@ public class ModConfig implements ModMenuApi {
                 .build();
     }
     
+    public static OptionGroup dungeonScoreMeterGroup() {
+        return OptionGroup.createBuilder()
+                .name(Text.literal("Dungeon Score Meter"))
+                .description(OptionDescription.of(Text.literal("")))
+                .collapsed(true)
+                .option(createBooleanEnableOption(dungeonScoreMeter, () -> dungeonScoreMeter, newValue -> dungeonScoreMeter = newValue))
+                
+                .option(label("Position"))
+                .option(Option.<Anchor>createBuilder()
+                        .name(Text.literal("Anchor"))
+                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .binding(Anchor.BottomMiddle, () -> dungeonScoreMeterAnchor, newValue -> dungeonScoreMeterAnchor = newValue)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
+                        .build())
+                .option(ButtonOption.createBuilder()
+                        .name(Text.literal("Open HUD Editor"))
+                        .text(Text.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Dungeon Score Meter"))
+                        .build())
+                .build();
+    }
+    
     public static OptionGroup lowHpIndicatorGroup() {
         return OptionGroup.createBuilder()
                 .name(Text.literal("Low HP Indicator"))
@@ -402,6 +433,7 @@ public class ModConfig implements ModMenuApi {
                                 .group(petOverlayGroup())
                                 .group(pressureDisplayGroup())
                                 .group(drillFuelMeterGroup())
+                                .group(dungeonScoreMeterGroup())
                                 .group(lowHpIndicatorGroup())
                                 .group(otherFeaturesGroup())
                                 .build())
