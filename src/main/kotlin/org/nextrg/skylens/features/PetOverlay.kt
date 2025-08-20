@@ -252,6 +252,10 @@ object PetOverlay {
         return finalX to finalY
     }
 
+    fun getIdleProgress(time: Double = 1700.0): Float {
+        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
+    }
+
     fun updateConfigValues() {
         val type = ModConfig.petOverlayType
         isBarType = type.toString().contains("Bar")
@@ -380,70 +384,69 @@ object PetOverlay {
         drawCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
     }
 
-    fun getIdleProgress(time: Double = 1700.0): Float {
-        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
-    }
-
     private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
-        val value = 1.01f
+        val progress = 1.01f
         val startAngle = 0f
         if (!rainbowBg) {
-            drawPie(drawContext, x, y, value, radius, 0f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, 0f, color, startAngle, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, value, radius, 0f, getRainbow(8, 0.3f), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8, 0.3f), startAngle, idleProgress)
         }
     }
 
     private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.5f
-        val value = 1.01f * animatedLevelProgress
+        val progress = 1.01f * animatedLevelProgress
         val startAngle = Math.PI.toFloat() / 2
         if (!rainbowLevel) {
-            drawPie(drawContext, x, y, value, radius, radius - 2.96f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, radius - 2.96f, color, startAngle, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, value, radius, radius - 2.96f, getRainbow(8), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, radius - 2.96f, getRainbow(8), startAngle, idleProgress)
         }
     }
 
     private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 10.52f - if (altStyle) 1.5f else 0f
-        val value = animatedXp * 1.01f
+        val progress = animatedXp * 1.01f
         val startAngle = Math.PI.toFloat() / 2
         if (!rainbowXp) {
-            drawPie(drawContext, x, y, value, radius, 0f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, 0f, color, startAngle, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, value, radius, 0f, getRainbow(8), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8), startAngle, idleProgress)
         }
     }
 
     private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 0f else 4.5f
-        val value = 51f
+        val width = 51f
+        val height = 8f
         if (!rainbowBg) {
-            roundRectangleFloat(drawContext, x, y, value, 8f, color, 0, borderRadius, 0f)
+            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x, y, value, 8f, getRainbow(8, 0.15f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(drawContext, x, y, width, height, getRainbow(8, 0.15f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 
     private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 0f else 4.5f
-        val value = max(8f, (51 * animatedLevelProgress))
+        val width = max(8f, (51 * animatedLevelProgress))
+        val height = 8f
         if (!rainbowLevel) {
-            roundRectangleFloat(drawContext, x, y, value, 8f, color, 0, borderRadius, 0f)
+            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x, y, value, 8f, getRainbow(8, 1f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(drawContext, x, y, width, height, getRainbow(8, 1f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 
     private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 0f else 2.5f
-        val value = max(2f, (47 * animatedXp))
+        val width = max(2f, (47 * animatedXp))
+        val height = 4f
         if (!rainbowXp) {
-            roundRectangleFloat(drawContext, x + 2, y + 2, value, 4f, color, 0, borderRadius, 0f)
+            roundRectangleFloat(drawContext, x + 2, y + 2, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x + 2, y + 2, value, 4f, getRainbow(8, 0.5f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(drawContext, x + 2, y + 2, width, height, getRainbow(8, 0.5f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 }
