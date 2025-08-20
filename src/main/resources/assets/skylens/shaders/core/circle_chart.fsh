@@ -11,7 +11,8 @@ uniform vec4 color7;
 uniform int colorCount;
 
 uniform vec2 center;
-uniform float radius;
+uniform float outerRadius;
+uniform float innerRadius;
 uniform float progress;
 uniform float time;
 uniform float startAngle;
@@ -41,13 +42,17 @@ void main() {
     angle = mod(angle + TAU, TAU);
 
     float dist = length(pos);
-    float edgeAlpha = 1.0 - smoothstep(radius - edgeSoftness, radius, dist);
+
+    float edgeAlphaOuter = 1.0 - smoothstep(outerRadius - edgeSoftness, outerRadius, dist);
+    float edgeAlphaInner = smoothstep(innerRadius, innerRadius + edgeSoftness, dist);
+
+    float edgeAlpha = edgeAlphaOuter * edgeAlphaInner;
     if (edgeAlpha <= 0.0) discard;
 
     float angleOffset = mod(angle - startAngle + TAU, TAU);
     float angularLength = progress * TAU;
 
-    float angleSoft = edgeSoftness / radius;
+    float angleSoft = edgeSoftness / outerRadius;
     float angleAlpha = 1.0 - smoothstep(angularLength - angleSoft, angularLength, angleOffset);
 
     if (invert == 1)

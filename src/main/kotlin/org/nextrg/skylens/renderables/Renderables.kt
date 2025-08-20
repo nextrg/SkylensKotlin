@@ -18,7 +18,8 @@ object Renderables {
         x: Float,
         y: Float,
         progress: Float,
-        radius: Float,
+        outerRadius: Float,
+        innerRadius: Float,
         color: List<Int>,
         startAngle: Float,
         time: Float,
@@ -29,17 +30,18 @@ object Renderables {
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
         val scaledY = y * scale
-        val scaledRadius = radius * scale
+        val scaledOuterRadius = outerRadius * scale
+        val scaledInnerRadius = innerRadius * scale
 
         val flippedY = window.framebufferHeight - scaledY
 
         val matrix = graphics.matrices.peek().positionMatrix
         val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
 
-        buffer.vertex(matrix, x - radius, y - radius, 0.0f)
-        buffer.vertex(matrix, x - radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y - radius, 0.0f)
+        buffer.vertex(matrix, x - outerRadius, y - outerRadius, 0.0f)
+        buffer.vertex(matrix, x - outerRadius, y + outerRadius, 0.0f)
+        buffer.vertex(matrix, x + outerRadius, y + outerRadius, 0.0f)
+        buffer.vertex(matrix, x + outerRadius, y - outerRadius, 0.0f)
 
         val maxColors = 8
 
@@ -58,7 +60,8 @@ object Renderables {
             val colorCountSafe = baseColors.size.coerceIn(1, maxColors)
             pass.setUniform("colorCount", colorCountSafe)
             pass.setUniform("center", scaledX, flippedY)
-            pass.setUniform("radius", scaledRadius)
+            pass.setUniform("outerRadius", scaledOuterRadius)
+            pass.setUniform("innerRadius", scaledInnerRadius)
             pass.setUniform("progress", progress)
             pass.setUniform("time", time)
             pass.setUniform("startAngle", startAngle)
@@ -72,14 +75,15 @@ object Renderables {
         x: Float,
         y: Float,
         progress: Float,
-        radius: Float,
+        outerRadius: Float,
+        innerRadius: Float,
         color: Int,
         startAngle: Float,
         time: Float,
-        invert: Boolean,
-        reverse: Boolean
+        invert: Boolean = false,
+        reverse: Boolean = false
     ) {
-        pie(graphics, x, y, progress, radius, mutableListOf(color), startAngle, time, invert, reverse)
+        pie(graphics, x, y, progress, outerRadius, innerRadius, mutableListOf(color), startAngle, time, invert, reverse)
     }
 
     fun drawPieGradient(
@@ -87,14 +91,15 @@ object Renderables {
         x: Float,
         y: Float,
         progress: Float,
-        radius: Float,
+        outerRadius: Float,
+        innerRadius: Float,
         color: List<Int>,
         startAngle: Float,
         time: Float,
-        invert: Boolean,
-        reverse: Boolean
+        invert: Boolean = false,
+        reverse: Boolean = false
     ) {
-        pie(graphics, x, y, progress, radius, color, startAngle, time, invert, reverse)
+        pie(graphics, x, y, progress, outerRadius, innerRadius, color, startAngle, time, invert, reverse)
     }
 
     fun drawLine(
@@ -170,7 +175,7 @@ object Renderables {
         PipelineRenderer.draw(RoundedRectangle.PIPELINE, buffer.end()) { pass: RenderPass ->
             pass.setUniform("borderColor", *colorToVec4f(borderColor))
             pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
-            pass.setUniform("borderWidth", borderWidth.toFloat())
+            pass.setUniform("borderWidth", borderWidth)
             pass.setUniform("size", scaledWidth - borderWidth * 2f, scaledHeight - borderWidth * 2f)
             pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + (scaledHeight / 2f))
             pass.setUniform("scaleFactor", scale)

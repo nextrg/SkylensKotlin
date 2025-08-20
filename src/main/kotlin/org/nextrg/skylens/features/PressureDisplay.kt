@@ -164,23 +164,23 @@ object PressureDisplay {
 
         // Background
         val bgRadius = 13f
-        drawPie(drawContext, x, meterY, 1.01f, bgRadius, color2, 0f, 0f, false, false)
-        drawPie(drawContext, x, meterY, 1.01f, bgRadius - 1f, color3, 0f, 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f, bgRadius, 0f, color2, 0f, 0f)
+        drawPie(drawContext, x, meterY, 1.01f, bgRadius - 1f, 0f, color3, 0f, 0f)
 
         // Markers
         val markerRadius = 7.5f
         drawMarkerLines(drawContext, x, meterY, hexTransparent(color2, lineTransparency))
-        drawPie(drawContext, x, meterY, 1.01f * 3/4, markerRadius, color2, degreesToRadians(-45f), 0f, false, false)
-        drawPie(drawContext, x, meterY, 1.01f, markerRadius - 0.675f, color3, 0f, 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f * 3/4, markerRadius, 0f, color2, degreesToRadians(-45f), 0f)
+        drawPie(drawContext, x, meterY, 1.01f, markerRadius - 0.675f, 0f, color3, 0f, 0f)
 
         // Measure
         val lineRadius = 10.25f
         drawLine(drawContext, x, meterY, value, lineRadius, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
-        drawPie(drawContext, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, color3, degreesToRadians(225f), 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, 0f, color3, degreesToRadians(225f), 0f)
         drawLine(drawContext, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
 
         val circleRadius = 1.5f
-        drawPie(drawContext, x, meterY, 1.01f, circleRadius, color2, 0f, 0f, false, false)
+        drawPie(drawContext, x, meterY, 1.01f, circleRadius,0f, color2, 0f, 0f)
 
         drawText(drawContext, getPressureString(), x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
     }
