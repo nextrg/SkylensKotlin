@@ -64,7 +64,7 @@ object Renderables {
             pass.setUniform("innerRadius", scaledInnerRadius)
             pass.setUniform("progress", progress)
             pass.setUniform("time", time)
-            pass.setUniform("startAngle", startAngle)
+            pass.setUniform("startAngle", startAngle + Math.PI.toFloat() / 2)
             pass.setUniform("reverse", if (reverse) 1 else 0)
             pass.setUniform("invert", if (invert) 1 else 0)
         }

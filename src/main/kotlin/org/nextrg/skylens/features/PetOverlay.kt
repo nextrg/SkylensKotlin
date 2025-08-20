@@ -387,33 +387,30 @@ object PetOverlay {
     private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
         val progress = 1.01f
-        val startAngle = 0f
         if (!rainbowBg) {
-            drawPie(drawContext, x, y, progress, radius, 0f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8, 0.3f), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8, 0.3f), 0f, idleProgress)
         }
     }
 
     private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.5f
         val progress = 1.01f * animatedLevelProgress
-        val startAngle = Math.PI.toFloat() / 2
         if (!rainbowLevel) {
-            drawPie(drawContext, x, y, progress, radius, radius - 2.96f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, radius - 2.96f, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, radius - 2.96f, getRainbow(8), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, radius - 2.96f, getRainbow(8), 0f, idleProgress)
         }
     }
 
     private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 10.52f - if (altStyle) 1.5f else 0f
         val progress = animatedXp * 1.01f
-        val startAngle = Math.PI.toFloat() / 2
         if (!rainbowXp) {
-            drawPie(drawContext, x, y, progress, radius, 0f, color, startAngle, 0f)
+            drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8), startAngle, idleProgress)
+            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8), 0f, idleProgress)
         }
     }
 
