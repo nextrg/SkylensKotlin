@@ -11,13 +11,20 @@ import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.helpers.RenderUtil.anchors
 import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.RenderUtil.getScaledWidthHeight
+import java.util.regex.Pattern
 
 class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEditor")) : Screen(title) {
+    private val ANCHOR_PATTERN: Pattern = Pattern.compile("(Left|Right|Middle)")
     private var petOverlayHovered: Boolean = false
     private var pressureDisplayHovered: Boolean = false
     private var drillFuelBarHovered: Boolean = false
     private var currentFeature = ""
     private val features = mutableListOf("Pet Overlay", "Pressure Display", "Drill Fuel Meter")
+    private val featureMap = mapOf(
+        "Pet Overlay" to Triple(ModConfig.petOverlayX, ModConfig.petOverlayY, ModConfig.petOverlayAnchor.toString()),
+        "Pressure Display" to Triple(ModConfig.pressureDisplayX, ModConfig.pressureDisplayY, ModConfig.pressureDisplayAnchor.toString()),
+        "Drill Fuel Meter" to Triple(ModConfig.drillFuelMeterX, ModConfig.drillFuelMeterY, ModConfig.drillFuelMeterAnchor.toString())
+    )
 
     override fun init() {}
 
@@ -69,25 +76,16 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val line = textRenderer.fontHeight + 2
 
         val empty = currentFeature == ""
-        var displayX = 0; var displayY = 0; var anchorSource = "";
+        var displayX = 0; var displayY = 0; var anchorSource = ""
         val displayFeature = if (empty) "nothing!" else currentFeature
-        if (currentFeature.contains("Pet Overlay")) {
-            displayX = ModConfig.petOverlayX
-            displayY = ModConfig.petOverlayY
-            anchorSource = ModConfig.petOverlayAnchor.toString()
-        } else if (currentFeature.contains("Pressure Display")) {
-            displayX = ModConfig.pressureDisplayX
-            displayY = ModConfig.pressureDisplayY
-            anchorSource = ModConfig.pressureDisplayAnchor.toString()
-        } else if (currentFeature.contains("Drill Fuel Meter")) {
-            displayX = ModConfig.drillFuelMeterX
-            displayY = ModConfig.drillFuelMeterY
-            anchorSource = ModConfig.drillFuelMeterAnchor.toString()
+
+        featureMap.entries.firstOrNull { currentFeature.contains(it.key) }?.let { (_, triple) ->
+            displayX = triple.first
+            displayY = triple.second
+            anchorSource = triple.third
         }
-        val anchor = anchorSource
-            .replace("Left", " Left")
-            .replace("Right", " Right")
-            .replace("Middle", " Middle")
+
+        val anchor = ANCHOR_PATTERN.matcher(anchorSource).replaceAll(" $1")
 
         drawText(context, "Press left-click on an element to move it.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 3, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         drawText(context, "Press right/middle-click to reset its position.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 2, 0xFFFFFFFF.toInt(), 1.0f, true, true)
