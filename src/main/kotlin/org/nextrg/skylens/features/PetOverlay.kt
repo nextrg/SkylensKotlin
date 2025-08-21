@@ -31,10 +31,10 @@ import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
 import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
-import org.nextrg.skylens.renderables.Renderables.drawPie
-import org.nextrg.skylens.renderables.Renderables.drawPieGradient
-import org.nextrg.skylens.renderables.Renderables.roundGradient
-import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
+import org.nextrg.skylens.pipelines.Renderables.drawPie
+import org.nextrg.skylens.pipelines.Renderables.drawPieGradient
+import org.nextrg.skylens.pipelines.Renderables.roundGradient
+import org.nextrg.skylens.pipelines.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import java.util.*
 import kotlin.math.max

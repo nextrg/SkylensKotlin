@@ -11,7 +11,7 @@ import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil.getScaledWidthHeight
 import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
 import org.nextrg.skylens.helpers.VariablesUtil.quad
-import org.nextrg.skylens.renderables.Renderables.roundGradient
+import org.nextrg.skylens.pipelines.Renderables.roundGradient
 
 object LowHpIndicator {
     private const val COLOR = 0xFFFF0000.toInt()

@@ -18,7 +18,7 @@ import org.nextrg.skylens.helpers.StringsUtil.getFormatCode
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.degreesToRadians
 import org.nextrg.skylens.helpers.VariablesUtil.quad
-import org.nextrg.skylens.renderables.Renderables.drawPie
+import org.nextrg.skylens.pipelines.Renderables.drawPie
 import java.lang.Math.clamp
 import kotlin.math.floor
 

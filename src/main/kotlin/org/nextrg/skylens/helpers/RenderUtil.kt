@@ -6,9 +6,8 @@ import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.item.ItemStack
 import java.lang.Math.clamp
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.sin
+
 
 object RenderUtil {
     data class ElementPos(
@@ -61,6 +60,8 @@ object RenderUtil {
     }
 
     fun legacyRoundRectangle(context: DrawContext, x: Float, y: Float, w: Float, h: Float, r: Float, color: Int) {
+        // TODO 1.21.8 support
+        /*
         val radius = clamp(r, 1f, min(w, h) / 2)
         val corners = arrayOf(
             floatArrayOf(x + w - radius, y + radius),
@@ -68,6 +69,7 @@ object RenderUtil {
             floatArrayOf(x + radius, y + h - radius),
             floatArrayOf(x + radius, y + radius)
         )
+
         context.draw { source: VertexConsumerProvider ->
             val matrix4f = context.matrices.peek().positionMatrix
             val buffer = source.getBuffer(RenderLayer.getDebugTriangleFan())
@@ -85,22 +87,22 @@ object RenderUtil {
                 }
             }
             buffer.vertex(matrix4f, corners[0][0], y, 0f).color(color)
-        }
+        }*/
     }
 
     fun drawItem(context: DrawContext, item: ItemStack?, x: Float, y: Float, scale: Float) {
         if (item == null || item.isEmpty) return
 
-        context.matrices.push()
-        context.matrices.translate(x, y, 0f)
+        context.matrices.pushMatrix()
+        context.matrices.translate(x, y)
 
         val offset = 8f * (scale - 1f)
-        context.matrices.translate(-offset, -offset, 0f)
-        context.matrices.scale(scale, scale, 1f)
+        context.matrices.translate(-offset, -offset)
+        context.matrices.scale(scale, scale)
 
         context.drawItem(item, 0, 0)
 
-        context.matrices.pop()
+        context.matrices.popMatrix()
     }
 
     fun drawText(context: DrawContext, text: String?, x: Float, y: Float, color: Int, scale: Float, centered: Boolean, shadow: Boolean) {
@@ -108,12 +110,12 @@ object RenderUtil {
         val width = textRenderer.getWidth(text) * scale
         val transformX = if (centered) x - width / 2f else x
 
-        context.matrices.push()
-        context.matrices.translate(transformX, y, 1f)
-        context.matrices.scale(scale, scale, scale)
+        context.matrices.pushMatrix()
+        context.matrices.translate(transformX, y)
+        context.matrices.scale(scale, scale)
 
         context.drawText(textRenderer, text, 0, 0, color, shadow)
 
-        context.matrices.pop()
+        context.matrices.popMatrix()
     }
 }

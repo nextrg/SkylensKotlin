@@ -19,8 +19,8 @@ import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.hexStringToInt
 import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
 import org.nextrg.skylens.helpers.VariablesUtil.quad
-import org.nextrg.skylens.renderables.Renderables.roundFluidContainer
-import org.nextrg.skylens.renderables.Renderables.roundRectangleFloat
+import org.nextrg.skylens.pipelines.Renderables.roundFluidContainer
+import org.nextrg.skylens.pipelines.Renderables.roundRectangleFloat
 import java.lang.Math.clamp
 import kotlin.math.ceil
 

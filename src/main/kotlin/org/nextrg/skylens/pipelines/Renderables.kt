@@ -1,18 +1,9 @@
-package org.nextrg.skylens.renderables
+package org.nextrg.skylens.pipelines
 
-import com.mojang.blaze3d.systems.RenderPass
-import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.VertexFormat
-import earth.terrarium.olympus.client.pipelines.PipelineRenderer
-import earth.terrarium.olympus.client.pipelines.RoundedRectangle
-import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.Tessellator
-import net.minecraft.client.render.VertexFormats
-import org.nextrg.skylens.renderables.Pipelines.FLUID_CONTAINER
-import org.nextrg.skylens.renderables.Pipelines.ROUND_GRADIENT
 
 object Renderables {
+    // TODO 1.21.8 support
     private fun pie(
         graphics: DrawContext,
         x: Float,
@@ -25,7 +16,7 @@ object Renderables {
         time: Float,
         invert: Boolean,
         reverse: Boolean
-    ) {
+    ) {/*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
@@ -67,7 +58,7 @@ object Renderables {
             pass.setUniform("startAngle", startAngle + Math.PI.toFloat() / 2)
             pass.setUniform("reverse", if (reverse) 1 else 0)
             pass.setUniform("invert", if (invert) 1 else 0)
-        }
+        }*/
     }
 
     fun drawPie(
@@ -114,6 +105,7 @@ object Renderables {
         fadeSoftness: Float,
         mode: Int
     ) {
+        /*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
@@ -141,7 +133,7 @@ object Renderables {
             pass.setUniform("fadeSoftness", fadeSoftness)
             pass.setUniform("thickness", lineThickness)
             pass.setUniform("mode", mode)
-        }
+        }*/
     }
 
     fun roundRectangleFloat(
@@ -155,6 +147,7 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float
     ) {
+        /*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
@@ -180,6 +173,7 @@ object Renderables {
             pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + (scaledHeight / 2f))
             pass.setUniform("scaleFactor", scale)
         }
+        */
     }
 
     fun roundGradient(
@@ -195,6 +189,7 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float
     ) {
+        /*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
@@ -234,6 +229,7 @@ object Renderables {
             pass.setUniform("borderColor", *colorToVec4f(borderColor))
             pass.setUniform("time", time)
         }
+         */
     }
 
     fun roundFluidContainer(
@@ -249,6 +245,7 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float
     ) {
+        /*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
         val scaledX = x * scale
@@ -257,7 +254,7 @@ object Renderables {
         val scaledHeight = height * scale
         val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
 
-        val matrix = graphics.matrices.peek().positionMatrix
+        val matrix = graphics.matrices
         val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
 
         buffer.vertex(matrix, x, y, 0.0f)
@@ -279,6 +276,7 @@ object Renderables {
             pass.setUniform("offsetY", offset.second)
             pass.setUniform("waveDirection", waveDirection)
         }
+         */
     }
 
     private fun colorToVec4f(color: Int): FloatArray {

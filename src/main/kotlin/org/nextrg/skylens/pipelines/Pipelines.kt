@@ -1,15 +1,8 @@
-package org.nextrg.skylens.renderables
-
-import com.mojang.blaze3d.pipeline.BlendFunction
-import com.mojang.blaze3d.pipeline.RenderPipeline
-import com.mojang.blaze3d.vertex.VertexFormat.DrawMode
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gl.UniformType
-import net.minecraft.client.render.VertexFormats
-import org.nextrg.skylens.Skylens
+package org.nextrg.skylens.pipelines
 
 object Pipelines {
-    val CIRCLE_CHART: RenderPipeline = RenderPipelines.register(
+    // TODO 1.21.8 support
+    /*val CIRCLE_CHART: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder()
             .withLocation(Skylens.id("circle_chart"))
             .withVertexShader(Skylens.id("core/basic_transform"))
@@ -108,5 +101,5 @@ object Pipelines {
             .withUniform("offsetY", UniformType.FLOAT)
             .withUniform("waveDirection", UniformType.INT)
             .build()
-    )
+    )*/
 }
