@@ -3,9 +3,8 @@ package org.nextrg.skylens.features
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback
-import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer
-import net.fabricmc.fabric.api.client.rendering.v1.LayeredDrawerWrapper
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.Identifier
@@ -84,13 +83,11 @@ object DrillFuelMeter {
 
     fun prepare() {
         updateConfigValues()
-        HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
-            wrap.attachLayerAfter(
-                IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "drill-fuel-meter"),
-                DrillFuelMeter::prepareRender
-            )
-        })
+        HudElementRegistry.attachElementAfter(
+            VanillaHudElements.HOTBAR,
+            Identifier.of("skylens", "drill-fuel-meter"),
+            DrillFuelMeter::prepareRender
+        )
     }
 
     fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {

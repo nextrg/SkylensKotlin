@@ -1,9 +1,8 @@
 package org.nextrg.skylens.features
 
 import kotlinx.coroutines.*
-import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback
-import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer
-import net.fabricmc.fabric.api.client.rendering.v1.LayeredDrawerWrapper
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.item.ItemStack
@@ -40,6 +39,7 @@ import java.lang.Math.clamp
 import java.util.*
 import kotlin.math.max
 import kotlin.math.sin
+
 
 object PetOverlay {
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -192,16 +192,14 @@ object PetOverlay {
 
     fun prepare() {
         updateTheme()
-        HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
-            wrap.attachLayerAfter(
-                IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "pet-overlay"),
-                PetOverlay::prepareRender
-            )
-        })
+        HudElementRegistry.attachElementAfter(
+            VanillaHudElements.HOTBAR,
+            Identifier.of("skylens", "pet-overlay"),
+            PetOverlay::prepareRender
+        )
     }
 
-    private fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
+    fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
         render(drawContext)
     }
 

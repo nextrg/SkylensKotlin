@@ -1,8 +1,7 @@
 package org.nextrg.skylens.features
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback
-import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer
-import net.fabricmc.fabric.api.client.rendering.v1.LayeredDrawerWrapper
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.util.Identifier
@@ -19,13 +18,11 @@ object LowHpIndicator {
     private var animatedHealth = 0f
 
     fun prepare() {
-        HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
-            wrap.attachLayerBefore(
-                IdentifiedLayer.HOTBAR_AND_BARS,
-                Identifier.of("skylens", "low-hp-indicator"),
-                LowHpIndicator::prepareRender
-            )
-        })
+        HudElementRegistry.attachElementAfter(
+            VanillaHudElements.HOTBAR,
+            Identifier.of("skylens", "low-hp-indicator"),
+            LowHpIndicator::prepareRender
+        )
     }
 
     fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
