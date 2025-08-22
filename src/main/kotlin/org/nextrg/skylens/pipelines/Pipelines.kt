@@ -1,6 +1,20 @@
 package org.nextrg.skylens.pipelines
 
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.vertex.VertexFormat.DrawMode
+import net.minecraft.client.gl.RenderPipelines
+import net.minecraft.client.render.VertexFormats
+import net.minecraft.util.Identifier
+
 object Pipelines {
+    val GUI_TRIANGLE_FAN: RenderPipeline = RenderPipelines.register(
+        RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
+            .withLocation(Identifier.of("skylens", "pipeline/gui-triangle-fan"))
+            .withVertexFormat(VertexFormats.POSITION_COLOR, DrawMode.TRIANGLE_FAN)
+            .withCull(false)
+            .build()
+    )
+
     // TODO 1.21.8 support
     /*val CIRCLE_CHART: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder()
