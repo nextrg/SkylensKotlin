@@ -4,7 +4,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.ScreenRect
 import net.minecraft.item.ItemStack
-import org.nextrg.skylens.pipelines.RoundRectGuiElement
 import kotlin.math.roundToInt
 
 object RenderUtil {
@@ -62,7 +61,7 @@ object RenderUtil {
     }
 
     fun legacyRoundRectangle(context: DrawContext, x: Float, y: Float, w: Float, h: Float, r: Float, color: Int) {
-        context.state.addSimpleElement(RoundRectGuiElement(Pair(x, y), Pair(w, h), color, r))
+        // Replace this with the float round rect shader
     }
 
     fun drawItem(context: DrawContext, item: ItemStack?, x: Float, y: Float, scale: Float) {
