@@ -40,7 +40,7 @@ object ItemsUtil {
                 for (sibling in line.siblings) {
                     val string = sibling.string
                     if (hasRarity(string) && string.contains(" ")) {
-                        type = string.substring(string.indexOf(" ") + 1).lowercase()
+                        type = string.substring(string.indexOf(" ") + 1).lowercase().trim()
                     }
                 }
             }
