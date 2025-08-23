@@ -21,7 +21,7 @@ object LowHpIndicator {
     fun prepare() {
         HudLayerRegistrationCallback.EVENT.register(HudLayerRegistrationCallback { wrap: LayeredDrawerWrapper ->
             wrap.attachLayerBefore(
-                IdentifiedLayer.HOTBAR_AND_BARS,
+                IdentifiedLayer.CROSSHAIR,
                 Identifier.of("skylens", "low-hp-indicator"),
                 LowHpIndicator::prepareRender
             )
