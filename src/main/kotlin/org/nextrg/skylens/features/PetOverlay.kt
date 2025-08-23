@@ -26,7 +26,6 @@ import org.nextrg.skylens.helpers.RenderUtil.drawItem
 import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.RenderUtil.legacyRoundRectangle
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
-import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
 import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
 import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
@@ -63,9 +62,9 @@ object PetOverlay {
     private var transitionY = 0f
     private var hidden: Boolean = true
 
-    private var cacheColor1 = colorToARGB(ModConfig.petOverlayColor2)
-    private var cacheColor2 = colorToARGB(ModConfig.petOverlayColor1)
-    private var cacheColor3 = colorToARGB(ModConfig.petOverlayColor3)
+    private var cacheColor1 = ModConfig.petOverlayColor2.rgb
+    private var cacheColor2 = ModConfig.petOverlayColor1.rgb
+    private var cacheColor3 = ModConfig.petOverlayColor3.rgb
 
     private var isBarType = false
     private var altStyle = false
@@ -291,9 +290,9 @@ object PetOverlay {
                 cacheColor3 = colors[2]
             } else { }
         } else {
-            cacheColor1 = colorToARGB(ModConfig.petOverlayColor2)
-            cacheColor2 = colorToARGB(ModConfig.petOverlayColor1)
-            cacheColor3 = colorToARGB(ModConfig.petOverlayColor3)
+            cacheColor1 = ModConfig.petOverlayColor2.rgb
+            cacheColor2 = ModConfig.petOverlayColor1.rgb
+            cacheColor3 = ModConfig.petOverlayColor3.rgb
         }
     }
 
@@ -379,12 +378,12 @@ object PetOverlay {
             drawPie(drawContext, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, 0f, color, 0f, 0f)
         }
 
-        drawCircleBg(drawContext, x + 12f, y - 4f, color3, idleProgress)
-        drawCircleLevel(drawContext, x + 12f, y - 4f, color2, idleProgress)
-        drawCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
+        renderCircleBg(drawContext, x + 12f, y - 4f, color3, idleProgress)
+        renderCircleLevel(drawContext, x + 12f, y - 4f, color2, idleProgress)
+        renderCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
     }
 
-    private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
         val progress = 1.01f
         if (!rainbowBg) {
@@ -394,7 +393,7 @@ object PetOverlay {
         }
     }
 
-    private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 12.5f
         val innerRadius = outerRadius - 2.96f
         val progress = 1.01f * animatedLevelProgress
@@ -405,7 +404,7 @@ object PetOverlay {
         }
     }
 
-    private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 10.33f - if (altStyle) 1.33f else 0f
         val innerRadius = 0f
         val progress = animatedXp * 1.01f

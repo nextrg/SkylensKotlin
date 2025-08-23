@@ -18,7 +18,6 @@ import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.StringsUtil.codeFromName
 import org.nextrg.skylens.helpers.StringsUtil.getFormatCode
 import org.nextrg.skylens.helpers.StringsUtil.titleCase
-import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
 import java.awt.Color
 import kotlin.math.max
 
@@ -78,10 +77,8 @@ object MissingEnchants {
 
         val targetIndex = index + 2
         val symbol = if (Screen.hasShiftDown()) "✦" else "✧"
-        val color = colorToARGB(
-            if (Screen.hasShiftDown())
-                Color(85, 255, 255) else Color(0, 170, 170)
-        )
+        val color = (if (Screen.hasShiftDown())
+            Color(85, 255, 255) else Color(0, 170, 170)).rgb
 
         lines.add(targetIndex, Text.literal(" "))
 
