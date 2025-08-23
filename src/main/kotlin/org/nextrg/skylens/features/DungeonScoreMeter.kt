@@ -163,7 +163,6 @@ object DungeonScoreMeter {
 
     private fun getScore() {
         animatedScore += (dungeonScore - animatedScore) * 0.09f
-        animatedScore = 305f
         animatedScore = clamp(animatedScore, 0f, 305f)
 
         val (label, color) = getActiveSlice(animatedScore)

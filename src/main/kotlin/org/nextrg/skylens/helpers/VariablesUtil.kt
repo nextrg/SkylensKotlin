@@ -3,7 +3,6 @@ package org.nextrg.skylens.helpers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.pow
 
