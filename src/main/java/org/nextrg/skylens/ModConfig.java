@@ -397,7 +397,7 @@ public class ModConfig implements ModMenuApi {
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                 .range(0f, 1f)
                                 .step(0.01f)
-                                .formatValue(val -> Text.literal(String.format("%d%% Rotation", Math.round(val * 100)))))
+                                .formatValue(val -> Text.literal(String.format("%d°§7/%d%%", Math.round(val * 360), Math.round(val * 100)))))
                         .build())
                 .build();
     }
