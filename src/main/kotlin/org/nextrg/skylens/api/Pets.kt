@@ -59,9 +59,9 @@ object Pets {
     private var heldItem: String = ""
 
     fun init() {
-        ClientReceiveMessageEvents.ALLOW_GAME.register(ClientReceiveMessageEvents.AllowGame { text, allowed ->
+        ClientReceiveMessageEvents.ALLOW_GAME.register(ClientReceiveMessageEvents.AllowGame { text, overlay ->
             messageEvents(text)
-            return@AllowGame allowed
+            return@AllowGame true
         })
         ScreenEvents.BEFORE_INIT.register(ScreenEvents.BeforeInit { _, screen, _, _ ->
             if (screen is GenericContainerScreen && screen.title.string.startsWith("Pets")) {
