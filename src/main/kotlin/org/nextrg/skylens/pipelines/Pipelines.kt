@@ -1,50 +1,8 @@
 package org.nextrg.skylens.pipelines
 
-import com.mojang.blaze3d.pipeline.RenderPipeline
-import com.mojang.blaze3d.vertex.VertexFormat.DrawMode
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.render.VertexFormats
-import net.minecraft.util.Identifier
-
 object Pipelines {
-    val GUI_TRIANGLE_FAN: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
-            .withLocation(Identifier.of("skylens", "pipeline/gui-triangle-fan"))
-            .withVertexFormat(VertexFormats.POSITION_COLOR, DrawMode.TRIANGLE_FAN)
-            .withCull(false)
-            .build()
-    )
-
     // TODO 1.21.8 support
-    /*val CIRCLE_CHART: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder()
-            .withLocation(Skylens.id("circle_chart"))
-            .withVertexShader(Skylens.id("core/basic_transform"))
-            .withFragmentShader(Skylens.id("core/circle_chart"))
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withVertexFormat(VertexFormats.POSITION, DrawMode.QUADS)
-            .withUniform("modelViewMat", UniformType.MATRIX4X4)
-            .withUniform("projMat", UniformType.MATRIX4X4)
-            .withUniform("color0", UniformType.VEC4)
-            .withUniform("color1", UniformType.VEC4)
-            .withUniform("color2", UniformType.VEC4)
-            .withUniform("color3", UniformType.VEC4)
-            .withUniform("color4", UniformType.VEC4)
-            .withUniform("color5", UniformType.VEC4)
-            .withUniform("color6", UniformType.VEC4)
-            .withUniform("color7", UniformType.VEC4)
-            .withUniform("colorCount", UniformType.INT)
-            .withUniform("center", UniformType.VEC2)
-            .withUniform("outerRadius", UniformType.FLOAT)
-            .withUniform("innerRadius", UniformType.FLOAT)
-            .withUniform("progress", UniformType.FLOAT)
-            .withUniform("time", UniformType.FLOAT)
-            .withUniform("startAngle", UniformType.FLOAT)
-            .withUniform("reverse", UniformType.INT)
-            .withUniform("invert", UniformType.INT)
-            .build()
-    )
-
+    /*
     val ROUND_GRADIENT: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder()
             .withLocation(Skylens.id("round_gradient"))

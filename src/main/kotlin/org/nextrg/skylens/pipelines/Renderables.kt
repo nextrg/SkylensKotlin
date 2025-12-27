@@ -1,66 +1,9 @@
 package org.nextrg.skylens.pipelines
 
 import net.minecraft.client.gui.DrawContext
+import org.joml.Vector4f
 
 object Renderables {
-    // TODO 1.21.8 support
-    private fun pie(
-        graphics: DrawContext,
-        x: Float,
-        y: Float,
-        progress: Float,
-        outerRadius: Float,
-        innerRadius: Float,
-        color: List<Int>,
-        startAngle: Float,
-        time: Float,
-        invert: Boolean,
-        reverse: Boolean
-    ) {/*
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledOuterRadius = outerRadius * scale
-        val scaledInnerRadius = innerRadius * scale
-
-        val flippedY = window.framebufferHeight - scaledY
-
-        val matrix = graphics.matrices.peek().positionMatrix
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
-
-        buffer.vertex(matrix, x - outerRadius, y - outerRadius, 0.0f)
-        buffer.vertex(matrix, x - outerRadius, y + outerRadius, 0.0f)
-        buffer.vertex(matrix, x + outerRadius, y + outerRadius, 0.0f)
-        buffer.vertex(matrix, x + outerRadius, y - outerRadius, 0.0f)
-
-        val maxColors = 8
-
-        PipelineRenderer.draw(Pipelines.CIRCLE_CHART, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
-            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            val baseColors = color.ifEmpty { listOf(0xFFFFFFFF.toInt()) }
-            val safeColors = if (baseColors.size >= maxColors) {
-                baseColors.subList(0, maxColors)
-            } else {
-                baseColors + List(maxColors - baseColors.size) { baseColors.last() }
-            }
-            for (i in 0 until maxColors) {
-                pass.setUniform("color$i", *colorToVec4f(safeColors[i]))
-            }
-            val colorCountSafe = baseColors.size.coerceIn(1, maxColors)
-            pass.setUniform("colorCount", colorCountSafe)
-            pass.setUniform("center", scaledX, flippedY)
-            pass.setUniform("outerRadius", scaledOuterRadius)
-            pass.setUniform("innerRadius", scaledInnerRadius)
-            pass.setUniform("progress", progress)
-            pass.setUniform("time", time)
-            pass.setUniform("startAngle", startAngle + Math.PI.toFloat() / 2)
-            pass.setUniform("reverse", if (reverse) 1 else 0)
-            pass.setUniform("invert", if (invert) 1 else 0)
-        }*/
-    }
-
     fun drawPie(
         graphics: DrawContext,
         x: Float,
@@ -74,7 +17,7 @@ object Renderables {
         invert: Boolean = false,
         reverse: Boolean = false
     ) {
-        pie(graphics, x, y, progress, outerRadius, innerRadius, mutableListOf(color), startAngle, time, invert, reverse)
+        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(listOf(color)), progress, time, startAngle, invert, reverse);
     }
 
     fun drawPieGradient(
@@ -90,7 +33,7 @@ object Renderables {
         invert: Boolean = false,
         reverse: Boolean = false
     ) {
-        pie(graphics, x, y, progress, outerRadius, innerRadius, color, startAngle, time, invert, reverse)
+        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(color), progress, time, startAngle, invert, reverse);
     }
 
     fun drawLine(
@@ -279,12 +222,14 @@ object Renderables {
          */
     }
 
-    private fun colorToVec4f(color: Int): FloatArray {
-        return floatArrayOf(
-            (color shr 16 and 0xFF) / 255f,
-            (color shr 8 and 0xFF) / 255f,
-            (color and 0xFF) / 255f,
-            (color shr 24 and 0xFF) / 255f
-        )
+    fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {
+        return colors.map { color ->
+            Vector4f(
+                ((color shr 16) and 0xFF) / 255f,
+                ((color shr 8) and 0xFF) / 255f,
+                (color and 0xFF) / 255f,
+                ((color shr 24) and 0xFF) / 255f
+            )
+        }.toTypedArray()
     }
 }
