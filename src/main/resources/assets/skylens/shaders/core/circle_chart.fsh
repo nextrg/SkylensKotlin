@@ -57,7 +57,7 @@ void main() {
     if (finalAlpha <= 0.0) discard;
 
     // interpolation
-    float factor = angleOffset / TAU;
+    float factor = mod(angleOffset / TAU + time, 1.0);
     if (reverse == 1) factor = 1.0 - factor;
 
     float scaled = factor * float(max(colorCount - 1, 1));

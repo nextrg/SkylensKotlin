@@ -14,9 +14,9 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
-import org.joml.Vector2f;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.nextrg.skylens.pipelines.CircleChart;
 import org.nextrg.skylens.pipelines.uniforms.CircleChartUniform;
@@ -35,8 +35,11 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
     
     @Override
     protected void render(State state, MatrixStack matrices) {
-        float scale = (float) MinecraftClient.getInstance().getWindow().getScaleFactor();
-        float size = state.outerRadius * 2 * scale;
+        var window = MinecraftClient.getInstance().getWindow();
+        float scale = (float) window.getScaleFactor();
+        
+        float padding = 4f;
+        float size = (Math.round(state.outerRadius) + padding) * 2 * scale;
         
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
@@ -46,16 +49,15 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
         buffer.vertex(size, size, 0.0F).color(state.color());
         buffer.vertex(size, 0.0F, 0.0F).color(state.color());
         
+        Vector2f center = getCenter(state, scale, padding);
+        
         PipelineRenderer.builder(CircleChart.PIPELINE, buffer.end())
                 .uniform(
                         CircleChartUniform.STORAGE,
                         CircleChartUniform.of(
                                 state.colors,
                                 state.colorCount,
-                                new Vector2f(
-                                        size / 2.0F,
-                                        size / 2.0F
-                                ),
+                                center,
                                 state.outerRadius * scale,
                                 state.innerRadius * scale,
                                 state.progress,
@@ -66,6 +68,17 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                         )
                 )
                 .draw();
+    }
+    
+    public static Vector2f getCenter(State state, float scale, float padding) {
+        float roundedRadius = Math.round(state.outerRadius);
+        float halfSize = (roundedRadius + padding) * scale;
+        
+        float xOffset = state.fx - (float)state.x0 - roundedRadius;
+        float yOffset = state.fy - (float)state.y0 - roundedRadius;
+        float xCenter = halfSize - xOffset * scale;
+        float yCenter = halfSize - yOffset * scale;
+        return new Vector2f(xCenter, yCenter);
     }
     
     @Override
@@ -86,6 +99,8 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
             float startAngle,
             int reverse,
             int invert,
+            float fx,
+            float fy,
             Matrix3x2f pose,
             ScreenRect scissorArea,
             ScreenRect bounds
@@ -105,7 +120,10 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                 boolean invert
         ) {
             this(
-                    (int)x, (int)y, (int)(x + outerRadius * 2), (int)(y + outerRadius * 2),
+                    (int)Math.floor(Math.round(x) - Math.round(outerRadius) - 2.0),
+                    (int)Math.floor(Math.round(y) - Math.round(outerRadius) - 2.0),
+                    (int)Math.ceil(Math.round(x) + Math.round(outerRadius) + 2.0),
+                    (int)Math.ceil(Math.round(y) + Math.round(outerRadius) + 2.0),
                     color,
                     colors,
                     colorCount,
@@ -116,31 +134,34 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                     startAngle,
                     reverse ? 1 : 0,
                     invert ? 1 : 0,
+                    x,
+                    y,
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(
-                            (int)x, (int)y, (int)(x + outerRadius * 2), (int)(y + outerRadius * 2),
+                            (int)(x - Math.round(outerRadius) - 2.0),
+                            (int)(y - Math.round(outerRadius) - 2.0),
+                            (int)(x + Math.round(outerRadius) + 2.0),
+                            (int)(y + Math.round(outerRadius) + 2.0),
                             GuiGraphicsHelper.getLastScissor(graphics)
                     )
             );
         }
         
         @Override
-        public int x1() { return (int)x0; }
+        public int x1() { return x0; }
         
         @Override
-        public int y1() { return (int)y0; }
+        public int y1() { return y0; }
         
         @Override
-        public int x2() { return (int)(x0 + outerRadius * 2); }
+        public int x2() { return x1; }
         
         @Override
-        public int y2() { return (int)(y0 + outerRadius * 2); }
+        public int y2() { return y1; }
         
         @Override
-        public float scale() {
-            return 1.0F;
-        }
+        public float scale() { return 1.0F; }
         
         @Override
         public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {

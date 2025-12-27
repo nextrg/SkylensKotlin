@@ -308,7 +308,8 @@ object PetOverlay {
 
         var yO = y
         if (idleAnimHover && !hudEditor && transition != 0f) {
-            yO += (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
+            val shift = (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
+            yO += shift;
         }
 
         if (isBarType) {
@@ -384,7 +385,7 @@ object PetOverlay {
 
     private fun drawCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
-        val progress = 1.01f
+        val progress = 1f
         if (!rainbowBg) {
             drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
         } else {
@@ -395,7 +396,7 @@ object PetOverlay {
     private fun drawCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 12.5f
         val innerRadius = outerRadius - 2.96f
-        val progress = 1.01f * animatedLevelProgress
+        val progress = animatedLevelProgress
         if (!rainbowLevel) {
             drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
@@ -406,7 +407,7 @@ object PetOverlay {
     private fun drawCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 10.33f - if (altStyle) 1.33f else 0f
         val innerRadius = 0f
-        val progress = animatedXp * 1.01f
+        val progress = animatedXp
         if (!rainbowXp) {
             drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
