@@ -54,10 +54,6 @@ object RenderUtil {
         return client.window.scaledWidth to client.window.scaledHeight
     }
 
-    fun legacyRoundRectangle(context: DrawContext, x: Float, y: Float, w: Float, h: Float, r: Float, color: Int) {
-        // Replace this with the float round rect shader
-    }
-
     fun drawItem(context: DrawContext, item: ItemStack?, x: Float, y: Float, scale: Float) {
         if (item == null || item.isEmpty) return
 

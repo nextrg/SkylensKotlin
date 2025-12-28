@@ -2,8 +2,10 @@ package org.nextrg.skylens.features
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.input.KeyInput
 import net.minecraft.text.Text
 import org.joml.Math.clamp
 import org.lwjgl.glfw.GLFW
@@ -24,15 +26,15 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
     override fun init() {}
 
-    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+    override fun keyPressed(input: KeyInput): Boolean {
         var move = features.indexOf(currentFeature)
-        when (keyCode) {
+        when (input.keycode) {
             GLFW.GLFW_KEY_A -> move = if (move - 1 < 0) features.size - 1 else move - 1
             GLFW.GLFW_KEY_D -> move = (move + 1) % features.size
         }
         companionFeature = features[clamp(move, 0, features.size)]
 
-        return super.keyPressed(keyCode, scanCode, modifiers)
+        return super.keyPressed(input)
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, deltaTicks: Float) {
@@ -144,7 +146,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return dx in left..right && dy in top..bottom
     }
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+        val mouseX = click.x
+        val mouseY = click.y
+        val button = click.button()
         if (isOverPetOverlay(mouseX, mouseY, PetOverlay.getPosition()) && currentFeature.contains("Pet Overlay")) {
             if (button != 0) {
                 petOverlayHovered = false
@@ -181,10 +186,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
                 setDungeonScoreMeterMargin(mouseX, mouseY)
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button)
+        return super.mouseClicked(click, doubled)
     }
 
-    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+    override fun mouseDragged(click: Click?, mouseX: Double, mouseY: Double): Boolean {
         if (petOverlayHovered) {
             setPetOverlayMargin(mouseX, mouseY)
         }
@@ -197,10 +202,12 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         if (dungeonScoreMeterHovered) {
             setDungeonScoreMeterMargin(mouseX, mouseY)
         }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+        return super.mouseDragged(click, mouseX, mouseY)
     }
 
-    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseReleased(click: Click): Boolean {
+        val mouseX = click.x
+        val mouseY = click.y
         if (petOverlayHovered) {
             petOverlayHovered = false
             setPetOverlayMargin(mouseX, mouseY)
@@ -217,7 +224,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             dungeonScoreMeterHovered = false
             setDungeonScoreMeterMargin(mouseX, mouseY)
         }
-        return super.mouseReleased(mouseX, mouseY, button)
+        return super.mouseReleased(click)
     }
 
     private fun setPetOverlayMargin(x: Double, y: Double) {

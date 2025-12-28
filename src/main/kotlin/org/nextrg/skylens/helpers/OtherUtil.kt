@@ -66,7 +66,7 @@ object OtherUtil {
 
     fun getScoreboardData(player: ClientPlayerEntity): List<String?> {
         val scoreboardData: MutableList<String?> = ArrayList()
-        val scoreboard = player.scoreboard
+        val scoreboard = player.entityWorld.scoreboard
         val title = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.FROM_ID.apply(1))
         if (title != null) {
             scoreboardData.addFirst(title.displayName.copy().string)
@@ -122,6 +122,10 @@ object OtherUtil {
         return itemStack
     }
 
+    fun isShiftDown(): Boolean {
+        return MinecraftClient.getInstance().isShiftPressed
+    }
+
     private fun getItemFromJson(petJson: JsonObject): ItemStack {
         val itemId = petJson.get("itemid").asString.removePrefix("minecraft:")
         return ItemStack(Registries.ITEM.get(Identifier.ofVanilla(itemId)))
@@ -132,6 +136,6 @@ object OtherUtil {
         val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf(end))
         val gameProfile = GameProfile(UUID.randomUUID(), "CustomHead")
         gameProfile.properties.put("textures", Property("textures", texture))
-        itemStack.set(DataComponentTypes.PROFILE, ProfileComponent(gameProfile))
+        itemStack.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
     }
 }

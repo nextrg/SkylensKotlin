@@ -15,7 +15,7 @@ import org.nextrg.skylens.pipelines.Renderables.roundGradient
 
 object LowHpIndicator {
     private const val COLOR = 0xFFFF0000.toInt()
-    private var animatedHealth = 0f
+    private var animatedHealth = 1f
 
     fun prepare() {
         HudElementRegistry.attachElementAfter(
