@@ -23,7 +23,6 @@ import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawItem
 import org.nextrg.skylens.helpers.RenderUtil.drawText
-import org.nextrg.skylens.helpers.RenderUtil.legacyRoundRectangle
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.colorToARGB
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
@@ -359,10 +358,12 @@ object PetOverlay {
     private fun renderBars(drawContext: DrawContext, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
-            legacyRoundRectangle(
-                drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
+            roundRectangleFloat(
+                drawContext,
+                x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
-                if (altStyle) 0f else 12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
+                hexTransparent(color2, 255 - getAlphaProgress(idleProgress)),
+                0, if (altStyle) 0f else 2f + 10f * idleProgress, 0f
             )
         }
 
@@ -416,18 +417,18 @@ object PetOverlay {
     }
 
     private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 2.5f else 4f
+        val borderRadius = if (altStyle) 2.5f else 4.5f
         val width = 51f
         val height = 8f
         if (!rainbowBg) {
-            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 1f)
+            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
         } else {
             roundGradient(drawContext, x, y, width, height, getRainbow(8, 0.15f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 
     private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 2.5f else 4f
+        val borderRadius = if (altStyle) 2.5f else 4.5f
         val width = max(8f, (51f * animatedLevelProgress))
         val height = 8f
         if (!rainbowLevel) {
@@ -438,7 +439,7 @@ object PetOverlay {
     }
 
     private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 1.5f else 2f
+        val borderRadius = if (altStyle) 1.5f else 2.5f
         val width = max(2f, (47 * animatedXp))
         val height = 4f
         if (!rainbowXp) {

@@ -1,7 +1,6 @@
 package org.nextrg.skylens.pipelines.pips;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
-import earth.terrarium.olympus.client.pipelines.RoundedRectangle;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.pipelines.uniforms.RoundedRectangleUniform;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import org.nextrg.skylens.pipelines.RoundRectangleFloat;
 
 import java.util.function.Function;
 
@@ -39,7 +39,7 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         final float paddedX = 4f * scale;
         final float scaledWidth = (state.x1 - state.x0) * scale;
         final float scaledHeight = (state.y1 - state.y0) * scale;
-
+    
         final Vector4f borderColor = new Vector4f(
                 ColorHelper.getRedFloat(state.borderColor()),
                 ColorHelper.getGreenFloat(state.borderColor()),
@@ -61,7 +61,7 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         buffer.vertex(scaledWidth, scaledHeight, 0.0f).color(state.color());
         buffer.vertex(scaledWidth, 0.0f, 0.0f).color(state.color());
         
-        PipelineRenderer.builder(RoundedRectangle.PIPELINE, buffer.end())
+        PipelineRenderer.builder(RoundRectangleFloat.PIPELINE, buffer.end())
                 .uniform(RoundedRectangleUniform.STORAGE,
                         RoundedRectangleUniform.of(
                                 borderColor,
@@ -102,10 +102,10 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                 float borderRadius,
                 float borderWidth) {
             this(
-                    (int)Math.floor(Math.round(x) - 2.0),
-                    (int)Math.floor(Math.round(y) - 2.0),
-                    (int)Math.ceil(Math.round(x) + Math.round(width) + 2.0),
-                    (int)Math.ceil(Math.round(y) + Math.round(height) + 2.0),
+                    (int)Math.floor(x - 2.0),
+                    (int)Math.floor(y - 2.0),
+                    (int)Math.ceil(x + width + 2.0),
+                    (int)Math.ceil(y + height + 2.0),
                     color,
                     borderColor,
                     borderRadius,
@@ -115,10 +115,10 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(
-                            (int)Math.floor(Math.round(x) - 2.0),
-                            (int)Math.floor(Math.round(y) - 2.0),
-                            (int)Math.ceil(Math.round(x) + Math.round(width) + 2.0),
-                            (int)Math.ceil(Math.round(y) + Math.round(height) + 2.0),
+                            (int)Math.floor(x - 2.0),
+                            (int)Math.floor(y - 2.0),
+                            (int)Math.ceil(x + width + 2.0),
+                            (int)Math.ceil(y + height + 2.0),
                             GuiGraphicsHelper.getLastScissor(graphics)
                     )
             );
