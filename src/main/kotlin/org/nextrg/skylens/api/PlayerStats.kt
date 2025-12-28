@@ -73,7 +73,7 @@ object PlayerStats {
     }
 
     private fun checkInWater(player: ClientPlayerEntity) {
-        val inWater = player.world.getFluidState(player.blockPos).fluid == Fluids.WATER
+        val inWater = player.entityWorld.getFluidState(player.blockPos).fluid == Fluids.WATER
         val showAt = ModConfig.pressureDisplayShowAt
 
         if (!inWater) {
