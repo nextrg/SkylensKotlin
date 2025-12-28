@@ -24,6 +24,8 @@ import org.nextrg.skylens.pipelines.uniforms.RadialLineUniform;
 import java.util.function.Function;
 
 public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLinePIPRenderer.State> {
+    private State lastState;
+    
     public RadialLinePIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
@@ -31,6 +33,11 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
     @Override
     public @NotNull Class<State> getElementClass() {
         return State.class;
+    }
+    
+    @Override
+    protected boolean shouldBypassScaling(State state) {
+        return lastState != null && lastState.equals(state);
     }
     
     @Override
@@ -67,6 +74,7 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
                         )
                 )
                 .draw();
+        this.lastState = state;
     }
     
     @Override

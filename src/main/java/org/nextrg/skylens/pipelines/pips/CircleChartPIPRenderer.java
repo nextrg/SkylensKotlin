@@ -24,6 +24,8 @@ import org.nextrg.skylens.pipelines.uniforms.CircleChartUniform;
 import java.util.function.Function;
 
 public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChartPIPRenderer.State> {
+    private State lastState;
+    
     public CircleChartPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
@@ -31,6 +33,11 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
     @Override
     public @NotNull Class<State> getElementClass() {
         return State.class;
+    }
+    
+    @Override
+    protected boolean shouldBypassScaling(State state) {
+        return lastState != null && lastState.equals(state);
     }
     
     @Override
@@ -69,6 +76,7 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                         )
                 )
                 .draw();
+        this.lastState = state;
     }
     
     @Override

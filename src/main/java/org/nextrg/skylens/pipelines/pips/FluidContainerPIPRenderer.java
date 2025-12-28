@@ -24,6 +24,8 @@ import org.nextrg.skylens.pipelines.uniforms.FluidContainerUniform;
 import java.util.function.Function;
 
 public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidContainerPIPRenderer.State> {
+    private State lastState;
+    
     public FluidContainerPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
@@ -31,6 +33,11 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
     @Override
     public @NotNull Class<State> getElementClass() {
         return State.class;
+    }
+    
+    @Override
+    protected boolean shouldBypassScaling(State state) {
+        return lastState != null && lastState.equals(state);
     }
     
     protected void render(State state, MatrixStack stack) {
@@ -66,6 +73,7 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
                                 state.waveDirection
                         ))
                 .draw();
+        this.lastState = state;
     }
     
     protected @NotNull String getName() {

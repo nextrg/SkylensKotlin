@@ -25,6 +25,8 @@ import org.nextrg.skylens.pipelines.RoundRectangleFloat;
 import java.util.function.Function;
 
 public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<RoundRectangleFloatPIPRenderer.State> {
+    private State lastState;
+    
     public RoundRectangleFloatPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
@@ -32,6 +34,11 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
     @Override
     public @NotNull Class<State> getElementClass() {
         return State.class;
+    }
+    
+    @Override
+    protected boolean shouldBypassScaling(State state) {
+        return lastState != null && lastState.equals(state);
     }
     
     protected void render(State state, MatrixStack stack) {
@@ -72,6 +79,7 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                                 scale
                         ))
                 .draw();
+        this.lastState = state;
     }
     
     protected @NotNull String getName() {
