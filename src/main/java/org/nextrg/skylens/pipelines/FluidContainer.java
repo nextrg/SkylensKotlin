@@ -30,6 +30,10 @@ public class FluidContainer {
      * @param drawContext Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the rectangle
      * @param y Y position of <b>top</b> corner of the rectangle
+     * @param fillColor Color of the fluid
+     * @param waveDirection Side that gets filled with the fluid (0 → top, 1 → bottom, 2 → left, 3 → right)
+     * @param offset Offset of the fluid, 100f → full
+     * @param borderRadius Border radius of the rectangle with the fluid
      *
      * @see FluidContainerUniform
      * @see FluidContainerPIPRenderer

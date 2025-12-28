@@ -3,14 +3,16 @@
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>
 
-uniform vec4 lineColor;
-uniform vec2 center;
-uniform float radius;
-uniform float startAngle;
-uniform float angleThickness;
-uniform float fadeSoftness;
-uniform float thickness;
-uniform int mode;
+layout(std140) uniform RadialLineUniform {
+    vec4 lineColor;
+    vec2 center;
+    float radius;
+    float startAngle;
+    float angleThickness;
+    float fadeSoftness;
+    float thickness;
+    int mode;
+};
 
 in vec4 vertexColor;
 out vec4 fragColor;

@@ -34,7 +34,7 @@ public class CircleChart {
      * @param colors Array of colors each defined by <font color="afaded"><code>Vector4f</code></font> format, automatically retrieves the count from it and spreads them as a gradient on the circle
      * @param progress The fill amount of the circle starting from the angle defined with <code>startAngle</code>
      * @param time The value for the color shift in the gradient (automatically wraps from 0 to 1)
-     * @param startAngle Angle of the circle that it starts from
+     * @param startAngle Angle of the circle that it starts from (by default at the top)
      * @param reverse When true, the color order is flipped
      * @param invert When true, the empty part is filled, while the filled part is empty
      *

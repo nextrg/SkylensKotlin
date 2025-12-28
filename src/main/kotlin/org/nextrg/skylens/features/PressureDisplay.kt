@@ -147,8 +147,8 @@ object PressureDisplay {
         animatedPressure += (PlayerStats.pressure - animatedPressure) * 0.09f
         animatedPressure = clamp(animatedPressure, 0f, 1f)
 
-        val min = degreesToRadians(225f)
-        val max = degreesToRadians(225f + 90f - 360f)
+        val min = degreesToRadians(135f)
+        val max = degreesToRadians(135f + 90f - 360f)
 
         val (x, y) = getPosition()
         draw(drawContext, x, y, MathHelper.lerp(quad(animatedPressure), min, max))
@@ -177,7 +177,7 @@ object PressureDisplay {
         drawLine(drawContext, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
 
         val circleRadius = 1.5f
-        drawPie(drawContext, x, meterY, 1.01f, circleRadius,0f, color2, 0f, 0f)
+        drawPie(drawContext, x, meterY, 1.01f, circleRadius, 0f, color2, 0f, 0f)
 
         drawText(drawContext, getPressureString(), x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
     }
@@ -188,8 +188,8 @@ object PressureDisplay {
             val last = i == steps
             val lineColor = if (!last) color else 0xFF993333.toInt()
             val boldness = (if (!last) 0.1f else 0.5f)
-            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
-            drawLine(drawContext, x, y, degreesToRadians(225f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
+            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
+            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
         }
     }
 }

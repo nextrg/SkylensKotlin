@@ -43,13 +43,17 @@ void main() {
         outer,
         dist
     );
-    float edgeAlphaInner =
-    smoothstep(inner, inner + innerAlpha, dist);
+    float edgeAlphaInner = 1.0;
+    if (innerRadius > 0.0) {
+        float inner = innerRadius * innerRadius;
+        float innerAlpha = 2.0 * innerRadius * edgeSoftness;
+        edgeAlphaInner = smoothstep(inner, inner + innerAlpha, dist);
+    }
 
     float edgeAlpha = edgeAlphaOuter * edgeAlphaInner;
     if (edgeAlpha <= 0.0) discard;
 
-    float innerMin = (innerRadius - edgeSoftness);
+    float innerMin = (innerRadius > 0.0) ? (innerRadius - edgeSoftness) * (innerRadius - edgeSoftness) : 0.0;
     float outerMax = (outerRadius + edgeSoftness);
 
     innerMin = innerMin * innerMin;

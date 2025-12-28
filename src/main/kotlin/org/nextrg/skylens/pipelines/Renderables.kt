@@ -42,7 +42,7 @@ object Renderables {
         graphics: DrawContext,
         x: Float,
         y: Float,
-        progress: Float,
+        startAngle: Float,
         radius: Float,
         lineColor: Int,
         angleThickness: Float,
@@ -50,35 +50,7 @@ object Renderables {
         fadeSoftness: Float,
         mode: Int
     ) {
-        /*
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledRadius = radius * scale
-
-        val flippedY = window.framebufferHeight - scaledY
-
-        val matrix = graphics.matrices.peek().positionMatrix
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
-
-        buffer.vertex(matrix, x - radius, y - radius, 0.0f)
-        buffer.vertex(matrix, x - radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y + radius, 0.0f)
-        buffer.vertex(matrix, x + radius, y - radius, 0.0f)
-
-        PipelineRenderer.draw(Pipelines.RADIAL_LINE, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
-            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            pass.setUniform("lineColor", *colorToVec4f(lineColor))
-            pass.setUniform("center", scaledX, flippedY)
-            pass.setUniform("radius", scaledRadius)
-            pass.setUniform("startAngle", progress)
-            pass.setUniform("angleThickness", angleThickness)
-            pass.setUniform("fadeSoftness", fadeSoftness)
-            pass.setUniform("thickness", lineThickness)
-            pass.setUniform("mode", mode)
-        }*/
+        RadialLine.draw(graphics, x, y, intToVector4f(lineColor), radius, startAngle, angleThickness, lineThickness, fadeSoftness, mode)
     }
 
     fun roundRectangleFloat(
@@ -165,36 +137,5 @@ object Renderables {
         borderWidth: Float // UNUSED
     ) {
         FluidContainer.draw(graphics, x, y, width, height, intToVector4f(color), waveDirection, Vector2f(offset.first, offset.second), borderRadius);
-        /*
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledWidth = width * scale
-        val scaledHeight = height * scale
-        val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
-
-        val matrix = graphics.matrices
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
-
-        buffer.vertex(matrix, x, y, 0.0f)
-        buffer.vertex(matrix, x, (y + height), 0.0f)
-        buffer.vertex(matrix, (x + width), (y + height), 0.0f)
-        buffer.vertex(matrix, (x + width), y, 0.0f)
-
-        PipelineRenderer.draw(FLUID_CONTAINER, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
-            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            pass.setUniform("fillColor", *colorToVec4f(color))
-            pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
-            pass.setUniform("borderWidth", borderWidth)
-            pass.setUniform("scaleFactor", scale)
-            pass.setUniform("size", scaledWidth - borderWidth * 2.0f * scale, scaledHeight - borderWidth * 2.0f * scale)
-            pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
-            pass.setUniform("borderColor", *colorToVec4f(borderColor))
-            pass.setUniform("offset", Vector2f(offset.first, offset.second)) // Changed two floats to vector2
-            pass.setUniform("waveDirection", waveDirection)
-        }
-         */
     }
 }
