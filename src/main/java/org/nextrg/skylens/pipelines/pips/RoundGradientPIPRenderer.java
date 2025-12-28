@@ -3,7 +3,6 @@ package org.nextrg.skylens.pipelines.pips;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
-import earth.terrarium.olympus.client.pipelines.uniforms.RoundedRectangleUniform;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -20,14 +19,15 @@ import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.nextrg.skylens.helpers.VariablesUtil;
-import org.nextrg.skylens.pipelines.RoundRectangleFloat;
+import org.nextrg.skylens.pipelines.RoundGradient;
+import org.nextrg.skylens.pipelines.uniforms.RoundGradientUniform;
 
 import java.util.function.Function;
 
-public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<RoundRectangleFloatPIPRenderer.State> {
+public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGradientPIPRenderer.State> {
     private State lastState;
     
-    public RoundRectangleFloatPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
+    public RoundGradientPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
     
@@ -62,15 +62,19 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         buffer.vertex(fWidth, fHeight, 0.0f).color(state.color());
         buffer.vertex(fWidth, 0.0f, 0.0f).color(state.color());
         
-        PipelineRenderer.builder(RoundRectangleFloat.PIPELINE, buffer.end())
-                .uniform(RoundedRectangleUniform.STORAGE,
-                        RoundedRectangleUniform.of(
+        PipelineRenderer.builder(RoundGradient.PIPELINE, buffer.end())
+                .uniform(RoundGradientUniform.STORAGE,
+                        RoundGradientUniform.of(
+                                state.colors,
+                                state.colorCount,
                                 borderColor,
                                 radius,
-                                state.borderWidth(),
                                 size,
                                 center,
-                                scale
+                                state.borderWidth,
+                                scale,
+                                state.time,
+                                state.gradientDir
                         ))
                 .draw();
         this.lastState = state;
@@ -84,6 +88,10 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
             int x0, int y0,
             int x1, int y1,
             int color,
+            Vector4f[] colors,
+            int colorCount,
+            float time,
+            int gradientDir,
             int borderColor,
             float borderRadius,
             float borderWidth,
@@ -102,6 +110,10 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                 float width,
                 float height,
                 int color,
+                Vector4f[] colors,
+                int colorCount,
+                float time,
+                int gradientDir,
                 int borderColor,
                 float borderRadius,
                 float borderWidth) {
@@ -111,6 +123,10 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                     (int)Math.ceil(x + width + 2.0),
                     (int)Math.ceil(y + height + 2.0),
                     color,
+                    colors,
+                    colorCount,
+                    time,
+                    gradientDir,
                     borderColor,
                     borderRadius,
                     borderWidth,
@@ -135,7 +151,7 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         }
         
         public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {
-            return RoundRectangleFloatPIPRenderer::new;
+            return RoundGradientPIPRenderer::new;
         }
         
         public int x1() {

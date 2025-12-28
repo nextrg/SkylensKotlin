@@ -80,47 +80,7 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float
     ) {
-        /*
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledWidth = width * scale
-        val scaledHeight = height * scale
-        val yOffset = window.framebufferHeight.toFloat() - scaledHeight - scaledY * 2.0f
-
-        val matrix = graphics.matrices.peek().positionMatrix
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION)
-
-        buffer.vertex(matrix, x, y, 0.0f)
-        buffer.vertex(matrix, x, (y + height), 0.0f)
-        buffer.vertex(matrix, (x + width), (y + height), 0.0f)
-        buffer.vertex(matrix, (x + width), y, 0.0f)
-
-        val maxColors = 8
-
-        PipelineRenderer.draw(ROUND_GRADIENT, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("modelViewMat", RenderSystem.getModelViewMatrix())
-            pass.setUniform("projMat", RenderSystem.getProjectionMatrix())
-            val baseColors = color.ifEmpty { listOf(0xFFFFFFFF.toInt()) }
-            val safeColors = if (baseColors.size >= maxColors) {
-                baseColors.subList(0, maxColors)
-            } else {
-                baseColors + List(maxColors - baseColors.size) { baseColors.last() }
-            }
-            for (i in 0 until maxColors) {
-                pass.setUniform("color$i", *colorToVec4f(safeColors[i]))
-            }
-            pass.setUniform("gradientDirection", gradientDirection)
-            pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
-            pass.setUniform("borderWidth", borderWidth)
-            pass.setUniform("scaleFactor", scale)
-            pass.setUniform("size", scaledWidth - borderWidth * 2.0f * scale, scaledHeight - borderWidth * 2.0f * scale)
-            pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
-            pass.setUniform("borderColor", *colorToVec4f(borderColor))
-            pass.setUniform("time", time)
-        }
-         */
+        RoundGradient.draw(graphics, x, y, width, height, listToVector4fArray(color), time, gradientDirection, borderColor, borderRadius, borderWidth)
     }
 
     fun roundFluidContainer(

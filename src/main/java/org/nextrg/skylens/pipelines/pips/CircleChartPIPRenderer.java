@@ -43,21 +43,23 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
     @Override
     protected void render(State state, MatrixStack matrices) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        final float roundedRadius = Math.round(state.outerRadius);
-        final float paddedRadius = (roundedRadius + 4f) * scale;
-        final float quadSize = paddedRadius * 2f;
+        final float paddedX = 4f * scale;
         
-        float xOffset = (state.fx - (float)state.x0 - roundedRadius) * scale;
-        float yOffset = (state.fy - (float)state.y0 - roundedRadius) * scale;
-        Vector2f center = new Vector2f(paddedRadius - xOffset, paddedRadius - yOffset);
-
+        final Vector2f size = new Vector2f(state.outerRadius * 2f * scale, state.outerRadius * 2f * scale);
+        final float fSize = size.x + paddedX;
+        
+        Vector2f center = new Vector2f(
+                (state.fx - state.x0) * scale,
+                (state.fy - state.y0) * scale
+        );
+        
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         
         buffer.vertex(0f, 0f, 0f).color(state.color());
-        buffer.vertex(0f, quadSize, 0f).color(state.color());
-        buffer.vertex(quadSize, quadSize, 0f).color(state.color());
-        buffer.vertex(quadSize, 0f, 0f).color(state.color());
+        buffer.vertex(0f, fSize, 0f).color(state.color());
+        buffer.vertex(fSize, fSize, 0f).color(state.color());
+        buffer.vertex(fSize, 0f, 0f).color(state.color());
 
         PipelineRenderer.builder(CircleChart.PIPELINE, buffer.end())
                 .uniform(
@@ -118,10 +120,10 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                 boolean invert
         ) {
             this(
-                    (int)(Math.floor(x) - Math.round(outerRadius) - 2.0),
-                    (int)(Math.floor(y) - Math.round(outerRadius) - 2.0),
-                    (int)(Math.floor(x) + Math.round(outerRadius) + 2.0),
-                    (int)(Math.floor(y) + Math.round(outerRadius) + 2.0),
+                    (int)Math.floor(x - outerRadius - 2.0),
+                    (int)Math.floor(y - outerRadius - 2.0),
+                    (int)Math.ceil(x + outerRadius + 2.0),
+                    (int)Math.ceil(y + outerRadius + 2.0),
                     color,
                     colors,
                     colorCount,
@@ -137,10 +139,10 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(
-                            (int)(Math.floor(x) - Math.round(outerRadius) - 2.0),
-                            (int)(Math.floor(y) - Math.round(outerRadius) - 2.0),
-                            (int)(Math.floor(x) + Math.round(outerRadius) + 2.0),
-                            (int)(Math.floor(y) + Math.round(outerRadius) + 2.0),
+                            (int)Math.floor(x - outerRadius - 2.0),
+                            (int)Math.floor(y - outerRadius - 2.0),
+                            (int)Math.ceil(x + outerRadius + 2.0),
+                            (int)Math.ceil(y + outerRadius + 2.0),
                             GuiGraphicsHelper.getLastScissor(graphics)
                     )
             );

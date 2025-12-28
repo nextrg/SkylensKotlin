@@ -29,23 +29,5 @@ object Pipelines {
             .withUniform("gradientDirection", UniformType.INT)
             .build()
     )
-
-    val RADIAL_LINE: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder()
-            .withLocation(Skylens.id("radial_line"))
-            .withVertexShader(Skylens.id("core/basic_transform"))
-            .withFragmentShader(Skylens.id("core/radial_line"))
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withVertexFormat(VertexFormats.POSITION, DrawMode.QUADS)
-            .withUniform("lineColor", UniformType.VEC4)
-            .withUniform("center", UniformType.VEC2)
-            .withUniform("radius", UniformType.FLOAT)
-            .withUniform("startAngle", UniformType.FLOAT)
-            .withUniform("angleThickness", UniformType.FLOAT)
-            .withUniform("fadeSoftness", UniformType.FLOAT)
-            .withUniform("thickness", UniformType.FLOAT)
-            .withUniform("mode", UniformType.INT)
-            .build()
-    )
-    )*/
+     */
 }
