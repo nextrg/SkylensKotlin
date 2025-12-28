@@ -47,25 +47,5 @@ object Pipelines {
             .withUniform("mode", UniformType.INT)
             .build()
     )
-
-    val FLUID_CONTAINER: RenderPipeline = RenderPipelines.register(
-        RenderPipeline.builder()
-            .withLocation(Skylens.id("fluid_container"))
-            .withVertexShader(Skylens.id("core/basic_transform"))
-            .withFragmentShader(Skylens.id("core/fluid_container"))
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withVertexFormat(VertexFormats.POSITION, DrawMode.QUADS)
-            .withUniform("fillColor", UniformType.VEC4)
-            .withUniform("size", UniformType.VEC2)
-            .withUniform("center", UniformType.VEC2)
-            .withUniform("borderColor", UniformType.VEC4)
-            .withUniform("borderRadius", UniformType.VEC4)
-            .withUniform("borderWidth", UniformType.FLOAT)
-            .withUniform("scaleFactor", UniformType.FLOAT)
-            .withUniform("time", UniformType.FLOAT)
-            .withUniform("offsetX", UniformType.FLOAT)
-            .withUniform("offsetY", UniformType.FLOAT)
-            .withUniform("waveDirection", UniformType.INT)
-            .build()
     )*/
 }
