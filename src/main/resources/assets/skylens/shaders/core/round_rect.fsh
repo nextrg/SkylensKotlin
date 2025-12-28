@@ -27,9 +27,7 @@ float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
 }
 
 void main() {
-    if (vertexColor.a == 0.0) {
-        discard;
-    }
+    if (vertexColor.a == 0.0) discard;
 
     float paddingScaled = 4.0;
     float r = (borderRadius.x * 0.82) * scaleFactor * (size.x - paddingScaled) / size.x;

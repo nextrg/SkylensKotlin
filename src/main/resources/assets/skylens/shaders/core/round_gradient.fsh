@@ -1,27 +1,22 @@
 #version 150
 
-uniform vec4 color0;
-uniform vec4 color1;
-uniform vec4 color2;
-uniform vec4 color3;
-uniform vec4 color4;
-uniform vec4 color5;
-uniform vec4 color6;
-uniform vec4 color7;
-uniform int colorCount;
+layout(std140) uniform RoundGradientUniform {
+    vec4 colors[8];
+    int colorCount;
+    vec4 borderColor;
+    vec4 borderRadius;
+    vec2 size;
+    vec2 center;
+    float borderWidth;
+    float scaleFactor;
+    float time;
+    int gradientDir;
+};
 
-uniform mat4 modelViewMat;
-uniform mat4 projMat;
-uniform vec4 borderColor;
-uniform vec4 borderRadius;
-uniform vec2 size;
-uniform vec2 center;
-uniform float borderWidth;
-uniform float scaleFactor;
-uniform float time;
-uniform int gradientDirection;
-
+in vec4 vertexColor;
 out vec4 fragColor;
+
+const float edgeSoftness = 1.0;
 
 float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
     r.xy = (p.x > 0.0) ? r.xy : r.zw;
@@ -31,21 +26,15 @@ float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
 }
 
 vec4 getGradientColor(float factor) {
-    float segment = factor * 8.0;
-    int index = int(floor(segment)) % 8;
+    float segment = factor * float(colorCount);
+    int index = int(floor(segment)) % colorCount;
     float localT = fract(segment);
 
     vec4 c0;
     vec4 c1;
 
-    if (index == 0) { c0 = color0; c1 = color1; }
-    else if (index == 1) { c0 = color1; c1 = color2; }
-    else if (index == 2) { c0 = color2; c1 = color3; }
-    else if (index == 3) { c0 = color3; c1 = color4; }
-    else if (index == 4) { c0 = color4; c1 = color5; }
-    else if (index == 5) { c0 = color5; c1 = color6; }
-    else if (index == 6) { c0 = color6; c1 = color7; }
-    else { c0 = color7; c1 = color0; }
+    c0 = colors[index];
+    c1 = colors[(index + 1) % colorCount];
 
     return mix(c0, c1, localT);
 }
@@ -58,9 +47,9 @@ void main() {
     float gradientOffset = fract(time);
     float gradientFactor;
 
-    if (gradientDirection == 0) {
+    if (gradientDir == 0) {
         gradientFactor = (pos.y + halfSize.y) / size.y + gradientOffset;
-    } else if (gradientDirection == 1) {
+    } else if (gradientDir == 1) {
         gradientFactor = (pos.x + halfSize.x) / size.x + gradientOffset;
     } else {
         gradientFactor = ((pos.x + halfSize.x) + (pos.y + halfSize.y)) / (size.x + size.y) + gradientOffset;
@@ -69,8 +58,10 @@ void main() {
     gradientFactor = fract(gradientFactor);
 
     vec4 color = getGradientColor(gradientFactor);
-    float smoothed = min(1.0 - distance, color.a);
-    float border = min(1.0 - smoothstep(borderWidth, borderWidth, abs(distance)), borderColor.a);
+
+    float aa = edgeSoftness;
+    float smoothed = min(1.0 - smoothstep(-aa, aa, distance), vertexColor.a);
+    float border = min(1.0 - smoothstep(borderWidth - aa, borderWidth + aa, abs(distance)), borderColor.a);
 
     if (border > 0.0) {
         fragColor = borderColor * vec4(1.0, 1.0, 1.0, border);

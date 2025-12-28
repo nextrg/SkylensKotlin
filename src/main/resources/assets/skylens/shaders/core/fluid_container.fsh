@@ -1,20 +1,26 @@
 #version 150
 
-uniform mat4 modelViewMat;
-uniform mat4 projMat;
-uniform vec4 fillColor;
-uniform vec4 borderColor;
-uniform vec4 borderRadius;
-uniform vec2 size;
-uniform vec2 center;
-uniform float borderWidth;
-uniform float scaleFactor;
-uniform float offsetX;
-uniform float offsetY;
-uniform int waveDirection;
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
 
+layout(std140) uniform FluidContainerUniform {
+    vec4 fillColor;
+    vec4 borderRadius;
+    vec2 size;
+    vec2 center;
+    vec2 offset;
+    float scaleFactor;
+    int waveDirection;
+};
+
+in vec4 vertexColor;
 out vec4 fragColor;
 
+const float waveAmplitude = 1.66;
+const float waveFrequency = 0.25;
+const float edgeSmooth = 1.33;
+
+// From: https://iquilezles.org/articles/distfunctions2d/
 float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
     r.xy = (p.x > 0.0) ? r.xy : r.zw;
     r.x = (p.y > 0.0) ? r.x : r.y;
@@ -24,24 +30,20 @@ float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
 
 float calcWaterLevel()
 {
-    float waveAmplitude = 1.66;
-    float waveFrequency = 0.25;
-    float edgeSmooth = 1.33;
-
     float surfacePos;
     float level;
 
     if (waveDirection == 1) { // Bottom
-        surfacePos = center.y + offsetY - sin((gl_FragCoord.x + offsetX) * waveFrequency) * waveAmplitude;
+        surfacePos = center.y + offset.y - sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.y);
     } else if (waveDirection == 2) { // Left
-        surfacePos = center.x + offsetX + sin((gl_FragCoord.y + offsetY) * waveFrequency) * waveAmplitude;
+        surfacePos = center.x + offset.x + sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.x);
     } else if (waveDirection == 3) { // Right
-        surfacePos = center.x + offsetX - sin((gl_FragCoord.y + offsetY) * waveFrequency) * waveAmplitude;
+        surfacePos = center.x + offset.x - sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.x);
     } else { // Top
-        surfacePos = center.y + offsetY + sin((gl_FragCoord.x + offsetX) * waveFrequency) * waveAmplitude;
+        surfacePos = center.y + offset.y + sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.y);
     }
 
@@ -49,6 +51,8 @@ float calcWaterLevel()
 }
 
 void main() {
+    if (vertexColor.a == 0.0) discard;
+
     vec2 halfSize = size * 0.5;
     vec2 uv = gl_FragCoord.xy - center;
 
@@ -64,12 +68,8 @@ void main() {
         color.a *= waterLevel;
     }
 
-    float borderDist = abs(dist);
-    float borderAlpha = smoothstep(borderWidth + 0.1, borderWidth, borderDist);
-    color = mix(color, borderColor, borderAlpha);
-
     float aa = fwidth(dist);
     color.a *= smoothstep(0.0, aa, -dist);
 
-    fragColor = color;
+    fragColor = color * ColorModulator;
 }

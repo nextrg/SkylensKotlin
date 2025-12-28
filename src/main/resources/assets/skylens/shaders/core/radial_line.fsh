@@ -1,5 +1,8 @@
 #version 150
 
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
+
 uniform vec4 lineColor;
 uniform vec2 center;
 uniform float radius;
@@ -9,11 +12,13 @@ uniform float fadeSoftness;
 uniform float thickness;
 uniform int mode;
 
+in vec4 vertexColor;
 out vec4 fragColor;
 
 const float TAU = 6.2831853;
 
 void main() {
+    if (vertexColor.a == 0.0) discard;
     vec2 dir = gl_FragCoord.xy - center;
     float dist = length(dir);
     if (dist > radius) discard;
@@ -53,7 +58,6 @@ void main() {
             float endEdgeAlpha = smoothstep(0.0, edgeFade, distEnd);
 
             angleAlpha = min(startEdgeAlpha, endEdgeAlpha);
-
         }
     }
 
@@ -69,10 +73,10 @@ void main() {
     float radialAlpha = 1.0 - smoothstep(radius - fadeSoftness, radius, dist);
 
     float finalAlpha = radialAlpha * (
-    mode == 0 ? angleAlpha :
-    mode == 1 ? thicknessAlpha :
-    angleAlpha * thicknessAlpha
+        mode == 0 ? angleAlpha :
+        mode == 1 ? thicknessAlpha :
+        angleAlpha * thicknessAlpha
     );
 
-    fragColor = vec4(lineColor.rgb, lineColor.a * finalAlpha);
+    fragColor = vec4(lineColor.rgb, lineColor.a * finalAlpha) * ColorModulator;
 }

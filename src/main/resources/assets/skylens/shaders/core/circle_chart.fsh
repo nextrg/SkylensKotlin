@@ -89,5 +89,5 @@ void main() {
     vec4 c2 = getColor(min(index + 1, colorCount - 1));
     vec4 color = mix(c1, c2, localFactor);
 
-    fragColor = vec4(color.rgb, color.a * finalAlpha);
+    fragColor = vec4(color.rgb, color.a * finalAlpha) * ColorModulator;
 }
