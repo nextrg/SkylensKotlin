@@ -90,33 +90,7 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float
     ) {
-        /*
-        val window = MinecraftClient.getInstance().window
-        val scale = window.scaleFactor.toFloat()
-        val scaledX = x * scale
-        val scaledY = y * scale
-        val scaledWidth = width * scale
-        val scaledHeight = height * scale
-
-        val flippedYWithHeight = window.framebufferHeight - (scaledY + scaledHeight)
-
-        val matrix = graphics.matrices.peek().positionMatrix
-        val buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-
-        buffer.vertex(matrix, x, y, 0.0f).color(backgroundColor)
-        buffer.vertex(matrix, x, (y + height), 0.0f).color(backgroundColor)
-        buffer.vertex(matrix, (x + width), (y + height), 0.0f).color(backgroundColor)
-        buffer.vertex(matrix, (x + width), y, 0.0f).color(backgroundColor)
-
-        PipelineRenderer.draw(RoundedRectangle.PIPELINE, buffer.end()) { pass: RenderPass ->
-            pass.setUniform("borderColor", *colorToVec4f(borderColor))
-            pass.setUniform("borderRadius", *floatArrayOf(borderRadius, borderRadius, borderRadius, borderRadius))
-            pass.setUniform("borderWidth", borderWidth)
-            pass.setUniform("size", scaledWidth - borderWidth * 2f, scaledHeight - borderWidth * 2f)
-            pass.setUniform("center", scaledX + scaledWidth / 2f, flippedYWithHeight + (scaledHeight / 2f))
-            pass.setUniform("scaleFactor", scale)
-        }
-        */
+        RoundRectangleFloat.draw(graphics, x, y, width, height, backgroundColor, borderColor, borderRadius, borderWidth)
     }
 
     fun roundGradient(

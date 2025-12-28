@@ -19,6 +19,7 @@ layout(std140) uniform CircleChartUniform {
 in vec4 vertexColor;
 out vec4 fragColor;
 
+const float PI = 3.1415926;
 const float TAU = 6.2831853;
 const float edgeSoftness = 1.5;
 
@@ -30,17 +31,37 @@ void main() {
     if (vertexColor.a == 0.0) discard;
 
     vec2 pos = gl_FragCoord.xy - center;
-    float dist = length(pos);
+    float dist = dot(pos, pos);
+    float outer = outerRadius * outerRadius;
+    float inner = innerRadius * innerRadius;
+    float innerAlpha = 2.0 * innerRadius * edgeSoftness;
 
     // antialiasing
-    float edgeAlphaOuter = 1.0 - smoothstep(outerRadius - edgeSoftness, outerRadius, dist);
-    float edgeAlphaInner = smoothstep(innerRadius, innerRadius + edgeSoftness, dist);
+    float edgeAlphaOuter =
+        1.0 - smoothstep(
+        outer - 2.0 * outerRadius * edgeSoftness,
+        outer,
+        dist
+    );
+    float edgeAlphaInner =
+    smoothstep(inner, inner + innerAlpha, dist);
+
     float edgeAlpha = edgeAlphaOuter * edgeAlphaInner;
     if (edgeAlpha <= 0.0) discard;
 
+    float innerMin = (innerRadius - edgeSoftness);
+    float outerMax = (outerRadius + edgeSoftness);
+
+    innerMin = innerMin * innerMin;
+    outerMax = outerMax * outerMax;
+
+    if (dist < innerMin || dist > outerMax) discard;
+
     // angles
-    float angle = atan(pos.y, pos.x);
-    angle = mod(angle + TAU, TAU);
+    float angle = pos.y / pos.x;
+    angle = atan(angle);
+    if (pos.x < 0.0) angle += PI;
+    if (angle < 0.0) angle += TAU;
 
     float angleOffset = mod(angle - startAngle + TAU, TAU);
     float angularLength = progress * TAU;
@@ -50,7 +71,7 @@ void main() {
     else {
         float angleSoft = edgeSoftness / outerRadius;
         angleAlpha = 1.0 - smoothstep(angularLength - angleSoft, angularLength, angleOffset);
-        if (invert == 1) angleAlpha = 1.0 - angleAlpha;
+        angleAlpha = mix(angleAlpha, 1.0 - angleAlpha, float(invert));
     }
 
     float finalAlpha = edgeAlpha * angleAlpha * vertexColor.a;
@@ -58,7 +79,7 @@ void main() {
 
     // interpolation
     float factor = mod(angleOffset / TAU + time, 1.0);
-    if (reverse == 1) factor = 1.0 - factor;
+    factor = mix(factor, 1.0 - factor, float(reverse));
 
     float scaled = factor * float(max(colorCount - 1, 1));
     int index = int(floor(scaled));
