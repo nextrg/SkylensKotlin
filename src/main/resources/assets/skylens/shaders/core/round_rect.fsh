@@ -29,8 +29,8 @@ float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
 void main() {
     if (vertexColor.a == 0.0) discard;
 
-    float paddingScaled = 4.0;
-    float r = (borderRadius.x * 0.82) * scaleFactor * (size.x - paddingScaled) / size.x;
+    float paddingScaled = 4.0 * scaleFactor;
+    float r = (borderRadius.x * 0.92) * scaleFactor * max((size.x - paddingScaled) / size.x, 0.5);
     vec2 halfSize = size / 2.0;
 
     float dist = sdRoundedBox(gl_FragCoord.xy - center, halfSize, vec4(r));
