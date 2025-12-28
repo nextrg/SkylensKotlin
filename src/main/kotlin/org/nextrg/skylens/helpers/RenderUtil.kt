@@ -2,9 +2,7 @@ package org.nextrg.skylens.helpers
 
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.ScreenRect
 import net.minecraft.item.ItemStack
-import kotlin.math.roundToInt
 
 object RenderUtil {
     data class ElementPos(
@@ -54,10 +52,6 @@ object RenderUtil {
     fun getScaledWidthHeight(): Pair<Int, Int> {
         val client = MinecraftClient.getInstance()
         return client.window.scaledWidth to client.window.scaledHeight
-    }
-
-    fun floatToIntScreenRect(x: Float, y: Float, w: Float, h: Float): ScreenRect {
-        return ScreenRect(x.roundToInt(), y.roundToInt(), w.roundToInt(), h.roundToInt())
     }
 
     fun legacyRoundRectangle(context: DrawContext, x: Float, y: Float, w: Float, h: Float, r: Float, color: Int) {

@@ -3,7 +3,6 @@ package org.nextrg.skylens.pipelines.pips;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
-import earth.terrarium.olympus.client.pipelines.uniforms.RoundedRectangleUniform;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -15,17 +14,17 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.ColorHelper;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import org.nextrg.skylens.pipelines.RoundRectangleFloat;
+import org.nextrg.skylens.pipelines.FluidContainer;
+import org.nextrg.skylens.pipelines.uniforms.FluidContainerUniform;
 
 import java.util.function.Function;
 
-public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<RoundRectangleFloatPIPRenderer.State> {
-    public RoundRectangleFloatPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
+public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidContainerPIPRenderer.State> {
+    public FluidContainerPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
         super(bufferSource);
     }
     
@@ -39,52 +38,48 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         final float paddedX = 4f * scale;
         final float scaledWidth = (state.x1 - state.x0) * scale;
         final float scaledHeight = (state.y1 - state.y0) * scale;
-    
-        final Vector4f borderColor = new Vector4f(
-                ColorHelper.getRedFloat(state.borderColor()),
-                ColorHelper.getGreenFloat(state.borderColor()),
-                ColorHelper.getBlueFloat(state.borderColor()),
-                ColorHelper.getAlphaFloat(state.borderColor())
-        );
 
         final Vector2f size = new Vector2f(scaledWidth - paddedX, scaledHeight - paddedX);
         final float offsetX = (state.fx - 2.0f - state.x0) * scale;
         final float offsetY = (state.fy - 2.0f - state.y0) * scale;
         final Vector2f center = new Vector2f(size.x / 2f + paddedX / 2f - offsetX, size.y / 2f + paddedX / 2f - offsetY);
-  
+        
         Vector4f radius = new Vector4f(state.borderRadius);
- 
+        
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        
         buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
         buffer.vertex(0.0f, scaledHeight, 0.0f).color(state.color());
         buffer.vertex(scaledWidth, scaledHeight, 0.0f).color(state.color());
         buffer.vertex(scaledWidth, 0.0f, 0.0f).color(state.color());
         
-        PipelineRenderer.builder(RoundRectangleFloat.PIPELINE, buffer.end())
-                .uniform(RoundedRectangleUniform.STORAGE,
-                        RoundedRectangleUniform.of(
-                                borderColor,
+        PipelineRenderer.builder(FluidContainer.PIPELINE, buffer.end())
+                .uniform(FluidContainerUniform.STORAGE,
+                        FluidContainerUniform.of(
+                                state.fillColor,
                                 radius,
-                                state.borderWidth(),
                                 size,
                                 center,
-                                scale
+                                state.offset,
+                                scale,
+                                state.waveDirection
                         ))
                 .draw();
     }
     
     protected @NotNull String getName() {
-        return "skylens_round_rectangle_float";
+        return "skylens_fluid_container";
     }
     
     public static record State(
             int x0, int y0,
             int x1, int y1,
             int color,
-            int borderColor,
+            Vector4f fillColor,
+            int waveDirection,
+            Vector2f offset,
             float borderRadius,
-            float borderWidth,
             float fx,
             float fy,
             Matrix3x2f pose,
@@ -98,18 +93,20 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                 float width,
                 float height,
                 int color,
-                int borderColor,
-                float borderRadius,
-                float borderWidth) {
+                Vector4f fillColor,
+                int waveDirection,
+                Vector2f offset,
+                float borderRadius) {
             this(
                     (int)Math.floor(x - 2.0),
                     (int)Math.floor(y - 2.0),
                     (int)Math.ceil(x + width + 2.0),
                     (int)Math.ceil(y + height + 2.0),
                     color,
-                    borderColor,
+                    fillColor,
+                    waveDirection,
+                    offset,
                     borderRadius,
-                    borderWidth,
                     x,
                     y,
                     new Matrix3x2f(graphics.getMatrices()),
@@ -129,7 +126,7 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
         }
         
         public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {
-            return RoundRectangleFloatPIPRenderer::new;
+            return FluidContainerPIPRenderer::new;
         }
         
         public int x1() {
@@ -152,16 +149,8 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
             return this.color;
         }
         
-        public int borderColor() {
-            return this.borderColor;
-        }
-        
         public float borderRadius() {
             return this.borderRadius;
-        }
-        
-        public float borderWidth() {
-            return this.borderWidth;
         }
         
         public Matrix3x2f pose() {

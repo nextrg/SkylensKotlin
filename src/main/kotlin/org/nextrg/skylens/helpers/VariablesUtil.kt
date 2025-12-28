@@ -3,6 +3,7 @@ package org.nextrg.skylens.helpers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import org.joml.Vector4f
 import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.pow
@@ -123,5 +124,25 @@ object VariablesUtil {
         val a = 255
 
         return (a shl 24) or (r shl 16) or (g shl 8) or b
+    }
+
+    fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {
+        return colors.map { color ->
+            Vector4f(
+                ((color shr 16) and 0xFF) / 255f,
+                ((color shr 8) and 0xFF) / 255f,
+                (color and 0xFF) / 255f,
+                ((color shr 24) and 0xFF) / 255f
+            )
+        }.toTypedArray()
+    }
+
+    fun intToVector4f(color: Int): Vector4f {
+        return Vector4f(
+            ((color shr 16) and 0xFF) / 255f,
+            ((color shr 8) and 0xFF) / 255f,
+            (color and 0xFF) / 255f,
+            ((color shr 24) and 0xFF) / 255f
+        )
     }
 }

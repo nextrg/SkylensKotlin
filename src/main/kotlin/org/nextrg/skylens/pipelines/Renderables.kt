@@ -1,7 +1,9 @@
 package org.nextrg.skylens.pipelines
 
 import net.minecraft.client.gui.DrawContext
-import org.joml.Vector4f
+import org.joml.Vector2f
+import org.nextrg.skylens.helpers.VariablesUtil.intToVector4f
+import org.nextrg.skylens.helpers.VariablesUtil.listToVector4fArray
 
 object Renderables {
     fun drawPie(
@@ -158,10 +160,11 @@ object Renderables {
         color: Int,
         waveDirection: Int,
         offset: Pair<Float, Float>,
-        borderColor: Int,
+        borderColor: Int, // UNUSED
         borderRadius: Float,
-        borderWidth: Float
+        borderWidth: Float // UNUSED
     ) {
+        FluidContainer.draw(graphics, x, y, width, height, intToVector4f(color), waveDirection, Vector2f(offset.first, offset.second), borderRadius);
         /*
         val window = MinecraftClient.getInstance().window
         val scale = window.scaleFactor.toFloat()
@@ -189,21 +192,9 @@ object Renderables {
             pass.setUniform("size", scaledWidth - borderWidth * 2.0f * scale, scaledHeight - borderWidth * 2.0f * scale)
             pass.setUniform("center", scaledX + scaledWidth / 2.0f, scaledY + scaledHeight / 2.0f + yOffset)
             pass.setUniform("borderColor", *colorToVec4f(borderColor))
-            pass.setUniform("offsetX", offset.first)
-            pass.setUniform("offsetY", offset.second)
+            pass.setUniform("offset", Vector2f(offset.first, offset.second)) // Changed two floats to vector2
             pass.setUniform("waveDirection", waveDirection)
         }
          */
-    }
-
-    fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {
-        return colors.map { color ->
-            Vector4f(
-                ((color shr 16) and 0xFF) / 255f,
-                ((color shr 8) and 0xFF) / 255f,
-                (color and 0xFF) / 255f,
-                ((color shr 24) and 0xFF) / 255f
-            )
-        }.toTypedArray()
     }
 }
