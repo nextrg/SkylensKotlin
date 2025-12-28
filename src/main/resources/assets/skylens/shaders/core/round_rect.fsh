@@ -30,7 +30,7 @@ void main() {
     if (vertexColor.a == 0.0) discard;
 
     float paddingScaled = 4.0 * scaleFactor;
-    float r = (borderRadius.x * 0.92) * scaleFactor * max((size.x - paddingScaled) / size.x, 0.5);
+    float r = (borderRadius.x * 0.82) * scaleFactor * max((size.x - paddingScaled) / size.x, 1.0);
     vec2 halfSize = size / 2.0;
 
     float dist = sdRoundedBox(gl_FragCoord.xy - center, halfSize, vec4(r));

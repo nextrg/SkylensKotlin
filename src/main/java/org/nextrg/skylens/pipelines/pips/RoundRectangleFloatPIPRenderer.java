@@ -15,11 +15,11 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.ColorHelper;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import org.nextrg.skylens.helpers.VariablesUtil;
 import org.nextrg.skylens.pipelines.RoundRectangleFloat;
 
 import java.util.function.Function;
@@ -44,29 +44,22 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
     protected void render(State state, MatrixStack stack) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
         final float paddedX = 4f * scale;
-        final float scaledWidth = (state.x1 - state.x0) * scale;
-        final float scaledHeight = (state.y1 - state.y0) * scale;
-    
-        final Vector4f borderColor = new Vector4f(
-                ColorHelper.getRedFloat(state.borderColor()),
-                ColorHelper.getGreenFloat(state.borderColor()),
-                ColorHelper.getBlueFloat(state.borderColor()),
-                ColorHelper.getAlphaFloat(state.borderColor())
-        );
-
-        final Vector2f size = new Vector2f(scaledWidth - paddedX, scaledHeight - paddedX);
-        final float offsetX = (state.fx - 2.0f - state.x0) * scale;
-        final float offsetY = (state.fy - 2.0f - state.y0) * scale;
-        final Vector2f center = new Vector2f(size.x / 2f + paddedX / 2f - offsetX, size.y / 2f + paddedX / 2f - offsetY);
-  
-        Vector4f radius = new Vector4f(state.borderRadius);
+        
+        final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
+        final float fWidth = size.x + paddedX;
+        final float fHeight = size.y + paddedX;
+        
+        final Vector2f center = new Vector2f(fWidth * 0.5f, fHeight * 0.5f);
+        
+        final Vector4f radius = new Vector4f(state.borderRadius);
+        final Vector4f borderColor = VariablesUtil.INSTANCE.intToVector4f(state.borderColor());
  
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
-        buffer.vertex(0.0f, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, 0.0f, 0.0f).color(state.color());
+        buffer.vertex(0.0f, fHeight, 0.0f).color(state.color());
+        buffer.vertex(fWidth, fHeight, 0.0f).color(state.color());
+        buffer.vertex(fWidth, 0.0f, 0.0f).color(state.color());
         
         PipelineRenderer.builder(RoundRectangleFloat.PIPELINE, buffer.end())
                 .uniform(RoundedRectangleUniform.STORAGE,
@@ -95,6 +88,8 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
             float borderWidth,
             float fx,
             float fy,
+            float fwidth,
+            float fheight,
             Matrix3x2f pose,
             ScreenRect scissorArea,
             ScreenRect bounds
@@ -120,6 +115,8 @@ public class RoundRectangleFloatPIPRenderer extends SpecialGuiElementRenderer<Ro
                     borderWidth,
                     x,
                     y,
+                    width,
+                    height,
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(
