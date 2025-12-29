@@ -381,7 +381,7 @@ object PetOverlay {
 
     private fun renderCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
-        val progress = 1.01f
+        val progress = 1f
         if (!rainbowBg) {
             drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
         } else {
@@ -392,7 +392,7 @@ object PetOverlay {
     private fun renderCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 12.5f
         val innerRadius = outerRadius - 2.96f
-        val progress = 1.01f * animatedLevelProgress
+        val progress = animatedLevelProgress
         if (!rainbowLevel) {
             drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
@@ -403,7 +403,7 @@ object PetOverlay {
     private fun renderCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 10.33f - if (altStyle) 1.33f else 0f
         val innerRadius = 0f
-        val progress = animatedXp * 1.01f
+        val progress = animatedXp
         if (!rainbowXp) {
             drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
@@ -412,7 +412,7 @@ object PetOverlay {
     }
 
     private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 0f else 4.5f
+        val borderRadius = if (altStyle) 2.5f else 4.5f
         val width = 51f
         val height = 8f
         if (!rainbowBg) {
@@ -423,8 +423,8 @@ object PetOverlay {
     }
 
     private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 0f else 4.5f
-        val width = max(8f, (51 * animatedLevelProgress))
+        val borderRadius = if (altStyle) 2.5f else 4.5f
+        val width = max(8f, (51f * animatedLevelProgress))
         val height = 8f
         if (!rainbowLevel) {
             roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
@@ -434,8 +434,8 @@ object PetOverlay {
     }
 
     private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 0f else 2.5f
-        val width = max(2f, (47 * animatedXp))
+        val borderRadius = if (altStyle) 1.5f else 2.5f
+        val width = max(2f, (47f * animatedXp))
         val height = 4f
         if (!rainbowXp) {
             roundRectangleFloat(drawContext, x + 2, y + 2, width, height, color, 0, borderRadius, 0f)
