@@ -23,7 +23,6 @@ import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawItem
 import org.nextrg.skylens.helpers.RenderUtil.drawText
-import org.nextrg.skylens.helpers.RenderUtil.legacyRoundRectangle
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
 import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
@@ -356,11 +355,11 @@ object PetOverlay {
     private fun renderBars(drawContext: DrawContext, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
-            legacyRoundRectangle(
+            /*legacyRoundRectangle(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
                 if (altStyle) 0f else 12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
-            )
+            )*/
         }
 
         renderBarBg(drawContext, x, y, color3, idleProgress)
