@@ -44,7 +44,6 @@ dependencies {
     modImplementation("com.terraformersmc:modmenu:${project.property("modmenu_version")}")
     modImplementation("com.teamresourceful.resourcefullib:resourcefullib-fabric-1.21.9:3.9.0")
     modImplementation("earth.terrarium.olympus:olympus-fabric-1.21.9:1.6.2")
-    include("com.teamresourceful.resourcefullib:resourcefullib-fabric-1.21.9:3.9.0")
     include("earth.terrarium.olympus:olympus-fabric-1.21.9:1.6.2")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
