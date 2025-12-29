@@ -23,7 +23,6 @@ import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawItem
 import org.nextrg.skylens.helpers.RenderUtil.drawText
-import org.nextrg.skylens.helpers.RenderUtil.legacyRoundRectangle
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
 import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
