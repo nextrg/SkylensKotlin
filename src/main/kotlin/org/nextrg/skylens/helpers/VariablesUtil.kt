@@ -4,7 +4,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.joml.Vector4f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -46,8 +45,25 @@ object VariablesUtil {
         return kotlin.math.round(this * factor) / factor
     }
 
-    fun colorToARGB(color: Color): Int {
-        return (color.alpha shl 24) or (color.red shl 16) or (color.green shl 8) or color.blue
+    fun getGradient(
+        startColor: Int,
+        endColor: Int,
+        steps: Int = 8,
+        phase: Float
+    ): List<Int> {
+        val (sA, sR, sG, sB) = startColor.toARGB()
+        val (eA, eR, eG, eB) = endColor.toARGB()
+
+        return List(steps) { i ->
+            val t = ((i.toFloat() / (steps - 1)) + phase) % 1f
+            val tFinal = if (t <= 0.5f) t * 2f else (1f - t) * 2f
+
+            val a = (sA + ((eA - sA) * tFinal)).toInt()
+            val r = (sR + ((eR - sR) * tFinal)).toInt()
+            val g = (sG + ((eG - sG) * tFinal)).toInt()
+            val b = (sB + ((eB - sB) * tFinal)).toInt()
+            (a shl 24) or (r shl 16) or (g shl 8) or b
+        }
     }
 
     fun hexTransparent(hex: Int, alpha: Int): Int {
@@ -143,6 +159,15 @@ object VariablesUtil {
             ((color shr 8) and 0xFF) / 255f,
             (color and 0xFF) / 255f,
             ((color shr 24) and 0xFF) / 255f
+        )
+    }
+
+    private fun Int.toARGB(): IntArray {
+        return intArrayOf(
+            (this ushr 24) and 0xFF, // A
+            (this ushr 16) and 0xFF, // R
+            (this ushr 8) and 0xFF, // G
+            this and 0xFF // B
         )
     }
 }

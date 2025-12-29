@@ -14,12 +14,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.nextrg.skylens.features.DrillFuelMeter;
-import org.nextrg.skylens.features.HudEditor;
-import org.nextrg.skylens.features.PetOverlay;
-import org.nextrg.skylens.features.PressureDisplay;
+import org.nextrg.skylens.features.*;
 import org.nextrg.skylens.helpers.StringsUtil;
-import org.nextrg.skylens.helpers.VariablesUtil;
 
 import java.awt.*;
 import java.time.LocalDate;
@@ -77,7 +73,7 @@ public class ModConfig implements ModMenuApi {
         }
     }
     
-    public enum Theme implements NameableEnum {
+    public enum PetOverlayTheme implements NameableEnum {
         Pet,
         Custom,
         Special,
@@ -169,6 +165,14 @@ public class ModConfig implements ModMenuApi {
     public static int dungeonScoreMeterX = -116;
     @SerialEntry
     public static int dungeonScoreMeterY = -9;
+    @SerialEntry
+    public static int dungeonScoreMeterTheme = 0;
+    @SerialEntry
+    public static Color dungeonScoreMeterColor1 = new Color(111, 152, 150);
+    @SerialEntry
+    public static Color dungeonScoreMeterColor2 = new Color(166, 219, 131);
+    @SerialEntry
+    public static float dungeonScoreMeterGradientRotate = 0.9f;
     
     @SerialEntry
     public static boolean petOverlay = true;
@@ -181,7 +185,7 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static Type petOverlayType = Type.Bar;
     @SerialEntry
-    public static Theme petOverlayTheme = Theme.Pet;
+    public static PetOverlayTheme petOverlayTheme = PetOverlayTheme.Pet;
     @SerialEntry
     public static boolean petOverlayInvert = false;
     @SerialEntry
@@ -252,10 +256,10 @@ public class ModConfig implements ModMenuApi {
                         .build())
                 
                 .option(label("Themes"))
-                .option(Option.<Theme>createBuilder()
+                .option(Option.<PetOverlayTheme>createBuilder()
                         .name(Text.literal("Theme"))
-                        .binding(Theme.Pet, () -> petOverlayTheme, newVal -> petOverlayTheme = newVal)
-                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Theme.class))
+                        .binding(PetOverlayTheme.Pet, () -> petOverlayTheme, newVal -> petOverlayTheme = newVal)
+                        .controller(opt -> EnumControllerBuilder.create(opt).enumClass(PetOverlayTheme.class))
                         .build())
                 .option(createColorOption(Color.WHITE, "Level", () -> petOverlayColor1, newValue -> petOverlayColor1 = newValue))
                 .option(createColorOption(Color.GRAY, "XP", () -> petOverlayColor2, newValue -> petOverlayColor2 = newValue))
@@ -282,9 +286,9 @@ public class ModConfig implements ModMenuApi {
                 .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
                 .option(Option.<Float>createBuilder()
                         .name(Text.literal("Show at"))
-                        .binding(0f, () -> pressureDisplayShowAt, newVal -> pressureDisplayShowAt = newVal)
+                        .binding(0.05f, () -> pressureDisplayShowAt, newVal -> pressureDisplayShowAt = newVal)
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
-                                .range(0.05f, 0.95f)
+                                .range(0.01f, 0.99f)
                                 .step(0.01f)
                                 .formatValue(val -> Text.literal(String.format("❍ %d%% Pressure", Math.round(val * 100))).withColor(0xFFB5B5F4)))
                         .build())
@@ -311,9 +315,9 @@ public class ModConfig implements ModMenuApi {
                                 .step(1)
                                 .formatValue(val -> Text.literal(switch(val) {
                                     case 1 -> "\uD83C\uDF51 Peach"; default -> "\uD83C\uDF03 Nighttime";
-                                }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
-                                    case 1 -> new Color(255, 193, 124); default -> new Color(147, 156, 177);
-                                }))))
+                                }).withColor(switch(val) {
+                                    case 1 -> new Color(255, 193, 124).getRGB(); default -> new Color(147, 156, 177).getRGB();
+                                })))
                         .build())
                 .build();
     }
@@ -347,9 +351,9 @@ public class ModConfig implements ModMenuApi {
                                 .step(1)
                                 .formatValue(val -> Text.literal(switch(val) {
                                     case 1 -> "✨ Mithril"; default -> "♻ Biofuel";
-                                }).withColor(VariablesUtil.INSTANCE.colorToARGB(switch(val) {
-                                    case 1 -> new Color(159, 187, 207); default -> new Color(140, 255, 144);
-                                }))))
+                                }).withColor(switch(val) {
+                                    case 1 -> new Color(159, 187, 207).getRGB(); default -> new Color(140, 255, 144).getRGB();
+                                })))
                         .build())
                 .build();
     }
@@ -373,6 +377,29 @@ public class ModConfig implements ModMenuApi {
                         .text(Text.literal("→"))
                         .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Dungeon Score Meter"))
                         .build())
+        
+                .option(label("Themes"))
+                .option(Option.<Integer>createBuilder()
+                        .name(Text.literal("Theme"))
+                        .binding(0, () -> dungeonScoreMeterTheme, newVal -> dungeonScoreMeterTheme = newVal)
+                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                .range(0, 1)
+                                .step(1)
+                                .formatValue(val -> Text.literal(switch(val) {
+                                    case 1 -> "Gradient"; default -> "Rank";
+                                })))
+                        .build())
+                .option(createColorOption(new Color(111, 152, 150), "Gradient 1st", () -> dungeonScoreMeterColor1, newValue -> dungeonScoreMeterColor1 = newValue))
+                .option(createColorOption(new Color(166, 219, 131), "Gradient 2nd", () -> dungeonScoreMeterColor2, newValue -> dungeonScoreMeterColor2 = newValue))
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Gradient Rotation"))
+                        .binding(0.9f, () -> dungeonScoreMeterGradientRotate, newVal -> dungeonScoreMeterGradientRotate = newVal)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0f, 1f)
+                                .step(0.01f)
+                                .formatValue(val -> Text.literal(String.format("%d°§7/%d%%", Math.round(val * 360), Math.round(val * 100)))))
+                        .build())
+                
                 .build();
     }
     
@@ -397,7 +424,7 @@ public class ModConfig implements ModMenuApi {
                                     String percentage = String.format("%.1f%%", Math.floor(val * 1000) / 10);
                                     
                                     return Text.literal("⚠".repeat(warning) + " " + percentage)
-                                            .withColor(VariablesUtil.INSTANCE.colorToARGB(color));
+                                            .withColor(color.getRGB());
                                 }))
                         .build())
                 .option(createBooleanOption(lowHpIndicatorHeartbeat, "Pulse Animation", "", () -> lowHpIndicatorHeartbeat, newValue -> lowHpIndicatorHeartbeat = newValue))
@@ -447,6 +474,7 @@ public class ModConfig implements ModMenuApi {
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
         DrillFuelMeter.INSTANCE.updateConfigValues();
+        DungeonScoreMeter.INSTANCE.updateConfigValues();
     }
     
     public static ModConfig get() {
@@ -473,5 +501,6 @@ public class ModConfig implements ModMenuApi {
         PressureDisplay.INSTANCE.updateConfigValues();
         PetOverlay.INSTANCE.updateConfigValues();
         DrillFuelMeter.INSTANCE.updateConfigValues();
+        DungeonScoreMeter.INSTANCE.updateConfigValues();
     }
 }

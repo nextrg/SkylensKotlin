@@ -138,8 +138,8 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
 
-        val left = -14.0; val right = 14.0
-        val top = -15.0; val bottom = 15.0
+        val left = -16.0; val right = 16.0
+        val top = -17.0; val bottom = 16.0
 
         return dx in left..right && dy in top..bottom
     }

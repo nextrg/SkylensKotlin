@@ -18,8 +18,8 @@ object LowHpIndicator {
     private var animatedHealth = 1f
 
     fun prepare() {
-        HudElementRegistry.attachElementAfter(
-            VanillaHudElements.HOTBAR,
+        HudElementRegistry.attachElementBefore(
+            VanillaHudElements.CROSSHAIR,
             Identifier.of("skylens", "low-hp-indicator"),
             LowHpIndicator::prepareRender
         )
