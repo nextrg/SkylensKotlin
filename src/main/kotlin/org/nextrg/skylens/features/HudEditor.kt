@@ -189,7 +189,9 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return super.mouseClicked(click, doubled)
     }
 
-    override fun mouseDragged(click: Click?, mouseX: Double, mouseY: Double): Boolean {
+    override fun mouseDragged(click: Click, mouseX: Double, mouseY: Double): Boolean {
+        val mouseX = click.x
+        val mouseY = click.y
         if (petOverlayHovered) {
             setPetOverlayMargin(mouseX, mouseY)
         }
