@@ -116,7 +116,7 @@ object OtherUtil {
                 }
             }
         } catch (e: java.lang.Exception) {
-            errorMessage("Caught an error setting item texture (fallback)", e)
+            //errorMessage("Caught an error setting item texture (fallback)", e) <- fix later
             return if (isPet) bone else air
         }
         return itemStack
