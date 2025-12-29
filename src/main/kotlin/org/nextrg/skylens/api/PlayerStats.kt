@@ -103,7 +103,8 @@ object PlayerStats {
         }
         if (string.contains("Drill Fuel")) {
             val noFormatting = Formatting.strip(string)
-            val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString())
+            val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString()
+                .replace(",", ""))
             if (matcher.find()) {
                 fuel = "${matcher.group(1)}/${parseSuffix(matcher.group(2))}"
                 DrillFuelMeter.show()
