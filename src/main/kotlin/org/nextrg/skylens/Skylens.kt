@@ -45,7 +45,7 @@ class Skylens : ClientModInitializer {
         }
 
         fun registerCommands() {
-            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource?>, registryAccess: CommandRegistryAccess? ->
+            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, registryAccess: CommandRegistryAccess ->
                 dispatcher.register(
                     ClientCommandManager.literal("skylens")
                         .executes {
