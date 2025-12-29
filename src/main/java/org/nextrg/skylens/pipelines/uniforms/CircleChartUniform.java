@@ -4,7 +4,7 @@ import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import earth.terrarium.olympus.client.pipelines.uniforms.RenderPipelineUniforms;
-import net.minecraft.client.gl.DynamicUniformStorage;
+import net.minecraft.client.renderer.DynamicUniformStorage;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 

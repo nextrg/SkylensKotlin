@@ -4,19 +4,19 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.network.ClientPlayNetworkHandler
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.client.network.PlayerListEntry
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.registry.Registries
-import net.minecraft.scoreboard.ScoreboardDisplaySlot
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.Identifier
+import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientPacketListener
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.client.multiplayer.PlayerInfo
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.world.scores.DisplaySlot
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.resources.Identifier
 import org.nextrg.skylens.ModConfig
 import java.net.URI
 import java.nio.charset.StandardCharsets
@@ -45,39 +45,39 @@ object OtherUtil {
 
     fun onSkyblock(): Boolean {
         return if (ModConfig.onlySkyblock) {
-            MinecraftClient.getInstance().world != null || !MinecraftClient.getInstance().isInSingleplayer
+            Minecraft.getInstance().level != null || !Minecraft.getInstance().isLocalServer
         } else {
             true
         }
     }
 
-    fun getTabData(client: MinecraftClient): List<Text> {
-        var text: List<Text> = ArrayList()
-        val networkHandler: ClientPlayNetworkHandler? = client.networkHandler
+    fun getTabData(client: Minecraft): List<Component> {
+        var text: List<Component> = ArrayList()
+        val networkHandler: ClientPacketListener? = client.connection
         if (networkHandler != null) {
-            text = networkHandler.playerList
+            text = networkHandler.onlinePlayers
                 .stream()
-                .map<Text> { obj: PlayerListEntry -> obj.displayName }
+                .map<Component> { obj: PlayerInfo -> obj.tabListDisplayName }
                 .filter(Objects::nonNull)
                 .toList()
         }
         return text
     }
 
-    fun getScoreboardData(player: ClientPlayerEntity): List<String?> {
+    fun getScoreboardData(player: LocalPlayer): List<String?> {
         val scoreboardData: MutableList<String?> = ArrayList()
-        val scoreboard = player.entityWorld.scoreboard
-        val title = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.FROM_ID.apply(1))
+        val scoreboard = player.level().scoreboard
+        val title = scoreboard.getDisplayObjective(DisplaySlot.BY_ID.apply(1))
         if (title != null) {
             scoreboardData.addFirst(title.displayName.copy().string)
         }
-        for (lines in scoreboard.knownScoreHolders) {
-            if (scoreboard.getScoreHolderObjectives(lines).containsKey(title)) {
-                val team = scoreboard.getScoreHolderTeam(lines.nameForScoreboard)
+        for (lines in scoreboard.trackedPlayers) {
+            if (scoreboard.listPlayerScores(lines).containsKey(title)) {
+                val team = scoreboard.getPlayersTeam(lines.scoreboardName)
                 if (team != null) {
-                    val strLine = team.prefix.string + team.suffix.string
+                    val strLine = team.playerPrefix.string + team.playerSuffix.string
                     if (strLine.trim { it <= ' ' }.isNotEmpty()) {
-                        scoreboardData.add(Formatting.strip(strLine))
+                        scoreboardData.add(ChatFormatting.stripFormatting(strLine))
                     }
                 }
             }
@@ -123,12 +123,12 @@ object OtherUtil {
     }
 
     fun isShiftDown(): Boolean {
-        return MinecraftClient.getInstance().isShiftPressed
+        return Minecraft.getInstance().hasShiftDown()
     }
 
     private fun getItemFromJson(petJson: JsonObject): ItemStack {
         val itemId = petJson.get("itemid").asString.removePrefix("minecraft:")
-        return ItemStack(Registries.ITEM.get(Identifier.ofVanilla(itemId)))
+        return ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(itemId)))
     }
 
     private fun applyTextureToHeadItem(string: String, itemStack: ItemStack) {
@@ -136,6 +136,6 @@ object OtherUtil {
         val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf(end))
         val gameProfile = GameProfile(UUID.randomUUID(), "CustomHead")
         gameProfile.properties.put("textures", Property("textures", texture))
-        itemStack.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
+        itemStack.set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
     }
 }

@@ -1,11 +1,11 @@
 package org.nextrg.skylens.helpers
 
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.LoreComponent
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.text.Text
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ItemLore
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 
 object ItemsUtil {
     private val itemRarities = arrayOf(
@@ -22,9 +22,9 @@ object ItemsUtil {
         "ADMIN"
     )
 
-    fun getItemEnchants(data: NbtComponent): MutableList<String> {
+    fun getItemEnchants(data: CustomData): MutableList<String> {
         val itemEnchants: MutableList<String> = ArrayList(emptyList())
-        data.copyNbt().getCompound("enchantments").map { obj: NbtCompound -> obj.keys }
+        data.copyTag().getCompound("enchantments").map { obj: CompoundTag -> obj.keySet() }
             .orElse(emptySet()).forEach { e -> itemEnchants.add(e.lowercase()) }
         return itemEnchants
     }
@@ -33,7 +33,7 @@ object ItemsUtil {
         return itemRarities.any { rarity -> string.contains(rarity) }
     }
 
-    fun getItemType(lines: MutableList<Text>): String {
+    fun getItemType(lines: MutableList<Component>): String {
         var type = "other"
         for (line in lines) {
             if (hasRarity(line.toString())) {
@@ -48,11 +48,11 @@ object ItemsUtil {
         return type
     }
 
-    fun tooltipFromItemStack(stack: ItemStack): List<Text> {
-        return stack.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT).styledLines()
+    fun tooltipFromItemStack(stack: ItemStack): List<Component> {
+        return stack.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).styledLines()
     }
 
-    fun getTooltipMiddle(lines: MutableList<Text>, itemEnch: MutableList<String>): Int {
+    fun getTooltipMiddle(lines: MutableList<Component>, itemEnch: MutableList<String>): Int {
         var index = 1
         lines.forEachIndexed { i, line ->
             val lineLowercase = line.toString().lowercase()

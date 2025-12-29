@@ -4,7 +4,7 @@
   "package": "org.nextrg.skylens.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MessageHandlerMixin"
+    "ChatListenerMixin"
   ],
   "client": [
   ],

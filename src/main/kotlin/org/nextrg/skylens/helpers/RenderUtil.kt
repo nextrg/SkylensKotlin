@@ -1,8 +1,8 @@
 package org.nextrg.skylens.helpers
 
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.item.ItemStack
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.world.item.ItemStack
 
 object RenderUtil {
     data class ElementPos(
@@ -25,9 +25,9 @@ object RenderUtil {
     private val lastStates = mutableMapOf<String, String>()
 
     fun computePosition(config: ElementPos): Pair<Float, Float> {
-        val client = MinecraftClient.getInstance()
-        val screenW = client.window.scaledWidth
-        val screenH = client.window.scaledHeight
+        val client = Minecraft.getInstance()
+        val screenW = client.window.guiScaledWidth
+        val screenH = client.window.guiScaledHeight
 
         val configState = "${config.anchorKey}|$screenW|$screenH|${config.offsetX}|${config.offsetY}|${config.isBar}"
         val last = lastStates[config.anchorKey]
@@ -50,36 +50,36 @@ object RenderUtil {
     }
 
     fun getScaledWidthHeight(): Pair<Int, Int> {
-        val client = MinecraftClient.getInstance()
-        return client.window.scaledWidth to client.window.scaledHeight
+        val client = Minecraft.getInstance()
+        return client.window.guiScaledWidth to client.window.guiScaledHeight
     }
 
-    fun drawItem(context: DrawContext, item: ItemStack?, x: Float, y: Float, scale: Float) {
+    fun drawItem(guiGraphics: GuiGraphics, item: ItemStack?, x: Float, y: Float, scale: Float) {
         if (item == null || item.isEmpty) return
 
-        context.matrices.pushMatrix()
-        context.matrices.translate(x, y)
+        guiGraphics.pose().pushMatrix()
+        guiGraphics.pose().translate(x, y)
 
         val offset = 8f * (scale - 1f)
-        context.matrices.translate(-offset, -offset)
-        context.matrices.scale(scale, scale)
+        guiGraphics.pose().translate(-offset, -offset)
+        guiGraphics.pose().scale(scale, scale)
 
-        context.drawItem(item, 0, 0)
+        guiGraphics.renderItem(item, 0, 0)
 
-        context.matrices.popMatrix()
+        guiGraphics.pose().popMatrix()
     }
 
-    fun drawText(context: DrawContext, text: String?, x: Float, y: Float, color: Int, scale: Float, centered: Boolean, shadow: Boolean) {
-        val textRenderer = MinecraftClient.getInstance().textRenderer
-        val width = textRenderer.getWidth(text) * scale
+    fun drawText(guiGraphics: GuiGraphics, text: String, x: Float, y: Float, color: Int, scale: Float, centered: Boolean, shadow: Boolean) {
+        val font = Minecraft.getInstance().font
+        val width = font.width(text) * scale
         val transformX = if (centered) x - width / 2f else x
 
-        context.matrices.pushMatrix()
-        context.matrices.translate(transformX, y)
-        context.matrices.scale(scale, scale)
+        guiGraphics.pose().pushMatrix()
+        guiGraphics.pose().translate(transformX, y)
+        guiGraphics.pose().scale(scale, scale)
 
-        context.drawText(textRenderer, text, 0, 0, color, shadow)
+        guiGraphics.drawString(font, text, 0, 0, color, shadow)
 
-        context.matrices.popMatrix()
+        guiGraphics.pose().popMatrix()
     }
 }

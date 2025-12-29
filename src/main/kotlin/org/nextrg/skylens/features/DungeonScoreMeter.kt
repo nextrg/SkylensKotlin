@@ -5,10 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.ColorHelper
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.resources.Identifier
+import net.minecraft.util.ARGB
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats.dungeonScore
 import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
@@ -86,16 +86,16 @@ object DungeonScoreMeter {
         updateConfigValues()
         HudElementRegistry.attachElementAfter(
             VanillaHudElements.HOTBAR,
-            Identifier.of("skylens", "dungeon-score-meter"),
+            Identifier.fromNamespaceAndPath("skylens", "dungeon-score-meter"),
             DungeonScoreMeter::prepareRender
         )
     }
 
-    fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
+    fun prepareRender(drawContext: GuiGraphics, renderTickCounter: DeltaTracker) {
         render(drawContext)
     }
 
-    fun highlight(context: DrawContext) {
+    fun highlight(context: GuiGraphics) {
         val (x, y) = getPosition()
 
         val margin = 1
@@ -165,14 +165,14 @@ object DungeonScoreMeter {
         val (label, color) = getActiveSlice(animatedScore)
         displayLabel = label
 
-        animatedColor = ColorHelper.lerp(0.25f, animatedColor, color)
+        animatedColor = ARGB.srgbLerp(0.25f, animatedColor, color)
     }
 
     private fun getScoreString(): String {
         return "%.0f".format(animatedScore).replace(",", ".")
     }
 
-    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+    fun render(drawContext: GuiGraphics, isHudEditor: Boolean = false) {
         if (!isHudEditor && (!ModConfig.dungeonScoreMeter || transition == 0f) || !onSkyblock()) return
         getScore()
 
@@ -180,7 +180,7 @@ object DungeonScoreMeter {
         draw(drawContext, x, y)
     }
 
-    private fun draw(drawContext: DrawContext, x: Float, y: Float) {
+    private fun draw(drawContext: GuiGraphics, x: Float, y: Float) {
         // Background
         drawPie(drawContext, x, y, 1.01f, 16.5f, -1f, 0x8F000000.toInt(), 0f, 0f)
 
@@ -191,7 +191,7 @@ object DungeonScoreMeter {
         drawText(drawContext, getScoreString(), x, y + 0.5f, 0x8FFFFFFF.toInt(), 1f, true, false)
     }
 
-    private fun drawSlices(drawContext: DrawContext, x: Float, y: Float) {
+    private fun drawSlices(drawContext: GuiGraphics, x: Float, y: Float) {
         val maxScore = 305f
         val gapDegrees = 1f
         var startAngle = 0f

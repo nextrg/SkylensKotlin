@@ -1,9 +1,9 @@
 package org.nextrg.skylens.features
 
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.text.Text
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.Component
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets.isGoldenDragon
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
@@ -19,11 +19,11 @@ object CompactPetLevel {
         }
     }
 
-    private fun main(stack: ItemStack, lines: MutableList<Text>) {
+    private fun main(stack: ItemStack, lines: MutableList<Component>) {
         if (!ModConfig.compactPetLevel || !onSkyblock()) return
 
         val itemName = stack.customName?.string ?: return
-        if (stack.item != Items.PLAYER_HEAD || !itemName.contains("[Lvl ") || stack.name.siblings.size <= 1) return
+        if (stack.item != Items.PLAYER_HEAD || !itemName.contains("[Lvl ") || stack.hoverName.siblings.size <= 1) return
 
         val original = textToString(stack.customName!!)
         var level = 1; var rarity = "§7"
@@ -41,6 +41,6 @@ object CompactPetLevel {
             .replace("Lvl ", "")
 
         lines.removeFirst()
-        lines.addFirst(Text.literal(displayText))
+        lines.addFirst(Component.literal(displayText))
     }
 }

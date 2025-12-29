@@ -1,8 +1,8 @@
 package org.nextrg.skylens.mixin;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.message.MessageHandler;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.chat.ChatListener;
+import net.minecraft.network.chat.Component;
 import org.nextrg.skylens.ModConfig;
 import org.nextrg.skylens.api.PlayerStats;
 import org.spongepowered.asm.mixin.Final;
@@ -15,12 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@Mixin(value = MessageHandler.class, priority = 100)
-public abstract class MessageHandlerMixin {
-    @Shadow @Final private MinecraftClient client;
+@Mixin(value = ChatListener.class, priority = 100)
+public abstract class ChatListenerMixin {
+    @Shadow @Final private Minecraft minecraft;
     
-    @Inject(order = 500, method = "onGameMessage", at = @At("HEAD"), cancellable = true)
-    private void onGameMessage(Text text, boolean isActionBar, CallbackInfo callbackInfo) {
+    @Inject(order = 500, method = "handleSystemMessage", at = @At("HEAD"), cancellable = true)
+    private void onGameMessage(Component text, boolean isActionBar, CallbackInfo callbackInfo) {
         if (isActionBar) {
             PlayerStats.INSTANCE.readActionBar(text);
             var hidePressure = ModConfig.hidePressure;
@@ -36,7 +36,7 @@ public abstract class MessageHandlerMixin {
                 }
                 var display = String.join("     ", array);
                 callbackInfo.cancel();
-                client.inGameHud.setOverlayMessage(Text.literal(display), false);
+                minecraft.gui.setOverlayMessage(Component.literal(display), false);
             }
         }
     }

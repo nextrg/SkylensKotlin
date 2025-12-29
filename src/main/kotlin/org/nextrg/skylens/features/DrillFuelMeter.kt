@@ -5,9 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.resources.Identifier
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats.fuel
 import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
@@ -85,16 +85,16 @@ object DrillFuelMeter {
         updateConfigValues()
         HudElementRegistry.attachElementAfter(
             VanillaHudElements.HOTBAR,
-            Identifier.of("skylens", "drill-fuel-meter"),
+            Identifier.fromNamespaceAndPath("skylens", "drill-fuel-meter"),
             DrillFuelMeter::prepareRender
         )
     }
 
-    fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
+    fun prepareRender(drawContext: GuiGraphics, renderTickCounter: DeltaTracker) {
         render(drawContext)
     }
 
-    fun highlight(context: DrawContext) {
+    fun highlight(context: GuiGraphics) {
         val (x, y) = getPosition()
 
         val margin = 1
@@ -159,7 +159,7 @@ object DrillFuelMeter {
         return "$formatted%"
     }
 
-    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+    fun render(drawContext: GuiGraphics, isHudEditor: Boolean = false) {
         if (!isHudEditor && (!ModConfig.drillFuelMeter || transition == 0f) || !onSkyblock()) return
         animatedFuel += (getFuel() - animatedFuel) * 0.09f
         animatedFuel = clamp(animatedFuel, 0f, 1f)
@@ -168,7 +168,7 @@ object DrillFuelMeter {
         draw(drawContext, x, y, animatedFuel)
     }
 
-    private fun draw(drawContext: DrawContext, x: Float, y: Float, fuel: Float) {
+    private fun draw(drawContext: GuiGraphics, x: Float, y: Float, fuel: Float) {
         val width = 20f; val height = 40f
 
         // Background

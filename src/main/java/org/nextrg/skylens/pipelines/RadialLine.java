@@ -3,10 +3,10 @@ package org.nextrg.skylens.pipelines;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
-import net.minecraft.client.gl.UniformType;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexFormats;
+import com.mojang.blaze3d.shaders.UniformType;
+import earth.terrarium.olympus.client.utils.fabric.GuiGraphicsHelperImpl;
+import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import org.joml.Vector4f;
 import org.nextrg.skylens.Skylens;
 import org.nextrg.skylens.pipelines.pips.RadialLinePIPRenderer;
@@ -21,12 +21,12 @@ public class RadialLine {
             .withBlend(BlendFunction.TRANSLUCENT)
             .withFragmentShader(Skylens.Companion.id("core/radial_line"))
             .withVertexShader(Skylens.Companion.id("core/basic_transform"))
-            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .build();
     
     /**
      * Draws a line rotating around a sphere with given radius
-     * @param drawContext Context used to draw the ui element
+     * @param guiGraphics Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the circle
      * @param y Y position of <b>top</b> corner of the circle
      * @param radius Radius of the sphere where the line is rendered on
@@ -37,9 +37,9 @@ public class RadialLine {
      * @see RadialLinePIPRenderer
      * @see RadialLineUniform
      */
-    public static void draw(DrawContext drawContext, float x, float y, Vector4f color, float radius, float startAngle, float angleThickness, float fadeSoftness, float thickness, int mode) {
+    public static void draw(GuiGraphics guiGraphics, float x, float y, Vector4f color, float radius, float startAngle, float angleThickness, float fadeSoftness, float thickness, int mode) {
         RadialLinePIPRenderer.State state = new RadialLinePIPRenderer.State(
-                drawContext,
+                guiGraphics,
                 x,
                 y,
                 0xFFFFFFFF,
@@ -51,7 +51,7 @@ public class RadialLine {
                 thickness,
                 mode
         );
-        
-        GuiGraphicsHelper.submitPip(drawContext, state);
+
+        GuiGraphicsHelperImpl.submitPip(guiGraphics, state);
     }
 }

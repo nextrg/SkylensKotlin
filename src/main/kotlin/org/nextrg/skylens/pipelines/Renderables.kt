@@ -1,13 +1,13 @@
 package org.nextrg.skylens.pipelines
 
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphics
 import org.joml.Vector2f
 import org.nextrg.skylens.helpers.VariablesUtil.intToVector4f
 import org.nextrg.skylens.helpers.VariablesUtil.listToVector4fArray
 
 object Renderables {
     fun drawPie(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         progress: Float,
@@ -19,11 +19,11 @@ object Renderables {
         invert: Boolean = false,
         reverse: Boolean = false
     ) {
-        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(listOf(color)), progress, time, startAngle, invert, reverse);
+        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(listOf(color)), progress, time, startAngle, invert, reverse)
     }
 
     fun drawPieGradient(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         progress: Float,
@@ -35,11 +35,11 @@ object Renderables {
         invert: Boolean = false,
         reverse: Boolean = false
     ) {
-        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(color), progress, time, startAngle, invert, reverse);
+        CircleChart.draw(graphics, x, y, Pair(outerRadius, innerRadius), listToVector4fArray(color), progress, time, startAngle, invert, reverse)
     }
 
     fun drawLine(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         startAngle: Float,
@@ -54,7 +54,7 @@ object Renderables {
     }
 
     fun roundRectangleFloat(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         width: Float,
@@ -68,7 +68,7 @@ object Renderables {
     }
 
     fun roundGradient(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         width: Float,
@@ -84,7 +84,7 @@ object Renderables {
     }
 
     fun roundFluidContainer(
-        graphics: DrawContext,
+        graphics: GuiGraphics,
         x: Float,
         y: Float,
         width: Float,
@@ -96,6 +96,6 @@ object Renderables {
         borderRadius: Float,
         borderWidth: Float // UNUSED
     ) {
-        FluidContainer.draw(graphics, x, y, width, height, intToVector4f(color), waveDirection, Vector2f(offset.first, offset.second), borderRadius);
+        FluidContainer.draw(graphics, x, y, width, height, intToVector4f(color), waveDirection, Vector2f(offset.first, offset.second), borderRadius)
     }
 }

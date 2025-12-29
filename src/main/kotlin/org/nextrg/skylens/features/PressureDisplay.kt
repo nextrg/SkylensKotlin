@@ -5,10 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.MathHelper
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.resources.Identifier
+import net.minecraft.util.Mth
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats
 import org.nextrg.skylens.features.HudEditor.Companion.hudEditor
@@ -88,23 +88,23 @@ object PressureDisplay {
         updateConfigValues()
         HudElementRegistry.attachElementAfter(
             VanillaHudElements.HOTBAR,
-            Identifier.of("skylens", "pressure-display"),
+            Identifier.fromNamespaceAndPath("skylens", "pressure-display"),
             PressureDisplay::prepareRender
         )
     }
 
-    fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
-        render(drawContext)
+    fun prepareRender(guiGraphics: GuiGraphics, renderTickCounter: DeltaTracker) {
+        render(guiGraphics)
     }
 
-    fun highlight(context: DrawContext) {
+    fun highlight(guiGraphics: GuiGraphics) {
         val (x, y) = getPosition()
 
         val margin = 1
         val intX = x.toInt() - margin - 12
         val intY = y.toInt() - margin
 
-        context.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
+        guiGraphics.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -142,7 +142,7 @@ object PressureDisplay {
         return finalX to finalY
     }
 
-    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+    fun render(guiGraphics: GuiGraphics, isHudEditor: Boolean = false) {
         if (!isHudEditor && (!ModConfig.pressureDisplay || transition == 0f) || !onSkyblock()) return
         animatedPressure += (PlayerStats.pressure - animatedPressure) * 0.09f
         animatedPressure = clamp(animatedPressure, 0f, 1f)
@@ -151,45 +151,45 @@ object PressureDisplay {
         val max = degreesToRadians(135f + 90f - 360f)
 
         val (x, y) = getPosition()
-        draw(drawContext, x, y, MathHelper.lerp(quad(animatedPressure), min, max))
+        draw(guiGraphics, x, y, Mth.lerp(quad(animatedPressure), min, max))
     }
 
     private fun getPressureString(): String = (PlayerStats.pressure * 100).toInt().toString() + "%"
 
-    private fun draw(drawContext: DrawContext, x: Float, y: Float, value: Float) {
+    private fun draw(guiGraphics: GuiGraphics, x: Float, y: Float, value: Float) {
         val meterY = y + 8f
 
         // Background
         val bgRadius = 13f
-        drawPie(drawContext, x, meterY, 1.01f, bgRadius, 0f, color2, 0f, 0f)
-        drawPie(drawContext, x, meterY, 1.01f, bgRadius - 1f, 0f, color3, 0f, 0f)
+        drawPie(guiGraphics, x, meterY, 1.01f, bgRadius, 0f, color2, 0f, 0f)
+        drawPie(guiGraphics, x, meterY, 1.01f, bgRadius - 1f, 0f, color3, 0f, 0f)
 
         // Markers
         val markerRadius = 7.5f
-        drawMarkerLines(drawContext, x, meterY, hexTransparent(color2, lineTransparency))
-        drawPie(drawContext, x, meterY, 1.01f * 3/4, markerRadius, 0f, color2, degreesToRadians(-135f), 0f)
-        drawPie(drawContext, x, meterY, 1.01f, markerRadius - 0.675f, 0f, color3, 0f, 0f)
+        drawMarkerLines(guiGraphics, x, meterY, hexTransparent(color2, lineTransparency))
+        drawPie(guiGraphics, x, meterY, 1.01f * 3/4, markerRadius, 0f, color2, degreesToRadians(-135f), 0f)
+        drawPie(guiGraphics, x, meterY, 1.01f, markerRadius - 0.675f, 0f, color3, 0f, 0f)
 
         // Measure
         val lineRadius = 10.25f
-        drawLine(drawContext, x, meterY, value, lineRadius, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
-        drawPie(drawContext, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, 0f, color3, degreesToRadians(135f), 0f)
-        drawLine(drawContext, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
+        drawLine(guiGraphics, x, meterY, value, lineRadius, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
+        drawPie(guiGraphics, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, 0f, color3, degreesToRadians(135f), 0f)
+        drawLine(guiGraphics, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
 
         val circleRadius = 1.5f
-        drawPie(drawContext, x, meterY, 1.01f, circleRadius, 0f, color2, 0f, 0f)
+        drawPie(guiGraphics, x, meterY, 1.01f, circleRadius, 0f, color2, 0f, 0f)
 
-        drawText(drawContext, getPressureString(), x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
+        drawText(guiGraphics, getPressureString(), x, y - 14f, 0xFFFFFFFF.toInt(), 1f, true, true)
     }
 
-    private fun drawMarkerLines(drawContext: DrawContext, x: Float, y: Float, color: Int) {
+    private fun drawMarkerLines(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int) {
         val steps = 8
         for (i in 0..steps) {
             val last = i == steps
             val lineColor = if (!last) color else 0xFF993333.toInt()
             val boldness = (if (!last) 0.1f else 0.5f)
-            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
-            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
+            drawLine(guiGraphics, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
+            drawLine(guiGraphics, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
         }
     }
 }

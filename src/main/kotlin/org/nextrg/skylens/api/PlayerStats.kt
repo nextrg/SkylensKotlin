@@ -2,10 +2,10 @@ package org.nextrg.skylens.api
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.fluid.Fluids
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.features.DrillFuelMeter
 import org.nextrg.skylens.features.DungeonScoreMeter
@@ -45,7 +45,7 @@ object PlayerStats {
         })
     }
 
-    private fun checkDungeon(player: ClientPlayerEntity) {
+    private fun checkDungeon(player: LocalPlayer) {
         val scoreboardData = getScoreboardData(player)
         val inDungeon = scoreboardData.toString().contains("The Catacombs")
 
@@ -72,8 +72,8 @@ object PlayerStats {
         wasInDungeon = inDungeon
     }
 
-    private fun checkInWater(player: ClientPlayerEntity) {
-        val inWater = player.entityWorld.getFluidState(player.blockPos).fluid == Fluids.WATER
+    private fun checkInWater(player: LocalPlayer) {
+        val inWater = player.level().getFluidState(player.blockPosition()).type == Fluids.WATER
         val showAt = ModConfig.pressureDisplayShowAt
 
         if (!inWater) {
@@ -89,11 +89,11 @@ object PlayerStats {
         wasInWater = inWater && pressure >= showAt
     }
 
-    private fun updateHealth(player: ClientPlayerEntity) {
+    private fun updateHealth(player: LocalPlayer) {
         health = player.health / player.maxHealth
     }
 
-    fun readActionBar(text: Text) {
+    fun readActionBar(text: Component) {
         val string = text.string
         if (string.contains("Pressure:")) {
             val matcher = PRESSURE_PATTERN.matcher(string)
@@ -102,7 +102,7 @@ object PlayerStats {
             }
         }
         if (string.contains("Drill Fuel")) {
-            val noFormatting = Formatting.strip(string)
+            val noFormatting = ChatFormatting.stripFormatting(string)
             val matcher = DRILL_FUEL_PATTERN.matcher(noFormatting.toString()
                 .replace(",", ""))
             if (matcher.find()) {
@@ -114,9 +114,9 @@ object PlayerStats {
         }
     }
 
-    private fun messageEvents(message: Text) {
+    private fun messageEvents(message: Component) {
         val string = message.string
-        val content = Formatting.strip(string).toString()
+        val content = ChatFormatting.stripFormatting(string).toString()
         if (content.contains("You fainted from pressure")) {
             pressure = 0f
         }

@@ -1,12 +1,12 @@
 package org.nextrg.skylens.features
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.input.KeyInput
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.network.chat.Component
 import org.joml.Math.clamp
 import org.lwjgl.glfw.GLFW
 import org.nextrg.skylens.ModConfig
@@ -15,7 +15,7 @@ import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.RenderUtil.getScaledWidthHeight
 import java.util.regex.Pattern
 
-class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEditor")) : Screen(title) {
+class HudEditor(private var parent: Screen?, title: Component = Component.literal("HudEditor")) : Screen(title) {
     private val ANCHOR_PATTERN: Pattern = Pattern.compile("(Left|Right|Middle)")
     private var petOverlayHovered: Boolean = false
     private var pressureDisplayHovered: Boolean = false
@@ -26,9 +26,9 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
     override fun init() {}
 
-    override fun keyPressed(input: KeyInput): Boolean {
+    override fun keyPressed(input: KeyEvent): Boolean {
         var move = features.indexOf(currentFeature)
-        when (input.keycode) {
+        when (input.input()) {
             GLFW.GLFW_KEY_A -> move = if (move - 1 < 0) features.size - 1 else move - 1
             GLFW.GLFW_KEY_D -> move = (move + 1) % features.size
         }
@@ -37,7 +37,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return super.keyPressed(input)
     }
 
-    override fun render(context: DrawContext, mouseX: Int, mouseY: Int, deltaTicks: Float) {
+    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         super.render(context, mouseX, mouseY, deltaTicks)
         this.currentFeature = companionFeature
 
@@ -62,7 +62,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         }
     }
 
-    private fun drawHotbar(context: DrawContext) {
+    private fun drawHotbar(context: GuiGraphics) {
         val (screenX, screenY) = getScaledWidthHeight()
         val width = 182
         val height = 22
@@ -70,12 +70,12 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         val y = screenY - height
         context.fill(x, y, x + width, y + height, 0x2a000000)
         context.fillGradient(x, y, x + width, y + height, 0, 0xBA000000.toInt())
-        drawText(context, "Hotbar", x.toFloat() + width / 2, y.toFloat() + height / 2 - textRenderer.fontHeight / 2, 0x99FFFFFF.toInt(), 1.0f, true, false)
+        drawText(context, "Hotbar", x.toFloat() + width / 2, y.toFloat() + height / 2 - font.lineHeight / 2, 0x99FFFFFF.toInt(), 1.0f, true, false)
     }
 
-    private fun drawTextInfo(context: DrawContext) {
+    private fun drawTextInfo(context: GuiGraphics) {
         val (screenX, screenY) = getScaledWidthHeight()
-        val line = textRenderer.fontHeight + 2
+        val line = font.lineHeight + 2
 
         val empty = currentFeature == ""
         var displayX = 0; var displayY = 0; var anchorSource = ""
@@ -146,7 +146,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return dx in left..right && dy in top..bottom
     }
 
-    override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+    override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean): Boolean {
         val mouseX = click.x
         val mouseY = click.y
         val button = click.button()
@@ -189,7 +189,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return super.mouseClicked(click, doubled)
     }
 
-    override fun mouseDragged(click: Click, mouseX: Double, mouseY: Double): Boolean {
+    override fun mouseDragged(click: MouseButtonEvent, mouseX: Double, mouseY: Double): Boolean {
         val mouseX = click.x
         val mouseY = click.y
         if (petOverlayHovered) {
@@ -207,7 +207,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         return super.mouseDragged(click, mouseX, mouseY)
     }
 
-    override fun mouseReleased(click: Click): Boolean {
+    override fun mouseReleased(click: MouseButtonEvent): Boolean {
         val mouseX = click.x
         val mouseY = click.y
         if (petOverlayHovered) {
@@ -300,11 +300,11 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         }
     }
 
-    override fun close() {
+    override fun onClose() {
         ModConfig.get().update()
         hudEditor = false
         val open = booleanArrayOf(false)
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
+        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: Minecraft ->
             if (!open[0]) {
                 open[0] = true
                 client.setScreen(parent)
@@ -320,7 +320,7 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
         fun openScreen(screen: Screen?, name: String) {
             hudEditor = true
             val open = booleanArrayOf(false)
-            ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
+            ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: Minecraft ->
                 if (!open[0]) {
                     open[0] = true
                     client.setScreen(HudEditor(screen))

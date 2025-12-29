@@ -2,9 +2,9 @@ package org.nextrg.skylens.features
 
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.resources.Identifier
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
@@ -20,16 +20,16 @@ object LowHpIndicator {
     fun prepare() {
         HudElementRegistry.attachElementBefore(
             VanillaHudElements.CROSSHAIR,
-            Identifier.of("skylens", "low-hp-indicator"),
+            Identifier.fromNamespaceAndPath("skylens", "low-hp-indicator"),
             LowHpIndicator::prepareRender
         )
     }
 
-    fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
-        render(drawContext)
+    fun prepareRender(guiGraphics: GuiGraphics, renderTickCounter: DeltaTracker) {
+        render(guiGraphics)
     }
 
-    private fun render(drawContext: DrawContext) {
+    private fun render(guiGraphics: GuiGraphics) {
         if (!onSkyblock() || !ModConfig.lowHpIndicator) return
 
         animatedHealth += (PlayerStats.health - animatedHealth) * 0.09f
@@ -48,7 +48,7 @@ object LowHpIndicator {
         val color2 = hexTransparent(COLOR, finalAlpha / 3)
 
         for (direction in 0..1) {
-            roundGradient(drawContext, 0f, 0f, screenX.toFloat(), screenY.toFloat(),
+            roundGradient(guiGraphics, 0f, 0f, screenX.toFloat(), screenY.toFloat(),
                 mutableListOf(color1, color2), direction, 0f, 0, 0f, 0f)
         }
     }

@@ -4,16 +4,16 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
-import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -23,28 +23,28 @@ import org.nextrg.skylens.pipelines.uniforms.FluidContainerUniform;
 
 import java.util.function.Function;
 
-public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidContainerPIPRenderer.State> {
+public class FluidContainerPIPRenderer extends PictureInPictureRenderer<FluidContainerPIPRenderer.State> {
     private State lastState;
     
-    public FluidContainerPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
+    public FluidContainerPIPRenderer(MultiBufferSource.BufferSource bufferSource) {
         super(bufferSource);
     }
     
     @Override
-    public @NotNull Class<State> getElementClass() {
+    public @NotNull Class<State> getRenderStateClass() {
         return State.class;
     }
     
     @Override
-    protected boolean shouldBypassScaling(State state) {
+    protected boolean textureIsReadyToBlit(State state) {
         return lastState != null && lastState.equals(state);
     }
     
-    protected void render(State state, MatrixStack stack) {
-        final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+    protected void renderToTexture(State state, PoseStack pose) {
+        final float scale = Minecraft.getInstance().getWindow().getGuiScale();
         final float paddedX = 4f * scale;
-        final float scaledWidth = (state.x1 - state.x0) * scale;
-        final float scaledHeight = (state.y1 - state.y0) * scale;
+        final float scaledWidth = (state.x0 - state.x0) * scale;
+        final float scaledHeight = (state.y0 - state.y0) * scale;
 
         final Vector2f size = new Vector2f(scaledWidth - paddedX, scaledHeight - paddedX);
         final float offsetX = (state.fx - 2.0f - state.x0) * scale;
@@ -53,15 +53,15 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
         
         Vector4f radius = new Vector4f(state.borderRadius);
         
-        BufferBuilder buffer = Tessellator.getInstance()
-                .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance()
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
-        buffer.vertex(0.0f, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, 0.0f, 0.0f).color(state.color());
+        buffer.addVertex(0.0f, 0.0f, 0.0f).setColor(state.color());
+        buffer.addVertex(0.0f, scaledHeight, 0.0f).setColor(state.color());
+        buffer.addVertex(scaledWidth, scaledHeight, 0.0f).setColor(state.color());
+        buffer.addVertex(scaledWidth, 0.0f, 0.0f).setColor(state.color());
         
-        PipelineRenderer.builder(FluidContainer.PIPELINE, buffer.end())
+        PipelineRenderer.builder(FluidContainer.PIPELINE, buffer.buildOrThrow())
                 .uniform(FluidContainerUniform.STORAGE,
                         FluidContainerUniform.of(
                                 state.fillColor,
@@ -76,7 +76,7 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
         this.lastState = state;
     }
     
-    protected @NotNull String getName() {
+    protected @NotNull String getTextureLabel() {
         return "skylens_fluid_container";
     }
     
@@ -91,11 +91,11 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
             float fx,
             float fy,
             Matrix3x2f pose,
-            ScreenRect scissorArea,
-            ScreenRect bounds
+            ScreenRectangle scissorArea,
+            ScreenRectangle bounds
     ) implements OlympusPictureInPictureRenderState<State> {
         public State(
-                DrawContext graphics,
+                GuiGraphics graphics,
                 float x,
                 float y,
                 float width,
@@ -117,9 +117,9 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
                     borderRadius,
                     x,
                     y,
-                    new Matrix3x2f(graphics.getMatrices()),
+                    new Matrix3x2f(graphics.pose()),
                     GuiGraphicsHelper.getLastScissor(graphics),
-                    SpecialGuiElementRenderState.createBounds(
+                    PictureInPictureRenderState.getBounds(
                             (int)Math.floor(x - 2.0),
                             (int)Math.floor(y - 2.0),
                             (int)Math.ceil(x + width + 2.0),
@@ -133,23 +133,23 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
             return 1.0f;
         }
         
-        public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {
+        public Function<MultiBufferSource.BufferSource, PictureInPictureRenderer<State>> getFactory() {
             return FluidContainerPIPRenderer::new;
         }
-        
-        public int x1() {
+
+        public int x0() {
             return this.x0;
         }
-        
-        public int y1() {
+
+        public int y0() {
             return this.y0;
         }
-        
-        public int x2() {
+
+        public int x1() {
             return this.x1;
         }
-        
-        public int y2() {
+
+        public int y1() {
             return this.y1;
         }
         
@@ -165,11 +165,11 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
             return this.pose;
         }
         
-        public ScreenRect scissorArea() {
+        public ScreenRectangle scissorArea() {
             return this.scissorArea;
         }
         
-        public ScreenRect bounds() {
+        public ScreenRectangle bounds() {
             return this.bounds;
         }
     }

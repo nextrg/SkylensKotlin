@@ -8,8 +8,8 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
-import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.util.Identifier
+import net.minecraft.commands.CommandBuildContext
+import net.minecraft.resources.Identifier
 import org.nextrg.skylens.ModConfig.openConfig
 import org.nextrg.skylens.api.Pets
 import org.nextrg.skylens.api.PlayerStats
@@ -52,12 +52,12 @@ class Skylens : ClientModInitializer {
             mod = FabricLoader.getInstance().getModContainer("skylens").get()
         }
 
-        fun id(path: String?): Identifier {
-            return Identifier.of(mod?.metadata?.id ?: "", path)
+        fun id(path: String): Identifier {
+            return Identifier.fromNamespaceAndPath(mod?.metadata?.id ?: "", path)
         }
 
         fun registerCommands() {
-            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, registryAccess: CommandRegistryAccess ->
+            ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, registryAccess: CommandBuildContext ->
                 dispatcher.register(
                     ClientCommandManager.literal("skylens")
                         .executes {

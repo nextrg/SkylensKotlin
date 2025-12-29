@@ -3,10 +3,10 @@ package org.nextrg.skylens.pipelines;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
-import net.minecraft.client.gl.UniformType;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexFormats;
+import com.mojang.blaze3d.shaders.UniformType;
+import earth.terrarium.olympus.client.utils.fabric.GuiGraphicsHelperImpl;
+import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.nextrg.skylens.Skylens;
@@ -22,12 +22,12 @@ public class FluidContainer {
             .withBlend(BlendFunction.TRANSLUCENT)
             .withFragmentShader(Skylens.Companion.id("core/fluid_container"))
             .withVertexShader(Skylens.Companion.id("core/basic_transform"))
-            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .build();
     
     /**
      * Draws a fake fluid simulation in a 2D rectangle with rounded corners.
-     * @param drawContext Context used to draw the ui element
+     * @param guiGraphics Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the rectangle
      * @param y Y position of <b>top</b> corner of the rectangle
      * @param fillColor Color of the fluid
@@ -38,9 +38,9 @@ public class FluidContainer {
      * @see FluidContainerUniform
      * @see FluidContainerPIPRenderer
      */
-    public static void draw(DrawContext drawContext, float x, float y, float width, float height, Vector4f fillColor, int waveDirection, Vector2f offset, float borderRadius) {
+    public static void draw(GuiGraphics guiGraphics, float x, float y, float width, float height, Vector4f fillColor, int waveDirection, Vector2f offset, float borderRadius) {
         FluidContainerPIPRenderer.State state = new FluidContainerPIPRenderer.State(
-                drawContext,
+                guiGraphics,
                 x, y,
                 width, height,
                 0xFFFFFFFF,
@@ -49,7 +49,7 @@ public class FluidContainer {
                 offset,
                 borderRadius
         );
-        
-        GuiGraphicsHelper.submitPip(drawContext, state);
+
+        GuiGraphicsHelperImpl.submitPip(guiGraphics, state);
     }
 }

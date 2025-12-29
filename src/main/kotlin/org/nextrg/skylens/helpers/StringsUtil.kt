@@ -1,6 +1,6 @@
 package org.nextrg.skylens.helpers
 
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 object StringsUtil {
     fun codeFromName(input: String): String {
@@ -75,7 +75,7 @@ object StringsUtil {
             }
     }
 
-    fun textToString(text: Text): String {
+    fun textToString(text: Component): String {
         var name = ""
         for (sibling in text.siblings) {
             name += codeFromName(sibling.style.color.toString()) + sibling.string

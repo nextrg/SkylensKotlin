@@ -3,11 +3,11 @@ package org.nextrg.skylens.features
 import kotlinx.coroutines.*
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.resources.Identifier
 import net.minecraft.util.Util
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets.getCurrentPet
@@ -191,16 +191,16 @@ object PetOverlay {
         updateTheme()
         HudElementRegistry.attachElementAfter(
             VanillaHudElements.HOTBAR,
-            Identifier.of("skylens", "pet-overlay"),
+            Identifier.fromNamespaceAndPath("skylens", "pet-overlay"),
             PetOverlay::prepareRender
         )
     }
 
-    private fun prepareRender(drawContext: DrawContext, renderTickCounter: RenderTickCounter) {
+    private fun prepareRender(drawContext: GuiGraphics, renderTickCounter: DeltaTracker) {
         render(drawContext)
     }
 
-    fun highlight(context: DrawContext) {
+    fun highlight(context: GuiGraphics) {
         val (x, y) = getPosition()
 
         val margin = 1
@@ -248,7 +248,7 @@ object PetOverlay {
     }
 
     fun getIdleProgress(time: Double = 1700.0): Float {
-        return (Util.getMeasuringTimeMs() / time).toFloat() % 1
+        return (Util.getMillis() / time).toFloat() % 1
     }
 
     fun updateConfigValues() {
@@ -292,7 +292,7 @@ object PetOverlay {
         }
     }
 
-    fun render(drawContext: DrawContext, isHudEditor: Boolean = false) {
+    fun render(guiGraphics: GuiGraphics, isHudEditor: Boolean = false) {
         if (!isHudEditor && (!ModConfig.petOverlay || transition == 0f) || !onSkyblock()) return
 
         val (x, y) = getPosition()
@@ -309,14 +309,14 @@ object PetOverlay {
         }
 
         if (isBarType) {
-            renderBars(drawContext, x, yO, color1, color2, color3)
+            renderBars(guiGraphics, x, yO, color1, color2, color3)
         } else {
-            renderCircles(drawContext, x, yO, color1, color2, color3)
+            renderCircles(guiGraphics, x, yO, color1, color2, color3)
         }
-        renderText(drawContext, x, yO, textColor)
+        renderText(guiGraphics, x, yO, textColor)
     }
 
-    private fun renderText(drawContext: DrawContext, x: Float, y: Float, color: Int) {
+    private fun renderText(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int) {
         val isLevelMax = level == maxLevel
 
         val iconX = x + 3 + (if (!isBarType) 1 else 0) + if (isBarType && flipped) 29 else 0
@@ -329,30 +329,30 @@ object PetOverlay {
         if (!isLevelMax) {
             val displayXp = String.format(Locale.US, (if (animatedXp >= 0.1) "%.1f%%" else "%.2f%%"), animatedXp * 100)
             val levelTextY = textY - (3 * animatedLevelUp)
-            drawText(drawContext, displayXp, textX, levelTextY,
+            drawText(guiGraphics, displayXp, textX, levelTextY,
                 hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
                 1f, true, true)
-            drawText(drawContext, "LV UP", textX, levelTextY,
+            drawText(guiGraphics, "LV UP", textX, levelTextY,
                 hexTransparent(color, 10.coerceAtLeast((animatedLevelUp * 255).toInt())),
                 1f, true, true)
         }
 
-        drawText(drawContext, displayLevel, textX - if (isLevelMax) 0.5f else 0f, textY - 6 + if (isLevelMax) 3.5f else 0f,
+        drawText(guiGraphics, displayLevel, textX - if (isLevelMax) 0.5f else 0f, textY - 6 + if (isLevelMax) 3.5f else 0f,
             hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
         val isPlayerHead = heldItem.itemName.toString().contains("player_head")
-        drawItem(drawContext, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, 1.1f * if (hudEditor) 1f else transition)
+        drawItem(guiGraphics, currentPet, iconX, iconY + if (!isBarType && showItem && isPlayerHead) 2 else 0, 1.1f * if (hudEditor) 1f else transition)
         if (showItem) {
             val offsetX = if (isPlayerHead) 0 else 7
             val offsetY = -3 - (if (isBarType) 2 else 0) + (if (isPlayerHead) 0 else 8)
             val scale = 0.8f - if (isPlayerHead) 0f else 0.3f
 
-            drawItem(drawContext, heldItem, iconX + offsetX, iconY + offsetY, scale)
+            drawItem(guiGraphics, heldItem, iconX + offsetX, iconY + offsetY, scale)
         }
     }
 
-    private fun renderBars(drawContext: DrawContext, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
+    private fun renderBars(guiGraphics: GuiGraphics, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
             /*legacyRoundRectangle(
@@ -362,85 +362,85 @@ object PetOverlay {
             )*/
         }
 
-        renderBarBg(drawContext, x, y, color3, idleProgress)
-        renderBarLevel(drawContext, x, y, color2, idleProgress)
-        renderBarXp(drawContext, x, y, color1, idleProgress)
+        renderBarBg(guiGraphics, x, y, color3, idleProgress)
+        renderBarLevel(guiGraphics, x, y, color2, idleProgress)
+        renderBarXp(guiGraphics, x, y, color1, idleProgress)
     }
 
-    private fun renderCircles(drawContext: DrawContext, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
+    private fun renderCircles(guiGraphics: GuiGraphics, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
             val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
-            drawPie(drawContext, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, 0f, color, 0f, 0f)
+            drawPie(guiGraphics, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, 0f, color, 0f, 0f)
         }
 
-        renderCircleBg(drawContext, x + 12f, y - 4f, color3, idleProgress)
-        renderCircleLevel(drawContext, x + 12f, y - 4f, color2, idleProgress)
-        renderCircleXp(drawContext, x + 12f, y - 4f, color1, idleProgress)
+        renderCircleBg(guiGraphics, x + 12f, y - 4f, color3, idleProgress)
+        renderCircleLevel(guiGraphics, x + 12f, y - 4f, color2, idleProgress)
+        renderCircleXp(guiGraphics, x + 12f, y - 4f, color1, idleProgress)
     }
 
-    private fun renderCircleBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleBg(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val radius = 12.54f
         val progress = 1f
         if (!rainbowBg) {
-            drawPie(drawContext, x, y, progress, radius, 0f, color, 0f, 0f)
+            drawPie(guiGraphics, x, y, progress, radius, 0f, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, radius, 0f, getRainbow(8, 0.3f), 0f, idleProgress)
+            drawPieGradient(guiGraphics, x, y, progress, radius, 0f, getRainbow(8, 0.3f), 0f, idleProgress)
         }
     }
 
-    private fun renderCircleLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleLevel(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 12.5f
         val innerRadius = outerRadius - 2.96f
         val progress = animatedLevelProgress
         if (!rainbowLevel) {
-            drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
+            drawPie(guiGraphics, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
+            drawPieGradient(guiGraphics, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
         }
     }
 
-    private fun renderCircleXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderCircleXp(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val outerRadius = 10.33f - if (altStyle) 1.33f else 0f
         val innerRadius = 0f
         val progress = animatedXp
         if (!rainbowXp) {
-            drawPie(drawContext, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
+            drawPie(guiGraphics, x, y, progress, outerRadius, innerRadius, color, 0f, 0f)
         } else {
-            drawPieGradient(drawContext, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
+            drawPieGradient(guiGraphics, x, y, progress, outerRadius, innerRadius, getRainbow(8), 0f, idleProgress)
         }
     }
 
-    private fun renderBarBg(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderBarBg(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 2.5f else 4.5f
         val width = 51f
         val height = 8f
         if (!rainbowBg) {
-            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
+            roundRectangleFloat(guiGraphics, x, y, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x, y, width, height, getRainbow(8, 0.15f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(guiGraphics, x, y, width, height, getRainbow(8, 0.15f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 
-    private fun renderBarLevel(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderBarLevel(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 2.5f else 4.5f
         val width = max(8f, (51f * animatedLevelProgress))
         val height = 8f
         if (!rainbowLevel) {
-            roundRectangleFloat(drawContext, x, y, width, height, color, 0, borderRadius, 0f)
+            roundRectangleFloat(guiGraphics, x, y, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x, y, width, height, getRainbow(8, 1f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(guiGraphics, x, y, width, height, getRainbow(8, 1f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 
-    private fun renderBarXp(drawContext: DrawContext, x: Float, y: Float, color: Int, idleProgress: Float) {
+    private fun renderBarXp(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
         val borderRadius = if (altStyle) 1.5f else 2.5f
         val width = max(2f, (47f * animatedXp))
         val height = 4f
         if (!rainbowXp) {
-            roundRectangleFloat(drawContext, x + 2, y + 2, width, height, color, 0, borderRadius, 0f)
+            roundRectangleFloat(guiGraphics, x + 2, y + 2, width, height, color, 0, borderRadius, 0f)
         } else {
-            roundGradient(drawContext, x + 2, y + 2, width, height, getRainbow(8, 0.5f), 2, idleProgress, 0, borderRadius, 0f)
+            roundGradient(guiGraphics, x + 2, y + 2, width, height, getRainbow(8, 0.5f), 2, idleProgress, 0, borderRadius, 0f)
         }
     }
 }

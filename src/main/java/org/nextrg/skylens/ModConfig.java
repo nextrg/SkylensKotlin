@@ -10,10 +10,10 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.nextrg.skylens.features.*;
 import org.nextrg.skylens.helpers.StringsUtil;
 
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 public class ModConfig implements ModMenuApi {
     public static ConfigClassHandler<ModConfig> HANDLER = ConfigClassHandler.createBuilder(ModConfig.class)
-            .id(Identifier.of("skylens"))
+            .id(Identifier.parse("skylens"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
                     .setPath(FabricLoader.getInstance().getConfigDir().resolve("skylens.json5"))
                     .appendGsonBuilder(GsonBuilder::setPrettyPrinting)
@@ -32,13 +32,13 @@ public class ModConfig implements ModMenuApi {
                     .build())
             .build();
     
-    public static Text title() {
+    public static Component title() {
         var aprilFools = LocalDate.now().getMonthValue() == 4 && LocalDate.now().getDayOfMonth() == 1;
-        return Text.literal((aprilFools ? "Skibidi" : "Sky") + "lens");
+        return Component.literal((aprilFools ? "Skibidi" : "Sky") + "lens");
     }
     
     public static LabelOption label(String string) {
-        return LabelOption.create(Text.literal(string));
+        return LabelOption.create(Component.literal(string));
     }
     
     public enum Anchor implements NameableEnum {
@@ -52,8 +52,8 @@ public class ModConfig implements ModMenuApi {
         BottomMiddle;
         
         @Override
-        public Text getDisplayName() {
-            return Text.literal(name()
+        public Component getDisplayName() {
+            return Component.literal(name()
                     .replace("Left", " Left")
                     .replace("Right", " Right")
                     .replace("Middle", " Middle"));
@@ -67,8 +67,8 @@ public class ModConfig implements ModMenuApi {
         CircularALT;
         
         @Override
-        public Text getDisplayName() {
-            return Text.literal(name()
+        public Component getDisplayName() {
+            return Component.literal(name()
                     .replace("ALT", " (alt)"));
         }
     }
@@ -86,36 +86,36 @@ public class ModConfig implements ModMenuApi {
         Common;
         
         @Override
-        public Text getDisplayName() {
-            return Text.literal(StringsUtil.INSTANCE.codeFromName(name().toLowerCase()) + name()
+        public Component getDisplayName() {
+            return Component.literal(StringsUtil.INSTANCE.codeFromName(name().toLowerCase()) + name()
                     .replace("Pet", "Pet Rarity"));
         }
     }
     
     private static Option<Boolean> createBooleanEnableOption(Boolean value, Supplier<Boolean> getter, Consumer<Boolean> setter) {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal("Enable"))
+                .name(Component.literal("Enable"))
                 .binding(value, getter, setter)
                 .controller(opt -> BooleanControllerBuilder.create(opt)
-                        .formatValue(val -> val ? Text.literal("Yes") : Text.literal("No"))
+                        .formatValue(val -> val ? Component.literal("Yes") : Component.literal("No"))
                         .coloured(true))
                 .build();
     }
     
     private static Option<Boolean> createBooleanOption(Boolean value, String name, String description, Supplier<Boolean> getter, Consumer<Boolean> setter) {
         return Option.<Boolean>createBuilder()
-                .name(Text.literal(name))
-                .description(OptionDescription.of(Text.literal(description)))
+                .name(Component.literal(name))
+                .description(OptionDescription.of(Component.literal(description)))
                 .binding(value, getter, setter)
                 .controller(opt -> BooleanControllerBuilder.create(opt)
-                        .formatValue(val -> val ? Text.literal("Yes") : Text.literal("No"))
+                        .formatValue(val -> val ? Component.literal("Yes") : Component.literal("No"))
                         .coloured(true))
                 .build();
     }
     
     private static Option<Color> createColorOption(Color color, String type, Supplier<Color> getter, Consumer<Color> setter) {
         return Option.<Color>createBuilder()
-                .name(Text.literal(type + " Color"))
+                .name(Component.literal(type + " Color"))
                 .binding(color, getter, setter)
                 .controller(opt -> ColorControllerBuilder.create(opt)
                         .allowAlpha(true))
@@ -222,14 +222,14 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup petOverlayGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Pet Overlay"))
-                .description(OptionDescription.of(Text.literal("Displays the progress to max level and next level of current pet.")))
+                .name(Component.literal("Pet Overlay"))
+                .description(OptionDescription.of(Component.literal("Displays the progress to max level and next level of current pet.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(petOverlay, () -> petOverlay, newValue -> petOverlay = newValue))
                 
                 .option(label("Styling"))
                 .option(Option.<Type>createBuilder()
-                        .name(Text.literal("Type"))
+                        .name(Component.literal("Type"))
                         .binding(
                                 Type.Bar,
                                 () -> petOverlayType,
@@ -244,20 +244,20 @@ public class ModConfig implements ModMenuApi {
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
-                        .name(Text.literal("Anchor"))
-                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .name(Component.literal("Anchor"))
+                        .description(OptionDescription.of(Component.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> petOverlayAnchor, newValue -> petOverlayAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
-                        .name(Text.literal("Open HUD Editor"))
-                        .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Pet Overlay"))
+                        .name(Component.literal("Open HUD Editor"))
+                        .text(Component.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(Minecraft.getInstance().screen, "Pet Overlay"))
                         .build())
                 
                 .option(label("Themes"))
                 .option(Option.<PetOverlayTheme>createBuilder()
-                        .name(Text.literal("Theme"))
+                        .name(Component.literal("Theme"))
                         .binding(PetOverlayTheme.Pet, () -> petOverlayTheme, newVal -> petOverlayTheme = newVal)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(PetOverlayTheme.class))
                         .build())
@@ -280,40 +280,40 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup pressureDisplayGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Pressure Display"))
-                .description(OptionDescription.of(Text.literal("Displays the pressure percentage caused by waters in Galatea.")))
+                .name(Component.literal("Pressure Display"))
+                .description(OptionDescription.of(Component.literal("Displays the pressure percentage caused by waters in Galatea.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(pressureDisplay, () -> pressureDisplay, newValue -> pressureDisplay = newValue))
                 .option(Option.<Float>createBuilder()
-                        .name(Text.literal("Show at"))
+                        .name(Component.literal("Show at"))
                         .binding(0.05f, () -> pressureDisplayShowAt, newVal -> pressureDisplayShowAt = newVal)
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                 .range(0.01f, 0.99f)
                                 .step(0.01f)
-                                .formatValue(val -> Text.literal(String.format("❍ %d%% Pressure", Math.round(val * 100))).withColor(0xFFB5B5F4)))
+                                .formatValue(val -> Component.literal(String.format("❍ %d%% Pressure", Math.round(val * 100))).withColor(0xFFB5B5F4)))
                         .build())
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
-                        .name(Text.literal("Anchor"))
-                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .name(Component.literal("Anchor"))
+                        .description(OptionDescription.of(Component.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> pressureDisplayAnchor, newValue -> pressureDisplayAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
-                        .name(Text.literal("Open HUD Editor"))
-                        .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Pressure Display"))
+                        .name(Component.literal("Open HUD Editor"))
+                        .text(Component.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(Minecraft.getInstance().screen, "Pressure Display"))
                         .build())
                 
                 .option(label("Themes"))
                 .option(Option.<Integer>createBuilder()
-                        .name(Text.literal("Theme"))
+                        .name(Component.literal("Theme"))
                         .binding(0, () -> pressureDisplayTheme, newVal -> pressureDisplayTheme = newVal)
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                 .range(0, 1)
                                 .step(1)
-                                .formatValue(val -> Text.literal(switch(val) {
+                                .formatValue(val -> Component.literal(switch(val) {
                                     case 1 -> "\uD83C\uDF51 Peach"; default -> "\uD83C\uDF03 Nighttime";
                                 }).withColor(switch(val) {
                                     case 1 -> new Color(255, 193, 124).getRGB(); default -> new Color(147, 156, 177).getRGB();
@@ -324,32 +324,32 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup drillFuelMeterGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Drill Fuel Meter"))
-                .description(OptionDescription.of(Text.literal("Displays the current value of fuel in the drill.")))
+                .name(Component.literal("Drill Fuel Meter"))
+                .description(OptionDescription.of(Component.literal("Displays the current value of fuel in the drill.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(drillFuelMeter, () -> drillFuelMeter, newValue -> drillFuelMeter = newValue))
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
-                        .name(Text.literal("Anchor"))
-                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .name(Component.literal("Anchor"))
+                        .description(OptionDescription.of(Component.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> drillFuelMeterAnchor, newValue -> drillFuelMeterAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
-                        .name(Text.literal("Open HUD Editor"))
-                        .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Drill Fuel Meter"))
+                        .name(Component.literal("Open HUD Editor"))
+                        .text(Component.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(Minecraft.getInstance().screen, "Drill Fuel Meter"))
                         .build())
                 
                 .option(label("Themes"))
                 .option(Option.<Integer>createBuilder()
-                        .name(Text.literal("Theme"))
+                        .name(Component.literal("Theme"))
                         .binding(0, () -> drillFuelMeterTheme, newVal -> drillFuelMeterTheme = newVal)
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                 .range(0, 1)
                                 .step(1)
-                                .formatValue(val -> Text.literal(switch(val) {
+                                .formatValue(val -> Component.literal(switch(val) {
                                     case 1 -> "✨ Mithril"; default -> "♻ Biofuel";
                                 }).withColor(switch(val) {
                                     case 1 -> new Color(159, 187, 207).getRGB(); default -> new Color(140, 255, 144).getRGB();
@@ -360,44 +360,44 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup dungeonScoreMeterGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Dungeon Score Meter"))
-                .description(OptionDescription.of(Text.literal("")))
+                .name(Component.literal("Dungeon Score Meter"))
+                .description(OptionDescription.of(Component.literal("")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(dungeonScoreMeter, () -> dungeonScoreMeter, newValue -> dungeonScoreMeter = newValue))
                 
                 .option(label("Position"))
                 .option(Option.<Anchor>createBuilder()
-                        .name(Text.literal("Anchor"))
-                        .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
+                        .name(Component.literal("Anchor"))
+                        .description(OptionDescription.of(Component.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> dungeonScoreMeterAnchor, newValue -> dungeonScoreMeterAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
                 .option(ButtonOption.createBuilder()
-                        .name(Text.literal("Open HUD Editor"))
-                        .text(Text.literal("→"))
-                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(MinecraftClient.getInstance().currentScreen, "Dungeon Score Meter"))
+                        .name(Component.literal("Open HUD Editor"))
+                        .text(Component.literal("→"))
+                        .action((yaclScreen, thisOption) -> HudEditor.Companion.openScreen(Minecraft.getInstance().screen, "Dungeon Score Meter"))
                         .build())
         
                 .option(label("Themes"))
                 .option(Option.<Integer>createBuilder()
-                        .name(Text.literal("Theme"))
+                        .name(Component.literal("Theme"))
                         .binding(0, () -> dungeonScoreMeterTheme, newVal -> dungeonScoreMeterTheme = newVal)
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                 .range(0, 1)
                                 .step(1)
-                                .formatValue(val -> Text.literal(switch(val) {
+                                .formatValue(val -> Component.literal(switch(val) {
                                     case 1 -> "Gradient"; default -> "Rank";
                                 })))
                         .build())
                 .option(createColorOption(new Color(111, 152, 150), "Gradient 1st", () -> dungeonScoreMeterColor1, newValue -> dungeonScoreMeterColor1 = newValue))
                 .option(createColorOption(new Color(166, 219, 131), "Gradient 2nd", () -> dungeonScoreMeterColor2, newValue -> dungeonScoreMeterColor2 = newValue))
                 .option(Option.<Float>createBuilder()
-                        .name(Text.literal("Gradient Rotation"))
+                        .name(Component.literal("Gradient Rotation"))
                         .binding(0.9f, () -> dungeonScoreMeterGradientRotate, newVal -> dungeonScoreMeterGradientRotate = newVal)
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                 .range(0f, 1f)
                                 .step(0.01f)
-                                .formatValue(val -> Text.literal(String.format("%d°§7/%d%%", Math.round(val * 360), Math.round(val * 100)))))
+                                .formatValue(val -> Component.literal(String.format("%d°§7/%d%%", Math.round(val * 360), Math.round(val * 100)))))
                         .build())
                 
                 .build();
@@ -405,12 +405,12 @@ public class ModConfig implements ModMenuApi {
     
     public static OptionGroup lowHpIndicatorGroup() {
         return OptionGroup.createBuilder()
-                .name(Text.literal("Low HP Indicator"))
-                .description(OptionDescription.of(Text.literal("Reddens the screen the lower player's HP is.")))
+                .name(Component.literal("Low HP Indicator"))
+                .description(OptionDescription.of(Component.literal("Reddens the screen the lower player's HP is.")))
                 .collapsed(true)
                 .option(createBooleanEnableOption(lowHpIndicator, () -> lowHpIndicator, newValue -> lowHpIndicator = newValue))
                 .option(Option.<Float>createBuilder()
-                        .name(Text.literal("Transparency"))
+                        .name(Component.literal("Transparency"))
                         .binding(0.4f, () -> lowHpIndicatorTransparency, newVal -> lowHpIndicatorTransparency = newVal)
                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                 .range(0.2f, 1f)
@@ -423,7 +423,7 @@ public class ModConfig implements ModMenuApi {
                                     Color color = new Color(255, defaultColor, defaultColor);
                                     String percentage = String.format("%.1f%%", Math.floor(val * 1000) / 10);
                                     
-                                    return Text.literal("⚠".repeat(warning) + " " + percentage)
+                                    return Component.literal("⚠".repeat(warning) + " " + percentage)
                                             .withColor(color.getRGB());
                                 }))
                         .build())
@@ -435,7 +435,7 @@ public class ModConfig implements ModMenuApi {
         var randomLevel = Math.round(15 + Math.random() * 25);
         var randomLevel2 = Math.round(45 + Math.random() * 35);
         return OptionGroup.createBuilder()
-                .name(Text.literal("Other"))
+                .name(Component.literal("Other"))
                 .collapsed(true)
                 .option(createBooleanOption(true, "Show Missing Enchants",
                         "Displays a list of missing enchants the hovered item has.",
@@ -452,7 +452,7 @@ public class ModConfig implements ModMenuApi {
     
     public Screen config(Screen parent) {
         return YetAnotherConfigLib.createBuilder()
-                .title(Text.literal("Skylens"))
+                .title(Component.literal("Skylens"))
                 .category(
                         ConfigCategory.createBuilder()
                                 .name(title())

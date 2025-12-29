@@ -4,16 +4,16 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
-import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -23,26 +23,26 @@ import org.nextrg.skylens.pipelines.uniforms.CircleChartUniform;
 
 import java.util.function.Function;
 
-public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChartPIPRenderer.State> {
+public class CircleChartPIPRenderer extends PictureInPictureRenderer<CircleChartPIPRenderer.State> {
     private State lastState;
     
-    public CircleChartPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
+    public CircleChartPIPRenderer(MultiBufferSource.BufferSource bufferSource) {
         super(bufferSource);
     }
     
     @Override
-    public @NotNull Class<State> getElementClass() {
+    public @NotNull Class<State> getRenderStateClass() {
         return State.class;
     }
     
     @Override
-    protected boolean shouldBypassScaling(State state) {
+    protected boolean textureIsReadyToBlit(State state) {
         return lastState != null && lastState.equals(state);
     }
     
     @Override
-    protected void render(State state, MatrixStack matrices) {
-        final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+    protected void renderToTexture(State state, PoseStack pose) {
+        final float scale = Minecraft.getInstance().getWindow().getGuiScale();
         final float paddedX = 4f * scale;
         
         final Vector2f size = new Vector2f(state.outerRadius * 2f * scale, state.outerRadius * 2f * scale);
@@ -53,15 +53,15 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                 (state.fy - state.y0) * scale
         );
         
-        BufferBuilder buffer = Tessellator.getInstance()
-                .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance()
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.vertex(0f, 0f, 0f).color(state.color());
-        buffer.vertex(0f, fSize, 0f).color(state.color());
-        buffer.vertex(fSize, fSize, 0f).color(state.color());
-        buffer.vertex(fSize, 0f, 0f).color(state.color());
+        buffer.addVertex(0f, 0f, 0f).setColor(state.color());
+        buffer.addVertex(0f, fSize, 0f).setColor(state.color());
+        buffer.addVertex(fSize, fSize, 0f).setColor(state.color());
+        buffer.addVertex(fSize, 0f, 0f).setColor(state.color());
 
-        PipelineRenderer.builder(CircleChart.PIPELINE, buffer.end())
+        PipelineRenderer.builder(CircleChart.PIPELINE, buffer.buildOrThrow())
                 .uniform(
                         CircleChartUniform.STORAGE,
                         CircleChartUniform.of(
@@ -82,7 +82,7 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
     }
     
     @Override
-    protected @NotNull String getName() {
+    protected @NotNull String getTextureLabel() {
         return "skylens_circle_chart";
     }
     
@@ -102,11 +102,11 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
             float fx,
             float fy,
             Matrix3x2f pose,
-            ScreenRect scissorArea,
-            ScreenRect bounds
+            ScreenRectangle scissorArea,
+            ScreenRectangle bounds
     ) implements OlympusPictureInPictureRenderState<State> {
         public State(
-                DrawContext graphics,
+                GuiGraphics graphics,
                 float x, float y,
                 int color,
                 Vector4f[] colors,
@@ -136,9 +136,9 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                     invert ? 1 : 0,
                     x,
                     y,
-                    new Matrix3x2f(graphics.getMatrices()),
+                    new Matrix3x2f(graphics.pose()),
                     GuiGraphicsHelper.getLastScissor(graphics),
-                    SpecialGuiElementRenderState.createBounds(
+                    PictureInPictureRenderState.getBounds(
                             (int)Math.floor(x - outerRadius - 2.0),
                             (int)Math.floor(y - outerRadius - 2.0),
                             (int)Math.ceil(x + outerRadius + 2.0),
@@ -149,22 +149,22 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
         }
         
         @Override
-        public int x1() { return x0; }
+        public int x0() { return x0; }
         
         @Override
-        public int y1() { return y0; }
+        public int y0() { return y0; }
         
         @Override
-        public int x2() { return x1; }
+        public int x1() { return x1; }
         
         @Override
-        public int y2() { return y1; }
+        public int y1() { return y1; }
         
         @Override
         public float scale() { return 1.0F; }
         
         @Override
-        public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {
+        public Function<MultiBufferSource.BufferSource, PictureInPictureRenderer<State>> getFactory() {
             return CircleChartPIPRenderer::new;
         }
         

@@ -3,11 +3,11 @@ package org.nextrg.skylens.pipelines;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
+import earth.terrarium.olympus.client.utils.fabric.GuiGraphicsHelperImpl;
 import kotlin.Pair;
-import net.minecraft.client.gl.UniformType;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexFormats;
+import com.mojang.blaze3d.shaders.UniformType;
+import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import org.joml.Vector4f;
 import org.nextrg.skylens.Skylens;
 import org.nextrg.skylens.pipelines.pips.CircleChartPIPRenderer;
@@ -22,12 +22,12 @@ public class CircleChart {
             .withBlend(BlendFunction.TRANSLUCENT)
             .withFragmentShader(Skylens.Companion.id("core/circle_chart"))
             .withVertexShader(Skylens.Companion.id("core/basic_transform"))
-            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .build();
     
     /**
      * Draws a 2D pie chart that supports gradients on UI.
-     * @param drawContext Context used to draw the ui element
+     * @param guiGraphics Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the circle
      * @param y Y position of <b>top</b> corner of the circle
      * @param radius First value is the outer radius (size of the circle), and the second value is the inner radius (size of the hole inside the circle)
@@ -41,9 +41,9 @@ public class CircleChart {
      * @see CircleChartPIPRenderer
      * @see CircleChartUniform
      */
-    public static void draw(DrawContext drawContext, float x, float y, Pair<Float, Float> radius, Vector4f[] colors, float progress, float time, float startAngle, boolean reverse, boolean invert) {
+    public static void draw(GuiGraphics guiGraphics, float x, float y, Pair<Float, Float> radius, Vector4f[] colors, float progress, float time, float startAngle, boolean reverse, boolean invert) {
         CircleChartPIPRenderer.State state = new CircleChartPIPRenderer.State(
-                drawContext,
+                guiGraphics,
                 x, y,
                 0xFFFFFFFF,
                 colors,
@@ -57,6 +57,6 @@ public class CircleChart {
                 invert
         );
         
-        GuiGraphicsHelper.submitPip(drawContext, state);
+        GuiGraphicsHelperImpl.submitPip(guiGraphics, state);
     }
 }

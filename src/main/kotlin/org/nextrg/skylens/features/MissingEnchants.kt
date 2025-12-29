@@ -3,10 +3,10 @@ package org.nextrg.skylens.features
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.helpers.ItemsUtil.getItemEnchants
 import org.nextrg.skylens.helpers.ItemsUtil.getItemType
@@ -72,7 +72,7 @@ object MissingEnchants {
         return Pair(missingEnchants, ultimateEnchants)
     }
 
-    private fun display(index: Int, list: List<String>, lines: MutableList<Text>) {
+    private fun display(index: Int, list: List<String>, lines: MutableList<Component>) {
         if (index == 1) return
         val hasShift = isShiftDown()
 
@@ -82,10 +82,10 @@ object MissingEnchants {
         val color = (if (hasShift)
                 Color(85, 255, 255) else Color(0, 170, 170)).rgb
 
-        lines.add(targetIndex, Text.literal(" "))
+        lines.add(targetIndex, Component.literal(" "))
 
         if (hasShift) {
-            val displayList: MutableList<Text> = ArrayList()
+            val displayList: MutableList<Component> = ArrayList()
             var i = list.size - 1
             while (i >= 0) {
                 val group = buildString {
@@ -98,24 +98,24 @@ object MissingEnchants {
                         }
                     }
                 }
-                displayList.add(Text.literal("⋗ ${group.trim()}").formatted(Formatting.GRAY))
+                displayList.add(Component.literal("⋗ ${group.trim()}").withStyle(ChatFormatting.GRAY))
                 i -= 3
             }
             lines.addAll(targetIndex, displayList)
         } else {
-            lines.add(targetIndex, Text.literal("⋗ Press [SHIFT] to see").formatted(Formatting.GRAY))
+            lines.add(targetIndex, Component.literal("⋗ Press [SHIFT] to see").withStyle(ChatFormatting.GRAY))
         }
 
-        lines.add(targetIndex, Text.literal("$symbol Missing enchantments:").withColor(color))
+        lines.add(targetIndex, Component.literal("$symbol Missing enchantments:").withColor(color))
     }
 
-    private fun main(stack: ItemStack, lines: MutableList<Text>) {
+    private fun main(stack: ItemStack, lines: MutableList<Component>) {
         if (!ModConfig.missingEnchants || !onSkyblock() || enchants == null) return
 
         try {
             val gauntlet = stack.customName.toString().contains("Gemstone Gauntlet")
             val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
-            val data = stack.components.get(DataComponentTypes.CUSTOM_DATA)
+            val data = stack.components.get(DataComponents.CUSTOM_DATA)
 
             if (itemType != "other" && data != null) {
                 val itemEnchants = getItemEnchants(data)

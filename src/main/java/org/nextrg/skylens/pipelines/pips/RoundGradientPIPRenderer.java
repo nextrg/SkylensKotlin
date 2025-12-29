@@ -4,16 +4,16 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
-import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -24,25 +24,25 @@ import org.nextrg.skylens.pipelines.uniforms.RoundGradientUniform;
 
 import java.util.function.Function;
 
-public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGradientPIPRenderer.State> {
+public class RoundGradientPIPRenderer extends PictureInPictureRenderer<RoundGradientPIPRenderer.State> {
     private State lastState;
     
-    public RoundGradientPIPRenderer(VertexConsumerProvider.Immediate bufferSource) {
+    public RoundGradientPIPRenderer(MultiBufferSource.BufferSource bufferSource) {
         super(bufferSource);
     }
     
     @Override
-    public @NotNull Class<State> getElementClass() {
+    public @NotNull Class<State> getRenderStateClass() {
         return State.class;
     }
     
     @Override
-    protected boolean shouldBypassScaling(State state) {
+    protected boolean textureIsReadyToBlit(State state) {
         return lastState != null && lastState.equals(state);
     }
     
-    protected void render(State state, MatrixStack stack) {
-        final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+    protected void renderToTexture(State state, PoseStack pose) {
+        final float scale = Minecraft.getInstance().getWindow().getGuiScale();
         final float paddedX = 4f * scale;
         
         final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
@@ -54,15 +54,15 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
         final Vector4f radius = new Vector4f(state.borderRadius);
         final Vector4f borderColor = VariablesUtil.INSTANCE.intToVector4f(state.borderColor());
  
-        BufferBuilder buffer = Tessellator.getInstance()
-                .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance()
+                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
-        buffer.vertex(0.0f, fHeight, 0.0f).color(state.color());
-        buffer.vertex(fWidth, fHeight, 0.0f).color(state.color());
-        buffer.vertex(fWidth, 0.0f, 0.0f).color(state.color());
+        buffer.addVertex(0.0f, 0.0f, 0.0f).setColor(state.color());
+        buffer.addVertex(0.0f, fHeight, 0.0f).setColor(state.color());
+        buffer.addVertex(fWidth, fHeight, 0.0f).setColor(state.color());
+        buffer.addVertex(fWidth, 0.0f, 0.0f).setColor(state.color());
         
-        PipelineRenderer.builder(RoundGradient.PIPELINE, buffer.end())
+        PipelineRenderer.builder(RoundGradient.PIPELINE, buffer.buildOrThrow())
                 .uniform(RoundGradientUniform.STORAGE,
                         RoundGradientUniform.of(
                                 state.colors,
@@ -80,7 +80,7 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
         this.lastState = state;
     }
     
-    protected @NotNull String getName() {
+    protected @NotNull String getTextureLabel() {
         return "skylens_round_rectangle_float";
     }
     
@@ -100,11 +100,11 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
             float fwidth,
             float fheight,
             Matrix3x2f pose,
-            ScreenRect scissorArea,
-            ScreenRect bounds
+            ScreenRectangle scissorArea,
+            ScreenRectangle bounds
     ) implements OlympusPictureInPictureRenderState<State> {
         public State(
-                DrawContext graphics,
+                GuiGraphics graphics,
                 float x,
                 float y,
                 float width,
@@ -134,9 +134,9 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
                     y,
                     width,
                     height,
-                    new Matrix3x2f(graphics.getMatrices()),
+                    new Matrix3x2f(graphics.pose()),
                     GuiGraphicsHelper.getLastScissor(graphics),
-                    SpecialGuiElementRenderState.createBounds(
+                    PictureInPictureRenderState.getBounds(
                             (int)Math.floor(x - 2.0),
                             (int)Math.floor(y - 2.0),
                             (int)Math.ceil(x + width + 2.0),
@@ -150,23 +150,23 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
             return 1.0f;
         }
         
-        public Function<VertexConsumerProvider.Immediate, SpecialGuiElementRenderer<State>> getFactory() {
+        public Function<MultiBufferSource.BufferSource, PictureInPictureRenderer<State>> getFactory() {
             return RoundGradientPIPRenderer::new;
         }
-        
-        public int x1() {
+
+        public int x0() {
             return this.x0;
         }
-        
-        public int y1() {
+
+        public int y0() {
             return this.y0;
         }
-        
-        public int x2() {
+
+        public int x1() {
             return this.x1;
         }
-        
-        public int y2() {
+
+        public int y1() {
             return this.y1;
         }
         
@@ -190,11 +190,11 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
             return this.pose;
         }
         
-        public ScreenRect scissorArea() {
+        public ScreenRectangle scissorArea() {
             return this.scissorArea;
         }
         
-        public ScreenRect bounds() {
+        public ScreenRectangle bounds() {
             return this.bounds;
         }
     }
