@@ -31,52 +31,31 @@ void main() {
     if (vertexColor.a == 0.0) discard;
 
     vec2 pos = gl_FragCoord.xy - center;
-    float dist = dot(pos, pos);
-    float outer = outerRadius * outerRadius;
-    float inner = innerRadius * innerRadius;
-    float innerAlpha = 2.0 * innerRadius * edgeSoftness;
+    float dist = length(pos);
 
-    // antialiasing
-    float edgeAlphaOuter =
-        1.0 - smoothstep(
-        outer - 2.0 * outerRadius * edgeSoftness,
-        outer,
-        dist
-    );
+    if (dist < innerRadius) discard;
+
+    float edgeAlphaOuter = 1.0 - smoothstep(outerRadius - edgeSoftness, outerRadius, dist);
     float edgeAlphaInner = 1.0;
+
     if (innerRadius > 0.0) {
-        float inner = innerRadius * innerRadius;
-        float innerAlpha = 2.0 * innerRadius * edgeSoftness;
-        edgeAlphaInner = smoothstep(inner, inner + innerAlpha, dist);
+        float innerSoft = min(edgeSoftness, innerRadius);
+        edgeAlphaInner = smoothstep(innerRadius, innerRadius + innerSoft, dist);
     }
 
     float edgeAlpha = edgeAlphaOuter * edgeAlphaInner;
     if (edgeAlpha <= 0.0) discard;
 
-    float innerMin = (innerRadius > 0.0) ? (innerRadius - edgeSoftness) * (innerRadius - edgeSoftness) : 0.0;
-    float outerMax = (outerRadius + edgeSoftness);
-
-    innerMin = innerMin * innerMin;
-    outerMax = outerMax * outerMax;
-
-    if (dist < innerMin || dist > outerMax) discard;
-
     // angles
-    float angle = pos.y / pos.x;
-    angle = atan(angle);
-    if (pos.x < 0.0) angle += PI;
-    if (angle < 0.0) angle += TAU;
+    float angle = atan(pos.y, pos.x);
+    angle = mod(angle + TAU, TAU);
 
     float angleOffset = mod(angle - startAngle + TAU, TAU);
     float angularLength = progress * TAU;
 
-    float angleAlpha;
-    if (progress >= 1.0) angleAlpha = 1.0;
-    else {
-        float angleSoft = edgeSoftness / outerRadius;
-        angleAlpha = 1.0 - smoothstep(angularLength - angleSoft, angularLength, angleOffset);
-        angleAlpha = mix(angleAlpha, 1.0 - angleAlpha, float(invert));
-    }
+    float angleSoft = edgeSoftness / outerRadius;
+    float angleAlpha = (progress >= 1.0) ? 1.0 : 1.0 - smoothstep(angularLength - angleSoft, angularLength, angleOffset);
+    angleAlpha = mix(angleAlpha, 1.0 - angleAlpha, float(invert));
 
     float finalAlpha = edgeAlpha * angleAlpha * vertexColor.a;
     if (finalAlpha <= 0.0) discard;
