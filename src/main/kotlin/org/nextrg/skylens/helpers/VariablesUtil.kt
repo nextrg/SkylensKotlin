@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.joml.Vector4f
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.pow
 
 object VariablesUtil {
@@ -44,6 +46,12 @@ object VariablesUtil {
         val factor = 10.0.pow(decimals).toFloat()
         return kotlin.math.round(this * factor) / factor
     }
+
+    @JvmStatic
+    fun floorToInt(a: Float): Int = floor(a).toInt()
+
+    @JvmStatic
+    fun ceilToInt(a: Float): Int = ceil(a).toInt()
 
     fun getGradient(
         startColor: Int,
