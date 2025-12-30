@@ -3,12 +3,12 @@ package org.nextrg.skylens.features
 import kotlinx.coroutines.*
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.DeltaTracker
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.Identifier
 import net.minecraft.util.Util
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.Pets.getCurrentPet
 import org.nextrg.skylens.api.Pets.getPetHeldItem

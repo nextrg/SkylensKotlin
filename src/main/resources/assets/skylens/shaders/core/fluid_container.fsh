@@ -34,16 +34,16 @@ float calcWaterLevel()
     float level;
 
     if (waveDirection == 1) { // Bottom
-        surfacePos = center.y + offset.y - sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
+        surfacePos = center.y + offset.y / 4.0 * scaleFactor - sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.y);
     } else if (waveDirection == 2) { // Left
-        surfacePos = center.x + offset.x + sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
+        surfacePos = center.x + offset.x / 4.0 * scaleFactor + sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.x);
     } else if (waveDirection == 3) { // Right
-        surfacePos = center.x + offset.x - sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
+        surfacePos = center.x + offset.x / 4.0 * scaleFactor - sin((gl_FragCoord.y + offset.y) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.x);
     } else { // Top
-        surfacePos = center.y + offset.y + sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
+        surfacePos = center.y + offset.y / 4.0 * scaleFactor + sin((gl_FragCoord.x + offset.x) * waveFrequency) * waveAmplitude;
         level = smoothstep(surfacePos + edgeSmooth, surfacePos - edgeSmooth, gl_FragCoord.y);
     }
 

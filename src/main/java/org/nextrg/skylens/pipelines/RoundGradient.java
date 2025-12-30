@@ -25,7 +25,7 @@ public class RoundGradient {
             .build();
     
     /**
-     * Draws a 2D rectangle with rounded corners on UI using Olympus rounded rectangle, but with float variables.
+     * Draws a 2D gradient rectangle with rounded corners on UI using Olympus rounded rectangle, but with float variables.
      * @param guiGraphics Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the rectangle
      * @param y Y position of <b>top</b> corner of the rectangle
