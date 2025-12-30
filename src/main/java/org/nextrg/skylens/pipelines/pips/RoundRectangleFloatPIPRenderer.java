@@ -24,6 +24,8 @@ import org.nextrg.skylens.pipelines.RoundRectangleFloat;
 
 import java.util.function.Function;
 
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
+
 public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<RoundRectangleFloatPIPRenderer.State> {
     private State lastState;
     
@@ -43,24 +45,19 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
     
     protected void renderToTexture(State state, PoseStack pose) {
         final float scale = Minecraft.getInstance().getWindow().getGuiScale();
-        final float paddedX = 4f * scale;
         
         final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
-        final float fWidth = size.x + paddedX;
-        final float fHeight = size.y + paddedX;
-        
-        final Vector2f center = new Vector2f(fWidth * 0.5f, fHeight * 0.5f);
-        
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
         final Vector4f radius = new Vector4f(state.borderRadius);
         final Vector4f borderColor = VariablesUtil.INSTANCE.intToVector4f(state.borderColor());
- 
+        
         BufferBuilder buffer = Tesselator.getInstance()
                 .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.addVertex(0.0f, 0.0f, 0.0f).setColor(state.color());
-        buffer.addVertex(0.0f, fHeight, 0.0f).setColor(state.color());
-        buffer.addVertex(fWidth, fHeight, 0.0f).setColor(state.color());
-        buffer.addVertex(fWidth, 0.0f, 0.0f).setColor(state.color());
+        buffer.addVertex(0f, 0f, 0f).setColor(state.color());
+        buffer.addVertex(0f, size.y, 0f).setColor(state.color());
+        buffer.addVertex(size.x, size.y, 0f).setColor(state.color());
+        buffer.addVertex(size.x, 0f, 0f).setColor(state.color());
         
         PipelineRenderer.builder(RoundRectangleFloat.PIPELINE, buffer.buildOrThrow())
                 .uniform(RoundedRectangleUniform.STORAGE,
@@ -87,8 +84,10 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
             int borderColor,
             float borderRadius,
             float borderWidth,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
             float fwidth,
             float fheight,
             Matrix3x2f pose,
@@ -114,8 +113,10 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
                     borderColor,
                     borderRadius,
                     borderWidth,
-                    x,
-                    y,
+                    x - 2f,
+                    y - 2f,
+                    x + width + 2f,
+                    y + height + 2f,
                     width,
                     height,
                     new Matrix3x2f(graphics.pose()),

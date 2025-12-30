@@ -1,6 +1,6 @@
 package org.nextrg.skylens.pipelines.pips;
 
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
@@ -9,11 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -22,6 +18,8 @@ import org.nextrg.skylens.pipelines.RadialLine;
 import org.nextrg.skylens.pipelines.uniforms.RadialLineUniform;
 
 import java.util.function.Function;
+
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
 
 public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePIPRenderer.State> {
     private State lastState;
@@ -43,21 +41,18 @@ public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePI
     @Override
     protected void renderToTexture(State state, PoseStack pose) {
         final float scale = Minecraft.getInstance().getWindow().getGuiScale();
-        final float roundedRadius = Math.round(state.radius);
-        final float paddedRadius = (roundedRadius + 4f) * scale;
-        final float quadSize = paddedRadius * 2f;
         
-        float xOffset = (state.fx - (float)state.x0 - roundedRadius) * scale;
-        float yOffset = (state.fy - (float)state.y0 - roundedRadius) * scale;
-        Vector2f center = new Vector2f(paddedRadius - xOffset, paddedRadius - yOffset);
-
+        final Vector2f size = new Vector2f(state.radius * 2f * scale, state.radius * 2f * scale);
+        final float fSize = size.x + scale;
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
+        
         BufferBuilder buffer = Tesselator.getInstance()
                 .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
         buffer.addVertex(0f, 0f, 0f).setColor(state.color());
-        buffer.addVertex(0f, quadSize, 0f).setColor(state.color());
-        buffer.addVertex(quadSize, quadSize, 0f).setColor(state.color());
-        buffer.addVertex(quadSize, 0f, 0f).setColor(state.color());
+        buffer.addVertex(0f, fSize, 0f).setColor(state.color());
+        buffer.addVertex(fSize, fSize, 0f).setColor(state.color());
+        buffer.addVertex(fSize, 0f, 0f).setColor(state.color());
 
         PipelineRenderer.builder(RadialLine.PIPELINE, buffer.buildOrThrow())
                 .uniform(
@@ -69,7 +64,7 @@ public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePI
                                 state.startAngle + (float)(Math.PI / 2),
                                 state.angleThickness,
                                 state.fadeSoftness,
-                                state.thickness / 2f,
+                                state.thickness,
                                 state.mode
                         )
                 )
@@ -93,8 +88,10 @@ public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePI
             float fadeSoftness,
             float thickness,
             int mode,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
             Matrix3x2f pose,
             ScreenRectangle scissorArea,
             ScreenRectangle bounds
@@ -124,8 +121,10 @@ public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePI
                     fadeSoftness,
                     thickness,
                     mode,
-                    x,
-                    y,
+                    x - radius - 2f,
+                    y - radius - 2f,
+                    x + radius + 2f,
+                    y + radius + 2f,
                     new Matrix3x2f(graphics.pose()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     PictureInPictureRenderState.getBounds(

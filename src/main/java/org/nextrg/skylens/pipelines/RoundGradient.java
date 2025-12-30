@@ -36,7 +36,7 @@ public class RoundGradient {
     public static void draw(GuiGraphics guiGraphics, float x, float y, float width, float height, Vector4f[] colors, float time, int gradientDirection, int borderColor, float borderRadius, float borderWidth) {
         RoundGradientPIPRenderer.State state = new RoundGradientPIPRenderer.State(
                 guiGraphics,
-                x, y,
+                x + 2f, y + 2f,
                 width, height,
                 0xFFFFFFFF,
                 colors, colors.length, time,

@@ -37,7 +37,7 @@ public class RoundRectangleFloat {
     public static void draw(GuiGraphics guiGraphics, float x, float y, float width, float height, int backgroundColor, int borderColor, float borderRadius, float borderWidth) {
         RoundRectangleFloatPIPRenderer.State state = new RoundRectangleFloatPIPRenderer.State(
                 guiGraphics,
-                x, y,
+                x + 2f, y + 2f,
                 width, height,
                 backgroundColor, borderColor,
                 borderRadius, borderWidth

@@ -3,10 +3,10 @@ package org.nextrg.skylens.helpers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState
+import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.pow
 
 object VariablesUtil {
@@ -46,12 +46,6 @@ object VariablesUtil {
         val factor = 10.0.pow(decimals).toFloat()
         return kotlin.math.round(this * factor) / factor
     }
-
-    @JvmStatic
-    fun floorToInt(a: Float): Int = floor(a).toInt()
-
-    @JvmStatic
-    fun ceilToInt(a: Float): Int = ceil(a).toInt()
 
     fun getGradient(
         startColor: Int,
@@ -148,6 +142,28 @@ object VariablesUtil {
         val a = 255
 
         return (a shl 24) or (r shl 16) or (g shl 8) or b
+    }
+
+    /**
+     * Returns the (scaled) center from an element with padding allowing for subpixel movement, requires float x0/x1 and y0/y1
+     */
+    @JvmStatic
+    fun getFloatCenter(state: PictureInPictureRenderState, fx: Vector2f, fy: Vector2f, scale: Float): Vector2f {
+        val x0 = state.x0(); val x1 = state.x1()
+        val y0 = state.y0(); val y1 = state.y1()
+        val fx0 = fx.x; val fx1 = fx.y
+        val fy0 = fy.x; val fy1 = fy.y
+
+        val geometricCenterX = (x1 - x0) / 2f
+        val geometricCenterY = (y1 - y0) / 2f
+
+        val floatCenterX: Float = ((x0 + x1) - (fx0 + fx1)) * 0.5f
+        val floatCenterY: Float = ((y0 + y1) - (fy0 + fy1)) * 0.5f
+
+        return Vector2f(
+            (geometricCenterX - 2f + floatCenterX) * scale,
+            (geometricCenterY + 2f + floatCenterY) * scale
+        )
     }
 
     fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {

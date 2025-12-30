@@ -44,17 +44,11 @@ public class CircleChart {
     public static void draw(GuiGraphics guiGraphics, float x, float y, Pair<Float, Float> radius, Vector4f[] colors, float progress, float time, float startAngle, boolean reverse, boolean invert) {
         CircleChartPIPRenderer.State state = new CircleChartPIPRenderer.State(
                 guiGraphics,
-                x, y,
-                0xFFFFFFFF,
-                colors,
-                colors.length,
-                radius.getFirst(),
-                radius.getSecond(),
-                progress,
-                time,
-                startAngle,
-                reverse,
-                invert
+                x + 2f, y + 2f,
+                0xFFFFFFFF, colors, colors.length,
+                radius.getFirst(), radius.getSecond(),
+                progress, time, startAngle,
+                reverse, invert
         );
         
         GuiGraphicsHelperImpl.submitPip(guiGraphics, state);

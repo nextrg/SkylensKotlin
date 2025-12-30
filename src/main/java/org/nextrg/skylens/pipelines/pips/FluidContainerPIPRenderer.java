@@ -1,6 +1,6 @@
 package org.nextrg.skylens.pipelines.pips;
 
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import earth.terrarium.olympus.client.pipelines.pips.OlympusPictureInPictureRenderState;
 import earth.terrarium.olympus.client.pipelines.renderer.PipelineRenderer;
 import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
@@ -9,11 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -22,6 +18,8 @@ import org.nextrg.skylens.pipelines.FluidContainer;
 import org.nextrg.skylens.pipelines.uniforms.FluidContainerUniform;
 
 import java.util.function.Function;
+
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
 
 public class FluidContainerPIPRenderer extends PictureInPictureRenderer<FluidContainerPIPRenderer.State> {
     private State lastState;
@@ -42,24 +40,18 @@ public class FluidContainerPIPRenderer extends PictureInPictureRenderer<FluidCon
     
     protected void renderToTexture(State state, PoseStack pose) {
         final float scale = Minecraft.getInstance().getWindow().getGuiScale();
-        final float paddedX = 4f * scale;
-        final float scaledWidth = (state.x0 - state.x0) * scale;
-        final float scaledHeight = (state.y0 - state.y0) * scale;
-
-        final Vector2f size = new Vector2f(scaledWidth - paddedX, scaledHeight - paddedX);
-        final float offsetX = (state.fx - 2.0f - state.x0) * scale;
-        final float offsetY = (state.fy - 2.0f - state.y0) * scale;
-        final Vector2f center = new Vector2f(size.x / 2f + paddedX / 2f - offsetX, size.y / 2f + paddedX / 2f - offsetY);
         
-        Vector4f radius = new Vector4f(state.borderRadius);
+        final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
+        final Vector4f radius = new Vector4f(state.borderRadius);
         
         BufferBuilder buffer = Tesselator.getInstance()
                 .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.addVertex(0.0f, 0.0f, 0.0f).setColor(state.color());
-        buffer.addVertex(0.0f, scaledHeight, 0.0f).setColor(state.color());
-        buffer.addVertex(scaledWidth, scaledHeight, 0.0f).setColor(state.color());
-        buffer.addVertex(scaledWidth, 0.0f, 0.0f).setColor(state.color());
+        buffer.addVertex(0f, 0f, 0f).setColor(state.color());
+        buffer.addVertex(0f, size.y, 0f).setColor(state.color());
+        buffer.addVertex(size.x, size.y, 0f).setColor(state.color());
+        buffer.addVertex(size.x, 0f, 0f).setColor(state.color());
         
         PipelineRenderer.builder(FluidContainer.PIPELINE, buffer.buildOrThrow())
                 .uniform(FluidContainerUniform.STORAGE,
@@ -88,8 +80,12 @@ public class FluidContainerPIPRenderer extends PictureInPictureRenderer<FluidCon
             int waveDirection,
             Vector2f offset,
             float borderRadius,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
+            float fwidth,
+            float fheight,
             Matrix3x2f pose,
             ScreenRectangle scissorArea,
             ScreenRectangle bounds
@@ -115,8 +111,12 @@ public class FluidContainerPIPRenderer extends PictureInPictureRenderer<FluidCon
                     waveDirection,
                     offset,
                     borderRadius,
-                    x,
-                    y,
+                    x - 2f,
+                    y - 2f,
+                    x + width + 2f,
+                    y + height + 2f,
+                    width,
+                    height,
                     new Matrix3x2f(graphics.pose()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     PictureInPictureRenderState.getBounds(

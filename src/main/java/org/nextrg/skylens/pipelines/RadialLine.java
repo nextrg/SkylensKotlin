@@ -40,16 +40,11 @@ public class RadialLine {
     public static void draw(GuiGraphics guiGraphics, float x, float y, Vector4f color, float radius, float startAngle, float angleThickness, float fadeSoftness, float thickness, int mode) {
         RadialLinePIPRenderer.State state = new RadialLinePIPRenderer.State(
                 guiGraphics,
-                x,
-                y,
-                0xFFFFFFFF,
-                color,
-                radius,
-                startAngle,
-                angleThickness,
-                fadeSoftness,
-                thickness,
-                mode
+                x + 2f, y + 2f,
+                0xFFFFFFFF, color,
+                radius, startAngle,
+                angleThickness, fadeSoftness,
+                thickness, mode
         );
 
         GuiGraphicsHelperImpl.submitPip(guiGraphics, state);
