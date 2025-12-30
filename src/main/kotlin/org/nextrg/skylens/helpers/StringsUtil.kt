@@ -3,7 +3,7 @@ package org.nextrg.skylens.helpers
 import net.minecraft.network.chat.Component
 
 object StringsUtil {
-    fun codeFromName(input: String): String {
+    fun nameToColorCode(input: String): String {
         return when (input.replace("_".toRegex(), "")) {
             "darkblue" -> "§1"
             "darkgreen" -> "§2"
@@ -23,7 +23,7 @@ object StringsUtil {
         }
     }
 
-    fun colorFromCode(code: String): List<String> {
+    fun colorCodeToName(code: String): List<String> {
         return when (code) {
             "§1" -> listOf("dark_blue")
             "§2" -> listOf("dark_green")
@@ -78,7 +78,7 @@ object StringsUtil {
     fun textToString(text: Component): String {
         var name = ""
         for (sibling in text.siblings) {
-            name += codeFromName(sibling.style.color.toString()) + sibling.string
+            name += nameToColorCode(sibling.style.color.toString()) + sibling.string
         }
         return name
     }

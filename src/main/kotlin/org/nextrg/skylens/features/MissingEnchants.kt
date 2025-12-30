@@ -3,10 +3,10 @@ package org.nextrg.skylens.features
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
-import net.minecraft.core.component.DataComponents
-import net.minecraft.world.item.ItemStack
-import net.minecraft.network.chat.Component
 import net.minecraft.ChatFormatting
+import net.minecraft.core.component.DataComponents
+import net.minecraft.network.chat.Component
+import net.minecraft.world.item.ItemStack
 import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.helpers.ItemsUtil.getItemEnchants
 import org.nextrg.skylens.helpers.ItemsUtil.getItemType
@@ -15,8 +15,8 @@ import org.nextrg.skylens.helpers.OtherUtil.errorMessage
 import org.nextrg.skylens.helpers.OtherUtil.isShiftDown
 import org.nextrg.skylens.helpers.OtherUtil.jsonNeu
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
-import org.nextrg.skylens.helpers.StringsUtil.codeFromName
 import org.nextrg.skylens.helpers.StringsUtil.getFormatCode
+import org.nextrg.skylens.helpers.StringsUtil.nameToColorCode
 import org.nextrg.skylens.helpers.StringsUtil.titleCase
 import java.awt.Color
 import kotlin.math.max
@@ -92,7 +92,7 @@ object MissingEnchants {
                     for (j in i downTo max(0, i - 2)) {
                         append(list[j])
                         if (j != max(0, i - 2)) {
-                            append(codeFromName("gray"))
+                            append(nameToColorCode("gray"))
                             append(getFormatCode("reset"))
                             append(", ")
                         }
@@ -117,7 +117,7 @@ object MissingEnchants {
             val itemType = if (gauntlet) "gauntlet" else getItemType(lines).replace("dungeon ", "")
             val data = stack.components.get(DataComponents.CUSTOM_DATA)
 
-            if (itemType != "other" && data != null) {
+            if (itemType != "other" && data !== null) {
                 val itemEnchants = getItemEnchants(data)
                 val (missingEnchants, ultimateEnchants) = getMissingEnchants(itemType.uppercase(), itemEnchants)
 

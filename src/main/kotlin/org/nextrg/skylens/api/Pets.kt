@@ -19,7 +19,7 @@ import org.nextrg.skylens.helpers.ItemsUtil.tooltipFromItemStack
 import org.nextrg.skylens.helpers.OtherUtil.errorMessage
 import org.nextrg.skylens.helpers.OtherUtil.getTabData
 import org.nextrg.skylens.helpers.OtherUtil.getTextureFromNeu
-import org.nextrg.skylens.helpers.StringsUtil.colorFromCode
+import org.nextrg.skylens.helpers.StringsUtil.colorCodeToName
 import org.nextrg.skylens.helpers.StringsUtil.colorToRarity
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
 import org.nextrg.skylens.helpers.VariablesUtil.toFixed
@@ -339,7 +339,7 @@ object Pets {
 
                 if (matchIndex != -1 && matchIndex + 6 <= string.length) {
                     val input = string.substring(matchIndex + 4, matchIndex + 6)
-                    val color = colorFromCode(input)
+                    val color = colorCodeToName(input)
                     if (color.size > 1) {
                         rarity = color[1]
                     }

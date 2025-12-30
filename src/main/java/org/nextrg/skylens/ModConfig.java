@@ -87,7 +87,7 @@ public class ModConfig implements ModMenuApi {
         
         @Override
         public Component getDisplayName() {
-            return Component.literal(StringsUtil.INSTANCE.codeFromName(name().toLowerCase()) + name()
+            return Component.literal(StringsUtil.INSTANCE.nameToColorCode(name().toLowerCase()) + name()
                     .replace("Pet", "Pet Rarity"));
         }
     }
