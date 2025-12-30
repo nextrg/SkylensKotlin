@@ -9,6 +9,7 @@ import com.mojang.blaze3d.shaders.UniformType;
 import earth.terrarium.olympus.client.utils.fabric.GuiGraphicsHelperImpl;
 import net.minecraft.client.gui.GuiGraphics;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.resources.Identifier;
 import org.nextrg.skylens.Skylens;
 import org.nextrg.skylens.pipelines.pips.RoundRectangleFloatPIPRenderer;
 
@@ -19,7 +20,7 @@ public class RoundRectangleFloat {
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withUniform("RoundedRectangleUniform", UniformType.UNIFORM_BUFFER)
             .withBlend(BlendFunction.TRANSLUCENT)
-            .withFragmentShader(Skylens.Companion.id("core/round_rect"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath("olympus", "core/rounded_rect"))
             .withVertexShader(Skylens.Companion.id("core/basic_transform"))
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .build();

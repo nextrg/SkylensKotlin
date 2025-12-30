@@ -49,10 +49,10 @@ public class RadialLinePIPRenderer extends PictureInPictureRenderer<RadialLinePI
         BufferBuilder buffer = Tesselator.getInstance()
                 .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.addVertex(0f, 0f, 0f).setColor(state.color());
-        buffer.addVertex(0f, fSize, 0f).setColor(state.color());
-        buffer.addVertex(fSize, fSize, 0f).setColor(state.color());
-        buffer.addVertex(fSize, 0f, 0f).setColor(state.color());
+        buffer.addVertex(-4f, -4f, 0f).setColor(state.color());
+        buffer.addVertex(-4f, fSize + 4f, 0f).setColor(state.color());
+        buffer.addVertex(fSize + 4f, fSize + 4f, 0f).setColor(state.color());
+        buffer.addVertex(fSize + 4f, -4f, 0f).setColor(state.color());
 
         PipelineRenderer.builder(RadialLine.PIPELINE, buffer.buildOrThrow())
                 .uniform(

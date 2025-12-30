@@ -355,11 +355,11 @@ object PetOverlay {
     private fun renderBars(guiGraphics: GuiGraphics, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
-            /*legacyRoundRectangle(
-                drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
+            roundRectangleFloat(
+                guiGraphics, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
-                if (altStyle) 0f else 12f, hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
-            )*/
+                hexTransparent(color2, 255 - getAlphaProgress(idleProgress)), 0, if (altStyle) 0f else 3f + 9f * idleProgress * idleProgress, 0f
+            )
         }
 
         renderBarBg(guiGraphics, x, y, color3, idleProgress)

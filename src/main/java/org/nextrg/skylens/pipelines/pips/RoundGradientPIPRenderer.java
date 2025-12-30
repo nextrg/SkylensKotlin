@@ -54,10 +54,10 @@ public class RoundGradientPIPRenderer extends PictureInPictureRenderer<RoundGrad
         BufferBuilder buffer = Tesselator.getInstance()
                 .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         
-        buffer.addVertex(0f, 0f, 0f).setColor(state.color());
-        buffer.addVertex(0f, size.y, 0f).setColor(state.color());
-        buffer.addVertex(size.x, size.y, 0f).setColor(state.color());
-        buffer.addVertex(size.x, 0f, 0f).setColor(state.color());
+        buffer.addVertex(-4f, -4f, 0f).setColor(state.color());
+        buffer.addVertex(-4f, size.y + 4f, 0f).setColor(state.color());
+        buffer.addVertex(size.x + 4f, size.y + 4f, 0f).setColor(state.color());
+        buffer.addVertex(size.x + 4f, -4f, 0f).setColor(state.color());
         
         PipelineRenderer.builder(RoundGradient.PIPELINE, buffer.buildOrThrow())
                 .uniform(RoundGradientUniform.STORAGE,

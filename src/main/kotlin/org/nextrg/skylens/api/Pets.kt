@@ -3,13 +3,13 @@ package org.nextrg.skylens.api
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
+import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.network.chat.Component
+import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.inventory.Slot
-import net.minecraft.network.chat.Component
-import net.minecraft.ChatFormatting
 import org.nextrg.skylens.features.PetOverlay.hideOverlay
 import org.nextrg.skylens.features.PetOverlay.levelUp
 import org.nextrg.skylens.features.PetOverlay.showOverlay
