@@ -304,7 +304,7 @@ object PetOverlay {
         }
 
         var yO = y
-        if (idleAnimHover && !hudEditor && transition != 0f) {
+        if (idleAnimHover) {
             yO += (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
         }
 
