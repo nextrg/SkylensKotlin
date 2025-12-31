@@ -176,12 +176,7 @@ object VariablesUtil {
 
     fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {
         return colors.map { color ->
-            Vector4f(
-                ((color shr 16) and 0xFF) / 255f,
-                ((color shr 8) and 0xFF) / 255f,
-                (color and 0xFF) / 255f,
-                ((color shr 24) and 0xFF) / 255f
-            )
+            intToVector4f(color)
         }.toTypedArray()
     }
 
