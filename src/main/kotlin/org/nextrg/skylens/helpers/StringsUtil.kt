@@ -97,22 +97,4 @@ object StringsUtil {
             else -> input.toIntOrNull() ?: 0
         }
     }
-
-    fun formatSuffix(value: Int): String {
-        return when {
-            value >= 1_000_000 -> {
-                val formatted = (value / 1_000_000f).let {
-                    if (it % 1 == 0f) it.toInt().toString() else String.format("%.1f", it).replace(",", ".")
-                }
-                "${formatted}m"
-            }
-            value >= 1_000 -> {
-                val formatted = (value / 1_000f).let {
-                    if (it % 1 == 0f) it.toInt().toString() else String.format("%.1f", it).replace(",", ".")
-                }
-                "${formatted}k"
-            }
-            else -> value.toString()
-        }
-    }
 }

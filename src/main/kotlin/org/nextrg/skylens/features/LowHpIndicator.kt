@@ -9,7 +9,7 @@ import org.nextrg.skylens.ModConfig
 import org.nextrg.skylens.api.PlayerStats
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
 import org.nextrg.skylens.helpers.RenderUtil.getScaledWidthHeight
-import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
+import org.nextrg.skylens.helpers.VariablesUtil.withAlpha
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.pipelines.Renderables.roundGradient
 
@@ -44,8 +44,8 @@ object LowHpIndicator {
         val pulse = if (ModConfig.lowHpIndicatorHeartbeat) pulse() else 1f
         val finalAlpha = (baseAlpha + pulse * baseAlpha * 0.5f).toInt().coerceIn(0, 255)
 
-        val color1 = hexTransparent(COLOR, finalAlpha)
-        val color2 = hexTransparent(COLOR, finalAlpha / 3)
+        val color1 = withAlpha(COLOR, finalAlpha)
+        val color2 = withAlpha(COLOR, finalAlpha / 3)
 
         for (direction in 0..1) {
             roundGradient(drawContext, 0f, 0f, screenX.toFloat(), screenY.toFloat(),

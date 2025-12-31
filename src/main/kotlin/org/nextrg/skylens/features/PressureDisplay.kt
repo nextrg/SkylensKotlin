@@ -18,7 +18,7 @@ import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.degreesToRadians
 import org.nextrg.skylens.helpers.VariablesUtil.hexStringToInt
-import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
+import org.nextrg.skylens.helpers.VariablesUtil.withAlpha
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.pipelines.Renderables.drawLine
 import org.nextrg.skylens.pipelines.Renderables.drawPie
@@ -166,13 +166,13 @@ object PressureDisplay {
 
         // Markers
         val markerRadius = 7.5f
-        drawMarkerLines(drawContext, x, meterY, hexTransparent(color2, lineTransparency))
+        drawMarkerLines(drawContext, x, meterY, withAlpha(color2, lineTransparency))
         drawPie(drawContext, x, meterY, 1.01f * 3/4, markerRadius, 0f, color2, degreesToRadians(-135f), 0f)
         drawPie(drawContext, x, meterY, 1.01f, markerRadius - 0.675f, 0f, color3, 0f, 0f)
 
         // Measure
         val lineRadius = 10.25f
-        drawLine(drawContext, x, meterY, value, lineRadius, hexTransparent(color1, 35), 1f, 0.25f, 1f, 0)
+        drawLine(drawContext, x, meterY, value, lineRadius, withAlpha(color1, 35), 1f, 0.25f, 1f, 0)
         drawPie(drawContext, x, meterY, 1.01f * 1/6, lineRadius + 1.75f, 0f, color3, degreesToRadians(135f), 0f)
         drawLine(drawContext, x, meterY, value, lineRadius, color1, 1f, 0.25f, 1f, 2)
 
@@ -188,7 +188,7 @@ object PressureDisplay {
             val last = i == steps
             val lineColor = if (!last) color else 0xFF993333.toInt()
             val boldness = (if (!last) 0.1f else 0.5f)
-            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, hexTransparent(lineColor, 60), 1f, boldness, 0f, 0)
+            drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, withAlpha(lineColor, 60), 1f, boldness, 0f, 0)
             drawLine(drawContext, x, y, degreesToRadians(135f) - degreesToRadians((i * 10 * 27/steps).toFloat()), 10f, lineColor, 1f, boldness, 0f, 2)
         }
     }

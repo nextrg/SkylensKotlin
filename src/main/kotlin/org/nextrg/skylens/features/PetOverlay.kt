@@ -26,7 +26,7 @@ import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.getAlphaProgress
 import org.nextrg.skylens.helpers.VariablesUtil.getRainbow
-import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
+import org.nextrg.skylens.helpers.VariablesUtil.withAlpha
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.helpers.VariablesUtil.sToMs
 import org.nextrg.skylens.pipelines.Renderables.drawPie
@@ -330,15 +330,15 @@ object PetOverlay {
             val displayXp = String.format(Locale.US, (if (animatedXp >= 0.1) "%.1f%%" else "%.2f%%"), animatedXp * 100)
             val levelTextY = textY - (3 * animatedLevelUp)
             drawText(drawContext, displayXp, textX, levelTextY,
-                hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
+                withAlpha(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
                 1f, true, true)
             drawText(drawContext, "LV UP", textX, levelTextY,
-                hexTransparent(color, 10.coerceAtLeast((animatedLevelUp * 255).toInt())),
+                withAlpha(color, 10.coerceAtLeast((animatedLevelUp * 255).toInt())),
                 1f, true, true)
         }
 
         drawText(drawContext, displayLevel, textX - if (isLevelMax) 0.5f else 0f, textY - 6 + if (isLevelMax) 3.5f else 0f,
-            hexTransparent(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
+            withAlpha(color, 10.coerceAtLeast(255 - (animatedLevelUp * 255).toInt())),
             if (isLevelMax) 0.9f else 0.8f, true, true)
 
         val isPlayerHead = heldItem.itemName.toString().contains("player_head")
@@ -358,7 +358,7 @@ object PetOverlay {
             roundRectangleFloat(
                 drawContext, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
-                hexTransparent(color2, 255 - getAlphaProgress(idleProgress)), 0, (3f + 9f * idleProgress * idleProgress) / (if (altStyle) 2f else 1f), 0f
+                withAlpha(color2, 255 - getAlphaProgress(idleProgress)), 0, (3f + 9f * idleProgress * idleProgress) / (if (altStyle) 2f else 1f), 0f
             )
         }
 
@@ -370,7 +370,7 @@ object PetOverlay {
     private fun renderCircles(drawContext: DrawContext, x: Float, y: Float, color1: Int, color2: Int, color3: Int) {
         val idleProgress = getIdleProgress()
         if (idleAnimPulse) {
-            val color = hexTransparent(color2, 255 - getAlphaProgress(idleProgress))
+            val color = withAlpha(color2, 255 - getAlphaProgress(idleProgress))
             drawPie(drawContext, x + 12f, y - 4f, 1.01f, 11f + 5f * idleProgress, 0f, color, 0f, 0f)
         }
 

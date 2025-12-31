@@ -17,7 +17,7 @@ import org.nextrg.skylens.helpers.RenderUtil
 import org.nextrg.skylens.helpers.RenderUtil.drawText
 import org.nextrg.skylens.helpers.VariablesUtil.animateFloat
 import org.nextrg.skylens.helpers.VariablesUtil.hexStringToInt
-import org.nextrg.skylens.helpers.VariablesUtil.hexTransparent
+import org.nextrg.skylens.helpers.VariablesUtil.withAlpha
 import org.nextrg.skylens.helpers.VariablesUtil.quad
 import org.nextrg.skylens.pipelines.Renderables.roundFluidContainer
 import org.nextrg.skylens.pipelines.Renderables.roundRectangleFloat
@@ -177,7 +177,7 @@ object DrillFuelMeter {
 
         // Fuel
         if (hasFuel()) {
-            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, hexTransparent(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(2900.0), -26.5f + 32.5f * 2 * fuel), 0, 2.5f, 0f)
+            roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, withAlpha(color1, 90), 0, Pair(-3.6f + 50f * getIdleProgress(2900.0), -26.5f + 32.5f * 2 * fuel), 0, 2.5f, 0f)
             roundFluidContainer(drawContext, x + 2f, y + 2f, width - 4f, height - 4f, color1, 0, Pair(50f * getIdleProgress(), -32.5f + 32.5f * 2 * fuel), 0, 2.5f, 0f)
         }
 
