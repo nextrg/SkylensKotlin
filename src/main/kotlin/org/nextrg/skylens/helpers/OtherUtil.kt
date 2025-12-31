@@ -3,7 +3,8 @@ package org.nextrg.skylens.helpers
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
+import com.mojang.authlib.properties.PropertyMap
+import com.mojang.serialization.JsonOps
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientPacketListener
@@ -13,6 +14,7 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
+import net.minecraft.util.ExtraCodecs
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.ResolvableProfile
@@ -116,7 +118,7 @@ object OtherUtil {
                 }
             }
         } catch (e: java.lang.Exception) {
-            //errorMessage("Caught an error setting item texture (fallback)", e) <- fix later
+            errorMessage("Caught an error setting item texture (fallback)", e)
             return if (isPet) bone else air
         }
         return itemStack
@@ -134,8 +136,15 @@ object OtherUtil {
     private fun applyTextureToHeadItem(string: String, itemStack: ItemStack) {
         val end = if (string.contains("\"}]},")) "\"}]}," else "\"}]}},"
         val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf(end))
-        val gameProfile = GameProfile(UUID.randomUUID(), "CustomHead")
-        gameProfile.properties.put("textures", Property("textures", texture))
+
+        val gameProfile = createGameProfile(UUID.randomUUID(), ExtraCodecs.PROPERTY_MAP.parse(JsonOps.INSTANCE, JsonParser.parseString(
+            "[{\"name\":\"textures\",\"value\":\"$texture\"}]"
+        )).getOrThrow())
+
         itemStack.set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
+    }
+
+    private fun createGameProfile(uuid: UUID, properties: PropertyMap): GameProfile {
+        return GameProfile(uuid, "", properties)
     }
 }
