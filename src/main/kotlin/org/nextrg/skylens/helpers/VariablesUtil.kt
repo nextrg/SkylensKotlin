@@ -154,15 +154,15 @@ object VariablesUtil {
         val fx0 = fx.x; val fx1 = fx.y
         val fy0 = fy.x; val fy1 = fy.y
 
-        val geometricCenterX = (x1 - x0) / 2f
-        val geometricCenterY = (y1 - y0) / 2f
+        val geometricCenterX = ((x1 - x0) / 2f) - 2f
+        val geometricCenterY = ((y1 - y0) / 2f) + 2f
 
-        val floatCenterX: Float = ((x0 + x1) - (fx0 + fx1)) * 0.5f
+        val floatCenterX: Float = ((x0 + x1) - (fx0 + fx1)) * -0.5f
         val floatCenterY: Float = ((y0 + y1) - (fy0 + fy1)) * 0.5f
 
         return Vector2f(
-            (geometricCenterX - 2f + floatCenterX) * scale,
-            (geometricCenterY + 2f + floatCenterY) * scale
+            (geometricCenterX + floatCenterX) * scale,
+            (geometricCenterY + floatCenterY) * scale
         )
     }
 

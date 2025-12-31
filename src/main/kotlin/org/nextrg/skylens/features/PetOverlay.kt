@@ -358,7 +358,7 @@ object PetOverlay {
             roundRectangleFloat(
                 guiGraphics, x + 2 - idleProgress * 6, y + 2 - idleProgress * 6,
                 46 + (idleProgress * 13), 4 + (idleProgress * 12),
-                hexTransparent(color2, 255 - getAlphaProgress(idleProgress)), 0, if (altStyle) 0f else 3f + 9f * idleProgress * idleProgress, 0f
+                hexTransparent(color2, 255 - getAlphaProgress(idleProgress)), 0, (3f + 9f * idleProgress * idleProgress) / (if (altStyle) 2f else 1f), 0f
             )
         }
 
@@ -412,7 +412,7 @@ object PetOverlay {
     }
 
     private fun renderBarBg(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 2.5f else 4.5f
+        val borderRadius = if (altStyle) 2.5f else 4f
         val width = 51f
         val height = 8f
         if (!rainbowBg) {
@@ -423,7 +423,7 @@ object PetOverlay {
     }
 
     private fun renderBarLevel(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 2.5f else 4.5f
+        val borderRadius = if (altStyle) 2.5f else 4f
         val width = max(8f, (51f * animatedLevelProgress))
         val height = 8f
         if (!rainbowLevel) {
@@ -434,7 +434,7 @@ object PetOverlay {
     }
 
     private fun renderBarXp(guiGraphics: GuiGraphics, x: Float, y: Float, color: Int, idleProgress: Float) {
-        val borderRadius = if (altStyle) 1.5f else 2.5f
+        val borderRadius = if (altStyle) 1.5f else 2f
         val width = max(2f, (47f * animatedXp))
         val height = 4f
         if (!rainbowXp) {
