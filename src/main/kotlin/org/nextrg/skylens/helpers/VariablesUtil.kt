@@ -10,29 +10,17 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 object VariablesUtil {
-    fun animateFloat(
-        start: Float,
-        end: Float,
-        durationMs: Long,
-        easing: (Float) -> Float = ::linear
-    ): Flow<Float> = flow {
-        val startTime = System.currentTimeMillis()
-        var fraction: Float
-        do {
-            val now = System.currentTimeMillis()
-            val elapsed = now - startTime
-            fraction = (elapsed.toFloat() / durationMs).coerceIn(0f, 1f)
+    private const val DEG_TO_RAD = (Math.PI / 180.0).toFloat()
+    private const val RAD_TO_DEG = (180.0 / Math.PI).toFloat()
 
-            val easedFraction = easing(fraction)
+    fun degreesToRadians(degrees: Float): Float = degrees * DEG_TO_RAD
+    fun radiansToDegrees(radians: Float): Float = radians * RAD_TO_DEG
 
-            val value = start + (end - start) * easedFraction
-            emit(value)
-            delay(10)
-        } while (fraction < 1f)
-    }
+    fun withAlpha(hex: Int, alpha: Int = 255): Int = (alpha shl 24) or (hex and 0x00FFFFFF)
+    fun sToMs(seconds: Float): Long = (seconds * 1000).toLong()
+    fun getAlphaProgress(amount: Float): Int = (255 * amount).toInt()
 
     fun linear(t: Float) = t
-
     fun quad(t: Float): Float {
         return if (t <= 0.5f) {
             2.0f * t * t
@@ -42,9 +30,24 @@ object VariablesUtil {
         }
     }
 
-    fun Float.toFixed(decimals: Int): Float {
-        val factor = 10.0.pow(decimals).toFloat()
-        return kotlin.math.round(this * factor) / factor
+    fun animateFloat(
+        start: Float,
+        end: Float,
+        durationMs: Long,
+        easing: (Float) -> Float = ::linear
+    ): Flow<Float> = flow {
+        val startTime = System.currentTimeMillis()
+        var fraction: Float
+        do {
+            val elapsed = System.currentTimeMillis() - startTime
+            fraction = (elapsed.toFloat() / durationMs).coerceIn(0f, 1f)
+
+            val easedFraction = easing(fraction)
+
+            val value = start + (end - start) * easedFraction
+            emit(value)
+            delay(10)
+        } while (fraction < 1f)
     }
 
     fun getGradient(
@@ -68,30 +71,6 @@ object VariablesUtil {
         }
     }
 
-    fun hexTransparent(hex: Int, alpha: Int): Int {
-        return (alpha shl 24) or (hex and 0x00FFFFFF)
-    }
-
-    fun hexOpaque(hexa: Int): Int {
-        return (0xFF shl 24) or (hexa and 0x00FFFFFF)
-    }
-
-    fun sToMs(seconds: Float): Long {
-        return (seconds * 1000).toLong()
-    }
-
-    fun getAlphaProgress(amount: Float): Int {
-        return (255 * amount).toInt()
-    }
-
-    fun degreesToRadians(degrees: Float): Float {
-        return degrees * (Math.PI.toFloat() / 180f)
-    }
-
-    fun radiansToDegrees(radians: Float): Float {
-        return radians * (180f / Math.PI.toFloat())
-    }
-
     fun hexStringToInt(colorString: String, defaultColor: Int = 0xFF000000.toInt()): Int {
         val color = colorString.trim().removePrefix("#")
         return try {
@@ -110,6 +89,12 @@ object VariablesUtil {
         }
     }
 
+    /**
+     * Returns a list of colors forming a rainbow based on amount of steps
+     * @param steps affects how detailed the gradient is
+     * @param brightness value in hsv() of the color
+     * @see hsvToRgb
+     */
     fun getRainbow(steps: Int, brightness: Float = 1f): MutableList<Int> {
         val colors = mutableListOf<Int>()
         val hueSt = 360f / steps
@@ -168,12 +153,7 @@ object VariablesUtil {
 
     fun listToVector4fArray(colors: List<Int>): Array<Vector4f> {
         return colors.map { color ->
-            Vector4f(
-                ((color shr 16) and 0xFF) / 255f,
-                ((color shr 8) and 0xFF) / 255f,
-                (color and 0xFF) / 255f,
-                ((color shr 24) and 0xFF) / 255f
-            )
+            intToVector4f(color)
         }.toTypedArray()
     }
 
@@ -186,12 +166,17 @@ object VariablesUtil {
         )
     }
 
-    private fun Int.toARGB(): IntArray {
+    fun Int.toARGB(): IntArray {
         return intArrayOf(
             (this ushr 24) and 0xFF, // A
             (this ushr 16) and 0xFF, // R
             (this ushr 8) and 0xFF, // G
             this and 0xFF // B
         )
+    }
+
+    fun Float.toFixed(decimals: Int): Float {
+        val factor = 10.0.pow(decimals).toFloat()
+        return kotlin.math.round(this * factor) / factor
     }
 }
