@@ -48,7 +48,7 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
         
         final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
         final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
-        final Vector4f radius = new Vector4f(state.borderRadius);
+        final Vector4f radius = state.borderRadius;
         final Vector4f borderColor = VariablesUtil.INSTANCE.intToVector4f(state.borderColor());
         
         BufferBuilder buffer = Tesselator.getInstance()
@@ -82,7 +82,7 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
             int x1, int y1,
             int color,
             int borderColor,
-            float borderRadius,
+            Vector4f borderRadius,
             float borderWidth,
             float fx0,
             float fy0,
@@ -102,7 +102,7 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
                 float height,
                 int color,
                 int borderColor,
-                float borderRadius,
+                Vector4f borderRadius,
                 float borderWidth) {
             this(
                     (int)Math.floor(x - 2.0),
@@ -163,7 +163,7 @@ public class RoundRectangleFloatPIPRenderer extends PictureInPictureRenderer<Rou
             return this.borderColor;
         }
         
-        public float borderRadius() {
+        public Vector4f borderRadius() {
             return this.borderRadius;
         }
         
