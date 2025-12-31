@@ -88,8 +88,7 @@ object VariablesUtil {
             defaultColor
         }
     }
-
-
+    
     /**
      * Returns a list of colors forming a rainbow based on amount of steps
      * @param steps affects how detailed the gradient is
