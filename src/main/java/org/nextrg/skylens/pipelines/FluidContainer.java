@@ -41,13 +41,11 @@ public class FluidContainer {
     public static void draw(DrawContext drawContext, float x, float y, float width, float height, Vector4f fillColor, int waveDirection, Vector2f offset, float borderRadius) {
         FluidContainerPIPRenderer.State state = new FluidContainerPIPRenderer.State(
                 drawContext,
-                x, y,
+                x + 2f, y + 2f,
                 width, height,
                 0xFFFFFFFF,
-                fillColor,
-                waveDirection,
-                offset,
-                borderRadius
+                fillColor, waveDirection,
+                offset, borderRadius
         );
         
         GuiGraphicsHelper.submitPip(drawContext, state);

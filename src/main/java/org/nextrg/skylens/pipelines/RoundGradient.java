@@ -25,7 +25,7 @@ public class RoundGradient {
             .build();
     
     /**
-     * Draws a 2D rectangle with rounded corners on UI using Olympus rounded rectangle, but with float variables.
+     * Draws a 2D gradient rectangle with rounded corners on UI using Olympus rounded rectangle, but with float variables.
      * @param drawContext Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the rectangle
      * @param y Y position of <b>top</b> corner of the rectangle
@@ -36,7 +36,7 @@ public class RoundGradient {
     public static void draw(DrawContext drawContext, float x, float y, float width, float height, Vector4f[] colors, float time, int gradientDirection, int borderColor, float borderRadius, float borderWidth) {
         RoundGradientPIPRenderer.State state = new RoundGradientPIPRenderer.State(
                 drawContext,
-                x, y,
+                x + 2f, y + 2f,
                 width, height,
                 0xFFFFFFFF,
                 colors, colors.length, time,

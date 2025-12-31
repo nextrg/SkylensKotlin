@@ -24,6 +24,8 @@ import org.nextrg.skylens.pipelines.uniforms.RoundGradientUniform;
 
 import java.util.function.Function;
 
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
+
 public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGradientPIPRenderer.State> {
     private State lastState;
     
@@ -43,24 +45,19 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
     
     protected void render(State state, MatrixStack stack) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        final float paddedX = 4f * scale;
         
         final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
-        final float fWidth = size.x + paddedX;
-        final float fHeight = size.y + paddedX;
-        
-        final Vector2f center = new Vector2f(fWidth * 0.5f, fHeight * 0.5f);
-        
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
         final Vector4f radius = new Vector4f(state.borderRadius);
         final Vector4f borderColor = VariablesUtil.INSTANCE.intToVector4f(state.borderColor());
  
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         
-        buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
-        buffer.vertex(0.0f, fHeight, 0.0f).color(state.color());
-        buffer.vertex(fWidth, fHeight, 0.0f).color(state.color());
-        buffer.vertex(fWidth, 0.0f, 0.0f).color(state.color());
+        buffer.vertex(-4f, -4f, 0f).color(state.color());
+        buffer.vertex(-4f, size.y + 4f, 0f).color(state.color());
+        buffer.vertex(size.x + 4f, size.y + 4f, 0f).color(state.color());
+        buffer.vertex(size.x + 4f, -4f, 0f).color(state.color());
         
         PipelineRenderer.builder(RoundGradient.PIPELINE, buffer.end())
                 .uniform(RoundGradientUniform.STORAGE,
@@ -95,8 +92,10 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
             int borderColor,
             float borderRadius,
             float borderWidth,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
             float fwidth,
             float fheight,
             Matrix3x2f pose,
@@ -130,8 +129,10 @@ public class RoundGradientPIPRenderer extends SpecialGuiElementRenderer<RoundGra
                     borderColor,
                     borderRadius,
                     borderWidth,
-                    x,
-                    y,
+                    x - 2f,
+                    y - 2f,
+                    x + width + 2f,
+                    y + height + 2f,
                     width,
                     height,
                     new Matrix3x2f(graphics.getMatrices()),

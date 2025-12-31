@@ -15,7 +15,7 @@ import org.nextrg.skylens.helpers.OtherUtil.errorMessage
 import org.nextrg.skylens.helpers.OtherUtil.isShiftDown
 import org.nextrg.skylens.helpers.OtherUtil.jsonNeu
 import org.nextrg.skylens.helpers.OtherUtil.onSkyblock
-import org.nextrg.skylens.helpers.StringsUtil.codeFromName
+import org.nextrg.skylens.helpers.StringsUtil.nameToColorCode
 import org.nextrg.skylens.helpers.StringsUtil.getFormatCode
 import org.nextrg.skylens.helpers.StringsUtil.titleCase
 import java.awt.Color
@@ -92,7 +92,7 @@ object MissingEnchants {
                     for (j in i downTo max(0, i - 2)) {
                         append(list[j])
                         if (j != max(0, i - 2)) {
-                            append(codeFromName("gray"))
+                            append(nameToColorCode("gray"))
                             append(getFormatCode("reset"))
                             append(", ")
                         }

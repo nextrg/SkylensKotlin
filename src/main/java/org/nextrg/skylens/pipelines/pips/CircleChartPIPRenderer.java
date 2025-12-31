@@ -23,6 +23,8 @@ import org.nextrg.skylens.pipelines.uniforms.CircleChartUniform;
 
 import java.util.function.Function;
 
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
+
 public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChartPIPRenderer.State> {
     private State lastState;
     
@@ -43,23 +45,19 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
     @Override
     protected void render(State state, MatrixStack matrices) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        final float paddedX = 4f * scale;
+        final float padding = 4f;
         
         final Vector2f size = new Vector2f(state.outerRadius * 2f * scale, state.outerRadius * 2f * scale);
-        final float fSize = size.x + paddedX;
-        
-        Vector2f center = new Vector2f(
-                (state.fx - state.x0) * scale,
-                (state.fy - state.y0) * scale
-        );
+        final float fSize = size.x + (padding * scale);
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
         
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         
-        buffer.vertex(0f, 0f, 0f).color(state.color());
-        buffer.vertex(0f, fSize, 0f).color(state.color());
-        buffer.vertex(fSize, fSize, 0f).color(state.color());
-        buffer.vertex(fSize, 0f, 0f).color(state.color());
+        buffer.vertex(-4f, -4f, 0f).color(state.color());
+        buffer.vertex(-4f, fSize + 4f, 0f).color(state.color());
+        buffer.vertex(fSize + 4f, fSize + 4f, 0f).color(state.color());
+        buffer.vertex(fSize + 4f, -4f, 0f).color(state.color());
 
         PipelineRenderer.builder(CircleChart.PIPELINE, buffer.end())
                 .uniform(
@@ -99,8 +97,10 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
             float startAngle,
             int reverse,
             int invert,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
             Matrix3x2f pose,
             ScreenRect scissorArea,
             ScreenRect bounds
@@ -134,8 +134,10 @@ public class CircleChartPIPRenderer extends SpecialGuiElementRenderer<CircleChar
                     startAngle,
                     reverse ? 1 : 0,
                     invert ? 1 : 0,
-                    x,
-                    y,
+                    x - outerRadius - 2f,
+                    y - outerRadius - 2f,
+                    x + outerRadius + 2f,
+                    y + outerRadius + 2f,
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(

@@ -3,7 +3,8 @@ package org.nextrg.skylens.helpers
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
+import com.mojang.authlib.properties.PropertyMap
+import com.mojang.serialization.JsonOps
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientPlayNetworkHandler
 import net.minecraft.client.network.ClientPlayerEntity
@@ -17,6 +18,7 @@ import net.minecraft.scoreboard.ScoreboardDisplaySlot
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
+import net.minecraft.util.dynamic.Codecs
 import org.nextrg.skylens.ModConfig
 import java.net.URI
 import java.nio.charset.StandardCharsets
@@ -116,7 +118,7 @@ object OtherUtil {
                 }
             }
         } catch (e: java.lang.Exception) {
-            //errorMessage("Caught an error setting item texture (fallback)", e) <- fix later
+            errorMessage("Caught an error setting item texture (fallback)", e)
             return if (isPet) bone else air
         }
         return itemStack
@@ -134,8 +136,15 @@ object OtherUtil {
     private fun applyTextureToHeadItem(string: String, itemStack: ItemStack) {
         val end = if (string.contains("\"}]},")) "\"}]}," else "\"}]}},"
         val texture = string.substring(string.indexOf("Value:") + 7, string.lastIndexOf(end))
-        val gameProfile = GameProfile(UUID.randomUUID(), "CustomHead")
-        gameProfile.properties.put("textures", Property("textures", texture))
+
+        val gameProfile = createGameProfile(UUID.randomUUID(), Codecs.GAME_PROFILE_PROPERTY_MAP.parse(JsonOps.INSTANCE, JsonParser.parseString(
+            "[{\"name\":\"textures\",\"value\":\"$texture\"}]"
+        )).getOrThrow())
+
         itemStack.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
+    }
+
+    private fun createGameProfile(uuid: UUID, properties: PropertyMap): GameProfile {
+        return GameProfile(uuid, "", properties)
     }
 }

@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
 import net.minecraft.command.CommandRegistryAccess
@@ -13,12 +14,23 @@ import org.nextrg.skylens.ModConfig.openConfig
 import org.nextrg.skylens.api.Pets
 import org.nextrg.skylens.api.PlayerStats
 import org.nextrg.skylens.features.*
+import org.nextrg.skylens.pipelines.pips.*
 
 class Skylens : ClientModInitializer {
     override fun onInitializeClient() {
         getModContainer()
         ModConfig().init()
         registerCommands()
+
+        listOf(
+            ::CircleChartPIPRenderer,
+            ::FluidContainerPIPRenderer,
+            ::RadialLinePIPRenderer,
+            ::RoundGradientPIPRenderer,
+            ::RoundRectangleFloatPIPRenderer
+        ).forEach { ctor ->
+            SpecialGuiElementRegistry.register { ctx -> ctor(ctx.vertexConsumers()) }
+        }
 
         // APIs
         Pets.init()

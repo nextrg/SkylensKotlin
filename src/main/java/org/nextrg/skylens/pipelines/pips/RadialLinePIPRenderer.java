@@ -23,6 +23,8 @@ import org.nextrg.skylens.pipelines.uniforms.RadialLineUniform;
 
 import java.util.function.Function;
 
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
+
 public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLinePIPRenderer.State> {
     private State lastState;
     
@@ -43,21 +45,18 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
     @Override
     protected void render(State state, MatrixStack matrices) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        final float roundedRadius = Math.round(state.radius);
-        final float paddedRadius = (roundedRadius + 4f) * scale;
-        final float quadSize = paddedRadius * 2f;
         
-        float xOffset = (state.fx - (float)state.x0 - roundedRadius) * scale;
-        float yOffset = (state.fy - (float)state.y0 - roundedRadius) * scale;
-        Vector2f center = new Vector2f(paddedRadius - xOffset, paddedRadius - yOffset);
+        final Vector2f size = new Vector2f(state.radius * 2f * scale, state.radius * 2f * scale);
+        final float fSize = size.x + scale;
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
 
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         
-        buffer.vertex(0f, 0f, 0f).color(state.color());
-        buffer.vertex(0f, quadSize, 0f).color(state.color());
-        buffer.vertex(quadSize, quadSize, 0f).color(state.color());
-        buffer.vertex(quadSize, 0f, 0f).color(state.color());
+        buffer.vertex(-4f, -4f, 0f).color(state.color());
+        buffer.vertex(-4f, fSize + 4f, 0f).color(state.color());
+        buffer.vertex(fSize + 4f, fSize + 4f, 0f).color(state.color());
+        buffer.vertex(fSize + 4f, -4f, 0f).color(state.color());
 
         PipelineRenderer.builder(RadialLine.PIPELINE, buffer.end())
                 .uniform(
@@ -69,7 +68,7 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
                                 state.startAngle + (float)(Math.PI / 2),
                                 state.angleThickness,
                                 state.fadeSoftness,
-                                state.thickness / 2f,
+                                state.thickness,
                                 state.mode
                         )
                 )
@@ -93,8 +92,10 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
             float fadeSoftness,
             float thickness,
             int mode,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
             Matrix3x2f pose,
             ScreenRect scissorArea,
             ScreenRect bounds
@@ -124,8 +125,10 @@ public class RadialLinePIPRenderer extends SpecialGuiElementRenderer<RadialLineP
                     fadeSoftness,
                     thickness,
                     mode,
-                    x,
-                    y,
+                    x - radius - 2f,
+                    y - radius - 2f,
+                    x + radius + 2f,
+                    y + radius + 2f,
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(

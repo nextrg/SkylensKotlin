@@ -9,6 +9,8 @@ import earth.terrarium.olympus.client.utils.GuiGraphicsHelper;
 import net.minecraft.client.gl.UniformType;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.util.Identifier;
+import org.joml.Vector4f;
 import org.nextrg.skylens.Skylens;
 import org.nextrg.skylens.pipelines.pips.RoundRectangleFloatPIPRenderer;
 
@@ -19,7 +21,7 @@ public class RoundRectangleFloat {
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withUniform("RoundedRectangleUniform", UniformType.UNIFORM_BUFFER)
             .withBlend(BlendFunction.TRANSLUCENT)
-            .withFragmentShader(Skylens.Companion.id("core/round_rect"))
+            .withFragmentShader(Identifier.of("olympus", "core/rounded_rect"))
             .withVertexShader(Skylens.Companion.id("core/basic_transform"))
             .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
             .build();
@@ -29,6 +31,7 @@ public class RoundRectangleFloat {
      * @param drawContext Context used to draw the ui element
      * @param x X position of <b>left</b> corner of the rectangle
      * @param y Y position of <b>top</b> corner of the rectangle
+     * @param borderRadius Separate radius for rectangle corners <br> (order: top-right, bottom-right, top-left, bottom-left)
      *
      * @see RoundedRectangle RoundedRectangle</code> (original)
      * @see RoundedRectangleUniform
@@ -37,7 +40,30 @@ public class RoundRectangleFloat {
     public static void draw(DrawContext drawContext, float x, float y, float width, float height, int backgroundColor, int borderColor, float borderRadius, float borderWidth) {
         RoundRectangleFloatPIPRenderer.State state = new RoundRectangleFloatPIPRenderer.State(
                 drawContext,
-                x, y,
+                x + 2f, y + 2f,
+                width, height,
+                backgroundColor, borderColor,
+                new Vector4f(borderRadius), borderWidth
+        );
+        
+        GuiGraphicsHelper.submitPip(drawContext, state);
+    }
+    
+    /**
+     * Draws a 2D rectangle with rounded corners on UI using Olympus rounded rectangle, but with float variables and separate border radius for each corner.
+     * @param drawContext Context used to draw the ui element
+     * @param x X position of <b>left</b> corner of the rectangle
+     * @param y Y position of <b>top</b> corner of the rectangle
+     * @param borderRadius Shared radius for rectangle corners
+     *
+     * @see RoundedRectangle RoundedRectangle</code> (original)
+     * @see RoundedRectangleUniform
+     * @see RoundRectangleFloatPIPRenderer
+     */
+    public static void draw(DrawContext drawContext, float x, float y, float width, float height, int backgroundColor, int borderColor, Vector4f borderRadius, float borderWidth) {
+        RoundRectangleFloatPIPRenderer.State state = new RoundRectangleFloatPIPRenderer.State(
+                drawContext,
+                x + 2f, y + 2f,
                 width, height,
                 backgroundColor, borderColor,
                 borderRadius, borderWidth

@@ -23,6 +23,8 @@ import org.nextrg.skylens.pipelines.uniforms.FluidContainerUniform;
 
 import java.util.function.Function;
 
+import static org.nextrg.skylens.helpers.VariablesUtil.getFloatCenter;
+
 public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidContainerPIPRenderer.State> {
     private State lastState;
     
@@ -42,24 +44,18 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
     
     protected void render(State state, MatrixStack stack) {
         final float scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        final float paddedX = 4f * scale;
-        final float scaledWidth = (state.x1 - state.x0) * scale;
-        final float scaledHeight = (state.y1 - state.y0) * scale;
 
-        final Vector2f size = new Vector2f(scaledWidth - paddedX, scaledHeight - paddedX);
-        final float offsetX = (state.fx - 2.0f - state.x0) * scale;
-        final float offsetY = (state.fy - 2.0f - state.y0) * scale;
-        final Vector2f center = new Vector2f(size.x / 2f + paddedX / 2f - offsetX, size.y / 2f + paddedX / 2f - offsetY);
-        
-        Vector4f radius = new Vector4f(state.borderRadius);
+        final Vector2f size = new Vector2f(state.fwidth * scale, state.fheight * scale);
+        final Vector2f center = getFloatCenter(state, new Vector2f(state.fx0, state.fx1), new Vector2f(state.fy0, state.fy1), scale);
+        final Vector4f radius = new Vector4f(state.borderRadius);
         
         BufferBuilder buffer = Tessellator.getInstance()
                 .begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         
-        buffer.vertex(0.0f, 0.0f, 0.0f).color(state.color());
-        buffer.vertex(0.0f, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, scaledHeight, 0.0f).color(state.color());
-        buffer.vertex(scaledWidth, 0.0f, 0.0f).color(state.color());
+        buffer.vertex(-4f, -4f, 0f).color(state.color());
+        buffer.vertex(-4f, size.y + 4f, 0f).color(state.color());
+        buffer.vertex(size.x + 4f, size.y + 4f, 0f).color(state.color());
+        buffer.vertex(size.x + 4f, -4f, 0f).color(state.color());
         
         PipelineRenderer.builder(FluidContainer.PIPELINE, buffer.end())
                 .uniform(FluidContainerUniform.STORAGE,
@@ -88,8 +84,12 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
             int waveDirection,
             Vector2f offset,
             float borderRadius,
-            float fx,
-            float fy,
+            float fx0,
+            float fy0,
+            float fx1,
+            float fy1,
+            float fwidth,
+            float fheight,
             Matrix3x2f pose,
             ScreenRect scissorArea,
             ScreenRect bounds
@@ -115,8 +115,12 @@ public class FluidContainerPIPRenderer extends SpecialGuiElementRenderer<FluidCo
                     waveDirection,
                     offset,
                     borderRadius,
-                    x,
-                    y,
+                    x - 2f,
+                    y - 2f,
+                    x + width + 2f,
+                    y + height + 2f,
+                    width,
+                    height,
                     new Matrix3x2f(graphics.getMatrices()),
                     GuiGraphicsHelper.getLastScissor(graphics),
                     SpecialGuiElementRenderState.createBounds(
