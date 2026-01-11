@@ -96,22 +96,30 @@ object DrillFuelMeter {
 
     fun highlight(context: GuiGraphics) {
         val (x, y) = getPosition()
+        val scale = ModConfig.drillFuelMeterScale
 
         val margin = 1
-        val intX = x.toInt() - margin
-        val intY = y.toInt() - margin - 9
+        val baseWidth = 20 + margin * 2
+        val baseHeight = 49 + margin * 2
 
-        context.fill(intX, intY, intX + 20 + margin * 2, intY + 49 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (9 * scale).toInt() - (margin * scale).toInt()
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.drillFuelMeterScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.drillFuelMeterAnchor.toString(),
                 offsetX = ModConfig.drillFuelMeterX.toFloat(),
                 offsetY = ModConfig.drillFuelMeterY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f)) },
-                clampY = { pos, screenH -> clamp(pos, 1f + 9f, screenH.toFloat() - (40f + 1f)) }
+                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f) * scale) },
+                clampY = { pos, screenH -> clamp(pos, (1f + 9f) * scale, screenH.toFloat() - (40f + 1f) * scale) }
             )
         )
 
@@ -165,7 +173,16 @@ object DrillFuelMeter {
         animatedFuel = clamp(animatedFuel, 0f, 1f)
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.drillFuelMeterScale
+        drawContext.pose().pushMatrix()
+        drawContext.pose().translate(x, y)
+        drawContext.pose().scale(scale, scale)
+        drawContext.pose().translate(-x, -y)
+
         draw(drawContext, x, y, animatedFuel)
+
+        drawContext.pose().popMatrix()
     }
 
     private fun draw(drawContext: GuiGraphics, x: Float, y: Float, fuel: Float) {

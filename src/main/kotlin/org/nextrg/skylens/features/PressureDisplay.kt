@@ -99,22 +99,30 @@ object PressureDisplay {
 
     fun highlight(guiGraphics: GuiGraphics) {
         val (x, y) = getPosition()
+        val scale = ModConfig.pressureDisplayScale
 
         val margin = 1
-        val intX = x.toInt() - margin - 12
-        val intY = y.toInt() - margin
+        val baseWidth = 24 + margin * 2
+        val baseHeight = 35 + margin * 2
 
-        guiGraphics.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (12 * scale).toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (14 * scale).toInt() - (margin * scale).toInt()
+
+        guiGraphics.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.pressureDisplayScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.pressureDisplayAnchor.toString(),
                 offsetX = ModConfig.pressureDisplayX.toFloat(),
                 offsetY = ModConfig.pressureDisplayY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 13f, screenW.toFloat() - 13f) },
-                clampY = { pos, screenH -> clamp(pos, 15f, screenH.toFloat() - 22) }
+                clampX = { pos, screenW -> clamp(pos, 13f * scale, screenW.toFloat() - 13f * scale) },
+                clampY = { pos, screenH -> clamp(pos, 15f * scale, screenH.toFloat() - 22f * scale) }
             )
         )
 
@@ -151,7 +159,16 @@ object PressureDisplay {
         val max = degreesToRadians(135f + 90f - 360f)
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.pressureDisplayScale
+        guiGraphics.pose().pushMatrix()
+        guiGraphics.pose().translate(x, y)
+        guiGraphics.pose().scale(scale, scale)
+        guiGraphics.pose().translate(-x, -y)
+
         draw(guiGraphics, x, y, Mth.lerp(quad(animatedPressure), min, max))
+
+        guiGraphics.pose().popMatrix()
     }
 
     private fun getPressureString(): String = (PlayerStats.pressure * 100).toInt().toString() + "%"
