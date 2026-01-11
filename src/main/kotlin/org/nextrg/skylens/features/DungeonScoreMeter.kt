@@ -97,22 +97,30 @@ object DungeonScoreMeter {
 
     fun highlight(context: GuiGraphics) {
         val (x, y) = getPosition()
+        val scale = ModConfig.dungeonScoreMeterScale
 
         val margin = 1
-        val intX = x.toInt() - margin - 15
-        val intY = y.toInt() - margin - 15
+        val baseWidth = 30 + margin * 2
+        val baseHeight = 30 + margin * 2
 
-        context.fill(intX, intY, intX + 30 + margin * 2, intY + 30 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (15 * scale).toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (15 * scale).toInt() - (margin * scale).toInt()
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.dungeonScoreMeterScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.dungeonScoreMeterAnchor.toString(),
                 offsetX = ModConfig.dungeonScoreMeterX.toFloat(),
                 offsetY = ModConfig.dungeonScoreMeterY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 15f + 1f, screenW.toFloat() - (15f + 1f)) },
-                clampY = { pos, screenH -> clamp(pos, 15f + 1f, screenH.toFloat() - (15f + 1f)) }
+                clampX = { pos, screenW -> clamp(pos, (15f + 1f) * scale, screenW.toFloat() - (15f + 1f) * scale) },
+                clampY = { pos, screenH -> clamp(pos, (15f + 1f) * scale, screenH.toFloat() - (15f + 1f) * scale) }
             )
         )
 
@@ -177,7 +185,16 @@ object DungeonScoreMeter {
         getScore()
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.dungeonScoreMeterScale
+        drawContext.pose().pushMatrix()
+        drawContext.pose().translate(x, y)
+        drawContext.pose().scale(scale, scale)
+        drawContext.pose().translate(-x, -y)
+
         draw(drawContext, x, y)
+
+        drawContext.pose().popMatrix()
     }
 
     private fun draw(drawContext: GuiGraphics, x: Float, y: Float) {
