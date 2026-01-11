@@ -96,22 +96,31 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
 
         val anchor = ANCHOR_PATTERN.matcher(anchorSource).replaceAll(" $1")
 
-        drawText(context, "Press left-click on an element to move it.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 3, 0xFFFFFFFF.toInt(), 1.0f, true, true)
-        drawText(context, "Press right/middle-click to reset its position.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 2, 0xFFFFFFFF.toInt(), 1.0f, true, true)
+        drawText(context, "Press left-click on an element to move it.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 4, 0xFFFFFFFF.toInt(), 1.0f, true, true)
+        drawText(context, "Press right/middle-click to reset its position.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 3, 0xFFFFFFFF.toInt(), 1.0f, true, true)
+        drawText(context, "Use scroll wheel to scale the element.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line * 2, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         drawText(context, "Press A/D to switch elements.", (screenX / 2).toFloat(), (screenY / 2).toFloat() - line, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         drawText(context, "Currently changing: $displayFeature", (screenX / 2).toFloat(), (screenY / 2).toFloat(), 0xFFFFFFFF.toInt(), 1.0f, true, true)
         if (!empty) {
-            drawText(context, "Current position: [$displayX, $displayY]  Current anchor: $anchor", (screenX / 2).toFloat(), (screenY / 2).toFloat() + line, 0xFFFFFFFF.toInt(), 1.0f, true, true)
+            val displayScale = when {
+                currentFeature.contains("Pet Overlay") -> String.format(" Scale: %.0f%%", ModConfig.petOverlayScale * 100)
+                currentFeature.contains("Pressure Display") -> String.format(" Scale: %.0f%%", ModConfig.pressureDisplayScale * 100)
+                currentFeature.contains("Drill Fuel Meter") -> String.format(" Scale: %.0f%%", ModConfig.drillFuelMeterScale * 100)
+                currentFeature.contains("Dungeon Score Meter") -> String.format(" Scale: %.0f%%", ModConfig.dungeonScoreMeterScale * 100)
+                else -> ""
+            }
+            drawText(context, "Current position: [$displayX, $displayY]  Current anchor: $anchor$displayScale", (screenX / 2).toFloat(), (screenY / 2).toFloat() + line, 0xFFFFFFFF.toInt(), 1.0f, true, true)
         }
     }
 
     private fun isOverPetOverlay(mouseX: Double, mouseY: Double, position: Pair<Float, Float>): Boolean {
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
+        val scale = ModConfig.petOverlayScale.toDouble()
 
-        val left = -1.0; val bottom = 11.0
-        val right = (if (ModConfig.petOverlayType.toString().contains("Bar")) 27.0 else 0.0) + 25.0
-        val top = if (ModConfig.petOverlayType.toString().contains("Bar")) -19.0 else -36.0
+        val left = -1.0 * scale; val bottom = 11.0 * scale
+        val right = ((if (ModConfig.petOverlayType.toString().contains("Bar")) 27.0 else 0.0) + 25.0) * scale
+        val top = (if (ModConfig.petOverlayType.toString().contains("Bar")) -19.0 else -36.0) * scale
 
         return dx in left..right && dy in top..bottom
     }
@@ -119,9 +128,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     private fun isOverPressureDisplay(mouseX: Double, mouseY: Double, position: Pair<Float, Float>): Boolean {
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
+        val scale = ModConfig.pressureDisplayScale.toDouble()
 
-        val left = -15.0; val right = 15.0
-        val top = -15.0; val bottom = 24.0
+        val left = -15.0 * scale; val right = 15.0 * scale
+        val top = -15.0 * scale; val bottom = 24.0 * scale
 
         return dx in left..right && dy in top..bottom
     }
@@ -129,9 +139,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     private fun isOverDrillFuelBar(mouseX: Double, mouseY: Double, position: Pair<Float, Float>): Boolean {
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
+        val scale = ModConfig.drillFuelMeterScale.toDouble()
 
-        val left = -1.0; val right = 21.0
-        val top = -1.0; val bottom = 41.0
+        val left = -1.0 * scale; val right = 21.0 * scale
+        val top = -1.0 * scale; val bottom = 41.0 * scale
 
         return dx in left..right && dy in top..bottom
     }
@@ -139,9 +150,10 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
     private fun isOverDungeonScoreMeter(mouseX: Double, mouseY: Double, position: Pair<Float, Float>): Boolean {
         val (x, y) = position
         val dx = mouseX - x; val dy = mouseY - y
+        val scale = ModConfig.dungeonScoreMeterScale.toDouble()
 
-        val left = -16.0; val right = 16.0
-        val top = -17.0; val bottom = 16.0
+        val left = -16.0 * scale; val right = 16.0 * scale
+        val top = -17.0 * scale; val bottom = 16.0 * scale
 
         return dx in left..right && dy in top..bottom
     }
@@ -227,6 +239,33 @@ class HudEditor(private var parent: Screen?, title: Text = Text.literal("HudEdit
             setDungeonScoreMeterMargin(mouseX, mouseY)
         }
         return super.mouseReleased(click)
+    }
+
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
+        val scaleStep = 0.05f
+        when {
+            currentFeature.contains("Pet Overlay") -> {
+                val newScale = ModConfig.petOverlayScale + (verticalAmount.toFloat() * scaleStep)
+                ModConfig.petOverlayScale = clamp(newScale, 0.5f, 2.0f)
+                return true
+            }
+            currentFeature.contains("Pressure Display") -> {
+                val newScale = ModConfig.pressureDisplayScale + (verticalAmount.toFloat() * scaleStep)
+                ModConfig.pressureDisplayScale = clamp(newScale, 0.5f, 2.0f)
+                return true
+            }
+            currentFeature.contains("Drill Fuel Meter") -> {
+                val newScale = ModConfig.drillFuelMeterScale + (verticalAmount.toFloat() * scaleStep)
+                ModConfig.drillFuelMeterScale = clamp(newScale, 0.5f, 2.0f)
+                return true
+            }
+            currentFeature.contains("Dungeon Score Meter") -> {
+                val newScale = ModConfig.dungeonScoreMeterScale + (verticalAmount.toFloat() * scaleStep)
+                ModConfig.dungeonScoreMeterScale = clamp(newScale, 0.5f, 2.0f)
+                return true
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
     }
 
     private fun setPetOverlayMargin(x: Double, y: Double) {

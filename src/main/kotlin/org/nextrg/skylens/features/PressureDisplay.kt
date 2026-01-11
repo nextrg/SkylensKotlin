@@ -99,12 +99,19 @@ object PressureDisplay {
 
     fun highlight(context: DrawContext) {
         val (x, y) = getPosition()
+        val scale = ModConfig.pressureDisplayScale
 
         val margin = 1
-        val intX = x.toInt() - margin - 12
-        val intY = y.toInt() - margin
+        val baseWidth = 24 + margin * 2
+        val baseHeight = 35 + margin * 2
 
-        context.fill(intX, intY - 14, intX + 24 + margin * 2, intY + 21 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (12 * scale).toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (14 * scale).toInt() - (margin * scale).toInt()
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -151,7 +158,16 @@ object PressureDisplay {
         val max = degreesToRadians(135f + 90f - 360f)
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.pressureDisplayScale
+        drawContext.matrices.pushMatrix()
+        drawContext.matrices.translate(x, y)
+        drawContext.matrices.scale(scale, scale)
+        drawContext.matrices.translate(-x, -y)
+
         draw(drawContext, x, y, MathHelper.lerp(quad(animatedPressure), min, max))
+
+        drawContext.matrices.popMatrix()
     }
 
     private fun getPressureString(): String = (PlayerStats.pressure * 100).toInt().toString() + "%"

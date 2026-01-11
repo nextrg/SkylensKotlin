@@ -202,13 +202,19 @@ object PetOverlay {
 
     fun highlight(context: DrawContext) {
         val (x, y) = getPosition()
+        val scale = ModConfig.petOverlayScale
 
         val margin = 1
-        val intX = x.toInt() - margin
-        val intY = y.toInt() - 16 - margin
-        val x2 = intX + 24 + if (isBarType) 29 else 0 + margin * 2
+        val baseWidth = 24 + if (isBarType) 29 else 0 + margin * 2
+        val baseHeight = 25 + margin * 2 + if (!isBarType) 16 else 0
 
-        context.fill(intX, intY - if (!isBarType) 16 else 0, x2, intY + 25 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (16 * scale).toInt() - (margin * scale).toInt() - if (!isBarType) (16 * scale).toInt() else 0
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -308,12 +314,20 @@ object PetOverlay {
             yO += (sin(getIdleProgress(2700.0) * 2 * Math.PI) * 0.7f).toFloat()
         }
 
+        val scale = ModConfig.petOverlayScale
+        drawContext.matrices.pushMatrix()
+        drawContext.matrices.translate(x, yO)
+        drawContext.matrices.scale(scale, scale)
+        drawContext.matrices.translate(-x, -yO)
+
         if (isBarType) {
             renderBars(drawContext, x, yO, color1, color2, color3)
         } else {
             renderCircles(drawContext, x, yO, color1, color2, color3)
         }
         renderText(drawContext, x, yO, textColor)
+
+        drawContext.matrices.popMatrix()
     }
 
     private fun renderText(drawContext: DrawContext, x: Float, y: Float, color: Int) {

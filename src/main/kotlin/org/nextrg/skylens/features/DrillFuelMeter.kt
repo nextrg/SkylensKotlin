@@ -96,12 +96,19 @@ object DrillFuelMeter {
 
     fun highlight(context: DrawContext) {
         val (x, y) = getPosition()
+        val scale = ModConfig.drillFuelMeterScale
 
         val margin = 1
-        val intX = x.toInt() - margin
-        val intY = y.toInt() - margin - 9
+        val baseWidth = 20 + margin * 2
+        val baseHeight = 49 + margin * 2
 
-        context.fill(intX, intY, intX + 20 + margin * 2, intY + 49 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (9 * scale).toInt() - (margin * scale).toInt()
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -165,7 +172,16 @@ object DrillFuelMeter {
         animatedFuel = clamp(animatedFuel, 0f, 1f)
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.drillFuelMeterScale
+        drawContext.matrices.pushMatrix()
+        drawContext.matrices.translate(x, y)
+        drawContext.matrices.scale(scale, scale)
+        drawContext.matrices.translate(-x, -y)
+
         draw(drawContext, x, y, animatedFuel)
+
+        drawContext.matrices.popMatrix()
     }
 
     private fun draw(drawContext: DrawContext, x: Float, y: Float, fuel: Float) {

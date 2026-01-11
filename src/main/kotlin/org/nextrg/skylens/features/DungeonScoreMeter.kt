@@ -97,12 +97,19 @@ object DungeonScoreMeter {
 
     fun highlight(context: DrawContext) {
         val (x, y) = getPosition()
+        val scale = ModConfig.dungeonScoreMeterScale
 
         val margin = 1
-        val intX = x.toInt() - margin - 15
-        val intY = y.toInt() - margin - 15
+        val baseWidth = 30 + margin * 2
+        val baseHeight = 30 + margin * 2
 
-        context.fill(intX, intY, intX + 30 + margin * 2, intY + 30 + margin * 2, 0x14FFFFFF)
+        val scaledWidth = (baseWidth * scale).toInt()
+        val scaledHeight = (baseHeight * scale).toInt()
+
+        val intX = x.toInt() - (15 * scale).toInt() - (margin * scale).toInt()
+        val intY = y.toInt() - (15 * scale).toInt() - (margin * scale).toInt()
+
+        context.fill(intX, intY, intX + scaledWidth, intY + scaledHeight, 0x14FFFFFF)
     }
 
     fun getPosition(): Pair<Float, Float> {
@@ -177,7 +184,16 @@ object DungeonScoreMeter {
         getScore()
 
         val (x, y) = getPosition()
+
+        val scale = ModConfig.dungeonScoreMeterScale
+        drawContext.matrices.pushMatrix()
+        drawContext.matrices.translate(x, y)
+        drawContext.matrices.scale(scale, scale)
+        drawContext.matrices.translate(-x, -y)
+
         draw(drawContext, x, y)
+
+        drawContext.matrices.popMatrix()
     }
 
     private fun draw(drawContext: DrawContext, x: Float, y: Float) {

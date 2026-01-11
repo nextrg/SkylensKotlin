@@ -144,6 +144,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static int pressureDisplayY = -14;
     @SerialEntry
+    public static float pressureDisplayScale = 1.0f;
+    @SerialEntry
     public static int pressureDisplayTheme = 0;
     
     @SerialEntry
@@ -155,6 +157,8 @@ public class ModConfig implements ModMenuApi {
     @SerialEntry
     public static int drillFuelMeterY = -32;
     @SerialEntry
+    public static float drillFuelMeterScale = 1.0f;
+    @SerialEntry
     public static int drillFuelMeterTheme = 0;
     
     @SerialEntry
@@ -165,6 +169,8 @@ public class ModConfig implements ModMenuApi {
     public static int dungeonScoreMeterX = -116;
     @SerialEntry
     public static int dungeonScoreMeterY = -9;
+    @SerialEntry
+    public static float dungeonScoreMeterScale = 1.0f;
     @SerialEntry
     public static int dungeonScoreMeterTheme = 0;
     @SerialEntry
@@ -198,6 +204,8 @@ public class ModConfig implements ModMenuApi {
     public static Color petOverlayColor2 = Color.GRAY;
     @SerialEntry
     public static Color petOverlayColor3 = Color.DARK_GRAY;
+    @SerialEntry
+    public static float petOverlayScale = 1.0f;
     @SerialEntry
     public static boolean petOverlayAnimation_IdlePulse = true;
     @SerialEntry
@@ -248,6 +256,15 @@ public class ModConfig implements ModMenuApi {
                         .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> petOverlayAnchor, newValue -> petOverlayAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
+                        .build())
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Scale"))
+                        .description(OptionDescription.of(Text.literal("Sets the scale of the overlay. Use scroll wheel in HUD Editor to adjust.")))
+                        .binding(1.0f, () -> petOverlayScale, newValue -> petOverlayScale = newValue)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0.5f, 2.0f)
+                                .step(0.05f)
+                                .formatValue(val -> Text.literal(String.format("%.0f%%", val * 100))))
                         .build())
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
@@ -300,6 +317,15 @@ public class ModConfig implements ModMenuApi {
                         .binding(Anchor.BottomMiddle, () -> pressureDisplayAnchor, newValue -> pressureDisplayAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Scale"))
+                        .description(OptionDescription.of(Text.literal("Sets the scale of the overlay. Use scroll wheel in HUD Editor to adjust.")))
+                        .binding(1.0f, () -> pressureDisplayScale, newValue -> pressureDisplayScale = newValue)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0.5f, 2.0f)
+                                .step(0.05f)
+                                .formatValue(val -> Text.literal(String.format("%.0f%%", val * 100))))
+                        .build())
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
                         .text(Text.literal("→"))
@@ -336,6 +362,15 @@ public class ModConfig implements ModMenuApi {
                         .binding(Anchor.BottomMiddle, () -> drillFuelMeterAnchor, newValue -> drillFuelMeterAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
                         .build())
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Scale"))
+                        .description(OptionDescription.of(Text.literal("Sets the scale of the overlay. Use scroll wheel in HUD Editor to adjust.")))
+                        .binding(1.0f, () -> drillFuelMeterScale, newValue -> drillFuelMeterScale = newValue)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0.5f, 2.0f)
+                                .step(0.05f)
+                                .formatValue(val -> Text.literal(String.format("%.0f%%", val * 100))))
+                        .build())
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
                         .text(Text.literal("→"))
@@ -371,6 +406,15 @@ public class ModConfig implements ModMenuApi {
                         .description(OptionDescription.of(Text.literal("Sets the anchor of the overlay to given positions.")))
                         .binding(Anchor.BottomMiddle, () -> dungeonScoreMeterAnchor, newValue -> dungeonScoreMeterAnchor = newValue)
                         .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Anchor.class))
+                        .build())
+                .option(Option.<Float>createBuilder()
+                        .name(Text.literal("Scale"))
+                        .description(OptionDescription.of(Text.literal("Sets the scale of the overlay. Use scroll wheel in HUD Editor to adjust.")))
+                        .binding(1.0f, () -> dungeonScoreMeterScale, newValue -> dungeonScoreMeterScale = newValue)
+                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                .range(0.5f, 2.0f)
+                                .step(0.05f)
+                                .formatValue(val -> Text.literal(String.format("%.0f%%", val * 100))))
                         .build())
                 .option(ButtonOption.createBuilder()
                         .name(Text.literal("Open HUD Editor"))
