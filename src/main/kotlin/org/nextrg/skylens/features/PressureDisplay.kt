@@ -115,13 +115,14 @@ object PressureDisplay {
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.pressureDisplayScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.pressureDisplayAnchor.toString(),
                 offsetX = ModConfig.pressureDisplayX.toFloat(),
                 offsetY = ModConfig.pressureDisplayY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 13f, screenW.toFloat() - 13f) },
-                clampY = { pos, screenH -> clamp(pos, 15f, screenH.toFloat() - 22) }
+                clampX = { pos, screenW -> clamp(pos, 13f * scale, screenW.toFloat() - 13f * scale) },
+                clampY = { pos, screenH -> clamp(pos, 15f * scale, screenH.toFloat() - 22f * scale) }
             )
         )
 

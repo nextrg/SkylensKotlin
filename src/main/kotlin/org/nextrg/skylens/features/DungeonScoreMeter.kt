@@ -113,13 +113,14 @@ object DungeonScoreMeter {
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.dungeonScoreMeterScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.dungeonScoreMeterAnchor.toString(),
                 offsetX = ModConfig.dungeonScoreMeterX.toFloat(),
                 offsetY = ModConfig.dungeonScoreMeterY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 15f + 1f, screenW.toFloat() - (15f + 1f)) },
-                clampY = { pos, screenH -> clamp(pos, 15f + 1f, screenH.toFloat() - (15f + 1f)) }
+                clampX = { pos, screenW -> clamp(pos, (15f + 1f) * scale, screenW.toFloat() - (15f + 1f) * scale) },
+                clampY = { pos, screenH -> clamp(pos, (15f + 1f) * scale, screenH.toFloat() - (15f + 1f) * scale) }
             )
         )
 

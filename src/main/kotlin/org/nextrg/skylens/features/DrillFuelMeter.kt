@@ -112,13 +112,14 @@ object DrillFuelMeter {
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.drillFuelMeterScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.drillFuelMeterAnchor.toString(),
                 offsetX = ModConfig.drillFuelMeterX.toFloat(),
                 offsetY = ModConfig.drillFuelMeterY.toFloat(),
-                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f)) },
-                clampY = { pos, screenH -> clamp(pos, 1f + 9f, screenH.toFloat() - (40f + 1f)) }
+                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (20f + 1f) * scale) },
+                clampY = { pos, screenH -> clamp(pos, (1f + 9f) * scale, screenH.toFloat() - (40f + 1f) * scale) }
             )
         )
 

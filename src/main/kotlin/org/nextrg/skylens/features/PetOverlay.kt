@@ -218,14 +218,15 @@ object PetOverlay {
     }
 
     fun getPosition(): Pair<Float, Float> {
+        val scale = ModConfig.petOverlayScale
         val (baseX, baseY) = RenderUtil.computePosition(
             RenderUtil.ElementPos(
                 anchorKey = ModConfig.petOverlayAnchor.toString(),
                 offsetX = ModConfig.petOverlayX.toFloat(),
                 offsetY = ModConfig.petOverlayY.toFloat(),
                 isBar = isBarType,
-                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - 25 - if (isBarType) 27 else 0) },
-                clampY = { pos, screenH -> clamp(pos, 17f + if (!isBarType) 16 else 0, screenH.toFloat() - 10) }
+                clampX = { pos, screenW -> clamp(pos, 1f, screenW.toFloat() - (25 + if (isBarType) 27 else 0) * scale) },
+                clampY = { pos, screenH -> clamp(pos, (17f + if (!isBarType) 16 else 0) * scale, screenH.toFloat() - 10 * scale) }
             )
         )
 
