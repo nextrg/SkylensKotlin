@@ -238,7 +238,7 @@ object PetOverlay {
         val marginX = 2 * (1 - ax * 2)
         val marginY = 2 * (1 - ay * 2)
 
-        fun map(value: Float): Float = 120f * (value - 0.5f)
+        fun map(value: Float): Float = (120f * (value - 0.5f)) * ModConfig.petOverlayScale
         var offsetX = map(ax)
         var offsetY = map(ay)
         offsetX -= (baseX - anchorX - marginX) * (1 - ax * 2)

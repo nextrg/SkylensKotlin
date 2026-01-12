@@ -244,25 +244,26 @@ class HudEditor(private var parent: Screen?, title: Component = Component.litera
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
         val scaleStep = 0.05f
+
         when {
             currentFeature.contains("Pet Overlay") -> {
                 val newScale = ModConfig.petOverlayScale + (verticalAmount.toFloat() * scaleStep)
-                ModConfig.petOverlayScale = clamp(newScale, 0.5f, 2.0f)
+                ModConfig.petOverlayScale = clamp(0.5f, 2.0f, newScale)
                 return true
             }
             currentFeature.contains("Pressure Display") -> {
                 val newScale = ModConfig.pressureDisplayScale + (verticalAmount.toFloat() * scaleStep)
-                ModConfig.pressureDisplayScale = clamp(newScale, 0.5f, 2.0f)
+                ModConfig.petOverlayScale = clamp(0.5f, 2.0f, newScale)
                 return true
             }
             currentFeature.contains("Drill Fuel Meter") -> {
                 val newScale = ModConfig.drillFuelMeterScale + (verticalAmount.toFloat() * scaleStep)
-                ModConfig.drillFuelMeterScale = clamp(newScale, 0.5f, 2.0f)
+                ModConfig.petOverlayScale = clamp(0.5f, 2.0f, newScale)
                 return true
             }
             currentFeature.contains("Dungeon Score Meter") -> {
                 val newScale = ModConfig.dungeonScoreMeterScale + (verticalAmount.toFloat() * scaleStep)
-                ModConfig.dungeonScoreMeterScale = clamp(newScale, 0.5f, 2.0f)
+                ModConfig.petOverlayScale = clamp(0.5f, 2.0f, newScale)
                 return true
             }
         }
