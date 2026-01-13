@@ -18,7 +18,7 @@
     "sources": "https://github.com/nextrg/SkylensKotlin",
     "issues": "https://github.com/nextrg/SkylensKotlin/issues"
   },
-  "license": "MIT",
+  "license": "GPL v3",
   "icon": "assets/skylens/icon.png",
   "environment": "client",
   "entrypoints": {
